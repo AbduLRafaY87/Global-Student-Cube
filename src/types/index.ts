@@ -1,4 +1,11 @@
-export type UserRole = "student" | "parent" | "counselor" | "admin";
+export const USER_ROLES = [
+  "student",
+  "parent",
+  "counselor",
+  "admin",
+] as const;
+
+export type UserRole = (typeof USER_ROLES)[number];
 
 export type ApplicationStatus =
   | "draft"

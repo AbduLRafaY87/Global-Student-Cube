@@ -1,7 +1,9 @@
 ---
-description: Enforce core technology stack and syntax rules
-globs: **/*
+description: "Enforce core technology stack and syntax rules"
+globs: "**/*"
+alwaysApply: true
 ---
+
 # Tech Stack Constraints
 
 - **Framework**: Next.js (App Router only - no `pages` router syntax).
@@ -11,6 +13,5 @@ globs: **/*
 - **Icons**: Lucide React (`lucide-react`).
 
 # Strict Rules
-1. NEVER install or suggest new dependencies without explicit confirmation. Use existing packages only.
-2. NEVER guess API routes, endpoints, or utility function signatures. Always refer to `@src/types/index.ts` or `@src/lib/`.
-3. Keep components small, modular, and single-responsibility. Place reusable components inside `@src/components/ui/`.
+1. NEVER install or suggest new dependencies without explicit confirmation.
+2. NEVER launch web browsers, search tools, or run background exploration tools unless explicitly commanded.

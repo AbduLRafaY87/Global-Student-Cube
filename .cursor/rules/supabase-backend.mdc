@@ -1,6 +1,7 @@
 ---
 description: Rules for Supabase integration, Database, and Auth
 globs: src/lib/supabase/**/*, src/app/api/**/*, src/app/(dashboard)/**/*, src/app/(auth)/**/*
+alwaysApply: true
 ---
 # Supabase Integration Rules
 

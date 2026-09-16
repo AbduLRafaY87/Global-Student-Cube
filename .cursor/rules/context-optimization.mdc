@@ -1,6 +1,7 @@
 ---
 description: Context window and API token optimization rules
 globs: **/*
+alwaysApply: true
 ---
 # Context & Token Saver Rules
 
