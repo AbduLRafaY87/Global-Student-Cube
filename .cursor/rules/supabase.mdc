@@ -1,0 +1,7 @@
+---
+description: Supabase Database and Authorization Constraints
+globs: src/lib/supabase/**/*, src/app/api/**/*
+---
+- Use `@supabase/ssr` for Next.js App Router authentication.
+- Always implement Row Level Security (RLS) policies for user data protection.
+- Database primary keys must be UUIDs.
