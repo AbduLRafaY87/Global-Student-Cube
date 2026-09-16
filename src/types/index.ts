@@ -20,6 +20,17 @@ export interface User {
   created_at: string;
 }
 
+export interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  role: UserRole;
+  onboarding_completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface StudentProfile {
   id: string;
   user_id: string;
