@@ -1,0 +1,10 @@
+---
+description: Context window and API token optimization rules
+globs: **/*
+---
+# Context & Token Saver Rules
+
+1. **No Speculative Indexing**: Do NOT read through all files in `@specs/` at once. Only reference the single `@specs/module-X.md` file relevant to the current task.
+2. **Minimal Code Outputs**: When editing files, output only the modified code blocks or diffs unless asked for the full file.
+3. **No Unrequested Scaffolding**: Do not generate boilerplate for untouched modules, future features, or placeholder API routes unless explicitly requested.
+4. **Use Exact Files**: Always ask the user to clarify or attach specific `@file` references if an API contract or type definition is missing, rather than generating assumptions.

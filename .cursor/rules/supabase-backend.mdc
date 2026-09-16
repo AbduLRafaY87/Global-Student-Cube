@@ -1,0 +1,17 @@
+---
+description: Rules for Supabase integration, Database, and Auth
+globs: src/lib/supabase/**/*, src/app/api/**/*, src/app/(dashboard)/**/*, src/app/(auth)/**/*
+---
+# Supabase Integration Rules
+
+- **Authentication**: Always use `@supabase/ssr` to create client instances.
+  - Server Components / API Routes: Import and use `createClient` from `@/lib/supabase/server`.
+  - Client Components: Import and use `createClient` from `@/lib/supabase/client`.
+- **Database Schema**: Refer directly to `@specs/database-schema.md` or `@src/types/index.ts`. Do NOT invent table columns, foreign keys, or missing table names.
+- **Security**:
+  - Always assume Row Level Security (RLS) is enabled on every Supabase table.
+  - Primary keys are always `UUID`.
+  - Never perform service-role actions on the client side.
+
+# Data Fetching
+- Prefer fetching data directly in Next.js Server Components over Client-side `useEffect` fetches whenever possible to minimize client API calls.

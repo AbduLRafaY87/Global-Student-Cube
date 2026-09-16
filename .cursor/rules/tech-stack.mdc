@@ -1,0 +1,16 @@
+---
+description: Enforce core technology stack and syntax rules
+globs: **/*
+---
+# Tech Stack Constraints
+
+- **Framework**: Next.js (App Router only - no `pages` router syntax).
+- **Language**: Strict TypeScript. Always define clear interfaces or types. Never use `any`.
+- **Styling**: Tailwind CSS only. Do not write raw `.css` files or inline `style` objects.
+- **Backend/Auth**: Supabase (`@supabase/ssr` package for Next.js App Router).
+- **Icons**: Lucide React (`lucide-react`).
+
+# Strict Rules
+1. NEVER install or suggest new dependencies without explicit confirmation. Use existing packages only.
+2. NEVER guess API routes, endpoints, or utility function signatures. Always refer to `@src/types/index.ts` or `@src/lib/`.
+3. Keep components small, modular, and single-responsibility. Place reusable components inside `@src/components/ui/`.

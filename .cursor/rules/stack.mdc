@@ -1,9 +1,0 @@
----
-description: Global Tech Stack Constraints
-globs: **/*
----
-- Stack: Next.js (App Router), TypeScript, Tailwind CSS, Supabase (Auth, Database, Storage), Node.js.
-- Never write raw CSS; use Tailwind CSS.
-- Never write plain JavaScript; use strict TypeScript types.
-- Break UI into small, reusable components in `src/components/`.
-- Optimize for web-only desktop and mobile viewports.
