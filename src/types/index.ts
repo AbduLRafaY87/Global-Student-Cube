@@ -7,11 +7,14 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number];
 
-export type ApplicationStatus =
-  | "draft"
-  | "submitted"
-  | "accepted"
-  | "rejected";
+export const APPLICATION_STATUSES = [
+  "draft",
+  "submitted",
+  "accepted",
+  "rejected",
+] as const;
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
 
 export interface User {
   id: string;
@@ -82,4 +85,163 @@ export interface Application {
   university_id: string;
   status: ApplicationStatus;
   deadline: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const DOCUMENT_TYPES = [
+  "transcript",
+  "passport",
+  "recommendation_letter",
+  "essay",
+  "other",
+] as const;
+
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+
+export interface StudentDocument {
+  id: string;
+  user_id: string;
+  file_name: string;
+  file_url: string;
+  document_type: DocumentType;
+  created_at: string;
+}
+
+export const ESSAY_STATUSES = [
+  "brainstorming",
+  "drafting",
+  "review",
+  "final",
+] as const;
+
+export type EssayStatus = (typeof ESSAY_STATUSES)[number];
+
+export interface Essay {
+  id: string;
+  student_id: string;
+  university_id: string | null;
+  title: string;
+  prompt: string;
+  content: string;
+  word_limit: number;
+  status: EssayStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export const RECOMMENDATION_STATUSES = [
+  "requested",
+  "accepted",
+  "submitted",
+] as const;
+
+export type RecommendationStatus = (typeof RECOMMENDATION_STATUSES)[number];
+
+export interface Recommendation {
+  id: string;
+  student_id: string;
+  recommender_name: string;
+  recommender_email: string;
+  recommender_title: string;
+  relationship: string;
+  status: RecommendationStatus;
+  deadline: string;
+  created_at: string;
+}
+
+export interface Scholarship {
+  id: string;
+  title: string;
+  provider: string;
+  amount: number;
+  country: string;
+  minimum_gpa: number;
+  deadline: string;
+  application_url: string;
+  created_at: string;
+}
+
+export interface ScholarshipSearchFilters {
+  country?: string;
+  min_amount?: number;
+}
+
+export const TEST_TYPES = [
+  "SAT",
+  "ACT",
+  "TOEFL",
+  "IELTS",
+  "GRE",
+  "GMAT",
+] as const;
+
+export type TestType = (typeof TEST_TYPES)[number];
+
+export interface TestScoreLog {
+  id: string;
+  student_id: string;
+  test_type: TestType;
+  score: number;
+  test_date: string;
+  is_official: boolean;
+  created_at: string;
+}
+
+export interface CounselorAssignment {
+  id: string;
+  student_id: string;
+  counselor_id: string;
+  assigned_at: string;
+}
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  read: boolean;
+  created_at: string;
+}
+
+export const INTERVIEW_STATUSES = [
+  "scheduled",
+  "completed",
+  "canceled",
+] as const;
+
+export type InterviewStatus = (typeof INTERVIEW_STATUSES)[number];
+
+export interface InterviewSession {
+  id: string;
+  student_id: string;
+  university_id: string | null;
+  scheduled_at: string;
+  interviewer_name: string;
+  notes: string;
+  status: InterviewStatus;
+  created_at: string;
+}
+
+export type AdmissionOddsCategory = "Reach" | "Match" | "Safety";
+
+export const TASK_PRIORITIES = ["low", "medium", "high"] as const;
+
+export type TaskPriority = (typeof TASK_PRIORITIES)[number];
+
+export interface TaskItem {
+  id: string;
+  student_id: string;
+  title: string;
+  due_date: string;
+  is_completed: boolean;
+  priority: TaskPriority;
+  created_at: string;
+}
+
+export interface ParentStudentLink {
+  id: string;
+  parent_id: string;
+  student_id: string;
+  created_at: string;
 }
