@@ -245,3 +245,105 @@ export interface ParentStudentLink {
   student_id: string;
   created_at: string;
 }
+
+export interface StudentActivity {
+  id: string;
+  student_id: string;
+  title: string;
+  organization: string;
+  role: string;
+  description: string;
+  hours_per_week: number;
+  weeks_per_year: number;
+  created_at: string;
+}
+
+export interface VisaChecklistItem {
+  id: string;
+  student_id: string;
+  country: string;
+  document_name: string;
+  is_completed: boolean;
+  notes: string;
+  created_at: string;
+}
+
+export const HOUSING_TYPES = [
+  "on_campus",
+  "off_campus",
+  "shared_apartment",
+] as const;
+
+export type HousingType = (typeof HOUSING_TYPES)[number];
+
+export interface HousingOption {
+  id: string;
+  university_id: string;
+  title: string;
+  housing_type: HousingType;
+  monthly_cost: number;
+  address: string;
+  created_at: string;
+}
+
+export interface AlumniProfile {
+  id: string;
+  name: string;
+  university_id: string;
+  graduation_year: number;
+  current_company: string;
+  linkedin_url: string;
+  created_at: string;
+}
+
+export const OFFER_STATUSES = ["pending", "accepted", "declined"] as const;
+
+export type OfferStatus = (typeof OFFER_STATUSES)[number];
+
+export interface AdmissionOffer {
+  id: string;
+  student_id: string;
+  university_id: string;
+  financial_aid_amount: number;
+  tuition_cost: number;
+  deposit_deadline: string;
+  status: OfferStatus;
+  created_at: string;
+}
+
+export const SUBSCRIPTION_PLANS = ["free", "premium", "counselor_pro"] as const;
+
+export type SubscriptionPlan = (typeof SUBSCRIPTION_PLANS)[number];
+
+export const SUBSCRIPTION_STATUSES = [
+  "active",
+  "canceled",
+  "past_due",
+] as const;
+
+export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
+
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  current_period_end: string;
+  created_at: string;
+}
+
+export interface AdminDashboardStats {
+  total_users: number;
+  active_applications: number;
+  university_count: number;
+}
+
+export interface SystemNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  link: string;
+  created_at: string;
+}
