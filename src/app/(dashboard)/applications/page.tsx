@@ -308,7 +308,9 @@ export default async function ApplicationsPage({
                   </td>
                   <td className="px-4 py-3">
                     <form
-                      action={updateApplicationStatus.bind(null, null)}
+                      action={async (formData) => {
+                        await updateApplicationStatus(null, formData);
+                      }}
                       className="flex flex-wrap items-center gap-2"
                     >
                       <input type="hidden" name="id" value={application.id} />
