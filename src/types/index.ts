@@ -41,7 +41,19 @@ export interface StudentProfile {
   graduation_year: number;
   gpa: number;
   test_scores: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
+
+export type StudentProfileInsert = Omit<
+  StudentProfile,
+  "id" | "created_at" | "updated_at" | "test_scores"
+> & {
+  id?: string;
+  test_scores?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+};
 
 export interface University {
   id: string;
@@ -51,6 +63,17 @@ export interface University {
   acceptance_rate: number;
   minimum_gpa: number;
   ranking: number;
+  created_at: string;
+}
+
+export interface UniversitySearchFilters {
+  name?: string;
+  country?: string;
+  tuition_fee?: number;
+  max_tuition_fee?: number;
+  acceptance_rate?: number;
+  minimum_gpa?: number;
+  ranking?: number;
 }
 
 export interface Application {
