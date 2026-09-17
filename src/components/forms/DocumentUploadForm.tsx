@@ -27,12 +27,7 @@ export function DocumentUploadForm() {
         vault.
       </p>
 
-      <form
-        className="mt-6 space-y-4"
-        action={formAction}
-        encType="multipart/form-data"
-        noValidate
-      >
+      <form className="mt-6 space-y-4" action={formAction} noValidate>
         <div>
           <label
             htmlFor="file"

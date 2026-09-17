@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface LoginErrors {
@@ -15,6 +15,21 @@ export default function LoginPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<LoginErrors>({});
+
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled && user) {
+        router.push("/profile");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   async function handleSignIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +67,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      router.push("/profile");
       router.refresh();
     } catch {
       setErrors({ form: "Unable to sign in. Please try again." });

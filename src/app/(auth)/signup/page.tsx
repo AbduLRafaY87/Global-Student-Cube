@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { USER_ROLES, type User, type UserRole } from "@/types";
 
@@ -29,6 +29,21 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [errors, setErrors] = useState<SignupErrors>({});
+
+  useEffect(() => {
+    const supabase = createClient();
+    let cancelled = false;
+
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled && user) {
+        router.push("/profile");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   async function handleSignUp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,7 +112,7 @@ export default function SignupPage() {
           return;
         }
 
-        router.push("/");
+        router.push("/profile");
         router.refresh();
         return;
       }
