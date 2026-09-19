@@ -126,6 +126,41 @@ export default function SignupPage() {
     }
   }
 
+  async function handleGoogleSignUp() {
+    const role = parseUserRole(
+      String((document.getElementById("role") as HTMLSelectElement)?.value ?? ""),
+    );
+
+    if (!role) {
+      setErrors({ role: "Select a role." });
+      return;
+    }
+
+    setErrors({});
+    setIsSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const redirectUrl = new URL(
+        "/auth/callback",
+        window.location.origin,
+      );
+      redirectUrl.searchParams.set("role", role);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: redirectUrl.toString() },
+      });
+
+      if (error) {
+        setErrors({ form: error.message });
+        setIsSubmitting(false);
+      }
+    } catch {
+      setErrors({ form: "Unable to continue with Google. Please try again." });
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <p className="text-sm font-medium tracking-wide text-zinc-500 uppercase">
@@ -138,7 +173,23 @@ export default function SignupPage() {
         Sign up with your email, password, and role.
       </p>
 
-      <form className="mt-8 space-y-4" onSubmit={handleSignUp} noValidate>
+      <button
+        type="button"
+        onClick={handleGoogleSignUp}
+        disabled={isSubmitting}
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+      >
+        <span aria-hidden="true" className="font-semibold text-base">G</span>
+        Continue with Google
+      </button>
+
+      <div className="my-6 flex items-center gap-3 text-xs text-zinc-400">
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+        OR
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+      </div>
+
+      <form className="space-y-4" onSubmit={handleSignUp} noValidate>
         <div>
           <label
             htmlFor="email"

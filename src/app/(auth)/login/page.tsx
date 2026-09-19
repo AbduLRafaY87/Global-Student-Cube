@@ -76,6 +76,29 @@ export default function LoginPage() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setErrors({});
+    setIsSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        setErrors({ form: error.message });
+        setIsSubmitting(false);
+      }
+    } catch {
+      setErrors({ form: "Unable to continue with Google. Please try again." });
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <p className="text-sm font-medium tracking-wide text-zinc-500 uppercase">
@@ -88,7 +111,23 @@ export default function LoginPage() {
         Use your email and password to continue.
       </p>
 
-      <form className="mt-8 space-y-4" onSubmit={handleSignIn} noValidate>
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isSubmitting}
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+      >
+        <span aria-hidden="true" className="font-semibold text-base">G</span>
+        Continue with Google
+      </button>
+
+      <div className="my-6 flex items-center gap-3 text-xs text-zinc-400">
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+        OR
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+      </div>
+
+      <form className="space-y-4" onSubmit={handleSignIn} noValidate>
         <div>
           <label
             htmlFor="email"
