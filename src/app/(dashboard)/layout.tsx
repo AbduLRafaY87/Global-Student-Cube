@@ -1,5 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import type { DashboardHeaderUser } from "@/components/layout/Header";
+import { DASHBOARD_NAV } from "@/components/layout/Sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { USER_ROLES, type UserRole } from "@/types";
 import { redirect } from "next/navigation";
@@ -52,8 +53,14 @@ export default async function DashboardRouteLayout({
     role: parseUserRole(profile?.role),
   };
 
+  const role = shellUser.role ?? "student";
+
   return (
-    <DashboardLayout user={shellUser} unreadCount={count ?? 0}>
+    <DashboardLayout
+      user={shellUser}
+      unreadCount={count ?? 0}
+      navItems={DASHBOARD_NAV[role]}
+    >
       {children}
     </DashboardLayout>
   );

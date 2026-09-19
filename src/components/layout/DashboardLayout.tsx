@@ -1,19 +1,21 @@
 "use client";
 
 import { Header, type DashboardHeaderUser } from "@/components/layout/Header";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar, type DashboardNavItem } from "@/components/layout/Sidebar";
 import { useState } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
   user: DashboardHeaderUser;
   unreadCount: number;
+  navItems: DashboardNavItem[];
 }
 
 export function DashboardLayout({
   children,
   user,
   unreadCount,
+  navItems,
 }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -30,6 +32,7 @@ export function DashboardLayout({
       ) : null}
 
       <Sidebar
+        items={navItems}
         collapsed={collapsed}
         mobileOpen={mobileOpen}
         onToggleCollapsed={() => setCollapsed((current) => !current)}

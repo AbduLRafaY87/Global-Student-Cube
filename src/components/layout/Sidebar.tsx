@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { UserRole } from "@/types";
 
 export interface DashboardNavItem {
   href: string;
@@ -36,33 +37,51 @@ export interface DashboardNavItem {
   icon: LucideIcon;
 }
 
-export const DASHBOARD_NAV: DashboardNavItem[] = [
+const COMMON_NAV: DashboardNavItem[] = [
   { href: "/profile", label: "Profile", icon: User },
   { href: "/universities", label: "Universities", icon: GraduationCap },
   { href: "/applications", label: "Applications", icon: FileText },
   { href: "/documents", label: "Documents", icon: FolderOpen },
-  { href: "/essays", label: "Essays", icon: PenLine },
-  { href: "/recommendations", label: "Recommendations", icon: MessageSquareQuote },
   { href: "/scholarships", label: "Scholarships", icon: Award },
-  { href: "/test-prep", label: "Test Prep", icon: ClipboardCheck },
-  { href: "/counselor", label: "Counselor", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageCircle },
-  { href: "/interviews", label: "Interviews", icon: CalendarDays },
-  { href: "/admission-odds", label: "Odds", icon: Gauge },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/parent-portal", label: "Parent Portal", icon: HeartHandshake },
-  { href: "/activities", label: "Activities", icon: Trophy },
-  { href: "/visa", label: "Visa", icon: Plane },
-  { href: "/housing", label: "Housing", icon: Home },
-  { href: "/alumni", label: "Alumni", icon: Waypoints },
-  { href: "/offers", label: "Offers", icon: Scale },
-  { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/admin", label: "Admin", icon: Shield },
   { href: "/notifications", label: "Notifications", icon: Bell },
 ];
 
+export const DASHBOARD_NAV: Record<UserRole, DashboardNavItem[]> = {
+  student: [
+    ...COMMON_NAV,
+    { href: "/essays", label: "Essays", icon: PenLine },
+    { href: "/recommendations", label: "Recommendations", icon: MessageSquareQuote },
+    { href: "/test-prep", label: "Test Prep", icon: ClipboardCheck },
+    { href: "/interviews", label: "Interviews", icon: CalendarDays },
+    { href: "/admission-odds", label: "Odds", icon: Gauge },
+    { href: "/tasks", label: "Tasks", icon: CheckSquare },
+    { href: "/activities", label: "Activities", icon: Trophy },
+    { href: "/visa", label: "Visa", icon: Plane },
+    { href: "/housing", label: "Housing", icon: Home },
+    { href: "/alumni", label: "Alumni", icon: Waypoints },
+    { href: "/offers", label: "Offers", icon: Scale },
+    { href: "/billing", label: "Billing", icon: CreditCard },
+  ],
+  parent: [
+    ...COMMON_NAV,
+    { href: "/parent-portal", label: "Parent Portal", icon: HeartHandshake },
+    { href: "/billing", label: "Billing", icon: CreditCard },
+  ],
+  counselor: [
+    ...COMMON_NAV,
+    { href: "/counselor", label: "Counselor", icon: Users },
+    { href: "/interviews", label: "Interviews", icon: CalendarDays },
+    { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  ],
+  admin: [
+    ...COMMON_NAV,
+    { href: "/admin", label: "Admin", icon: Shield },
+  ],
+};
+
 export function dashboardPageTitle(pathname: string): string {
-  const match = DASHBOARD_NAV.find(
+  const match = Object.values(DASHBOARD_NAV).flat().find(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   );
 
@@ -78,6 +97,7 @@ export function dashboardPageTitle(pathname: string): string {
 }
 
 interface SidebarProps {
+  items: DashboardNavItem[];
   collapsed: boolean;
   mobileOpen: boolean;
   onToggleCollapsed: () => void;
@@ -89,6 +109,7 @@ function isActivePath(pathname: string, href: string): boolean {
 }
 
 export function Sidebar({
+  items,
   collapsed,
   mobileOpen,
   onToggleCollapsed,
@@ -123,7 +144,7 @@ export function Sidebar({
       </div>
 
       <nav className="flex flex-col gap-1 p-2" aria-label="Dashboard">
-        {DASHBOARD_NAV.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const active = isActivePath(pathname, item.href);
 

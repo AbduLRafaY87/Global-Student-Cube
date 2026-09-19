@@ -4,24 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { USER_ROLES, type User, type UserRole } from "@/types";
 
 interface SignupErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  role?: string;
   form?: string;
-}
-
-function parseUserRole(value: string): UserRole | null {
-  for (const role of USER_ROLES) {
-    if (role === value) {
-      return role;
-    }
-  }
-
-  return null;
 }
 
 export default function SignupPage() {
@@ -54,7 +42,6 @@ export default function SignupPage() {
     const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
     const confirmPassword = String(formData.get("confirmPassword") ?? "");
-    const role = parseUserRole(String(formData.get("role") ?? ""));
     const nextErrors: SignupErrors = {};
 
     if (!email) {
@@ -73,10 +60,6 @@ export default function SignupPage() {
       nextErrors.confirmPassword = "Passwords do not match.";
     }
 
-    if (!role) {
-      nextErrors.role = "Select a role.";
-    }
-
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
@@ -90,7 +73,6 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          data: { role },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
@@ -100,19 +82,7 @@ export default function SignupPage() {
         return;
       }
 
-      if (data.session && data.user && role) {
-        const newUser: Pick<User, "id" | "email" | "role"> = {
-          id: data.user.id,
-          email,
-          role,
-        };
-        const { error: userError } = await supabase.from("users").insert(newUser);
-
-        if (userError) {
-          setErrors({ form: userError.message });
-          return;
-        }
-
+      if (data.session && data.user) {
         router.push("/profile");
         router.refresh();
         return;
@@ -127,28 +97,16 @@ export default function SignupPage() {
   }
 
   async function handleGoogleSignUp() {
-    const role = parseUserRole(
-      String((document.getElementById("role") as HTMLSelectElement)?.value ?? ""),
-    );
-
-    if (!role) {
-      setErrors({ role: "Select a role." });
-      return;
-    }
-
     setErrors({});
     setIsSubmitting(true);
 
     try {
       const supabase = createClient();
-      const redirectUrl = new URL(
-        "/auth/callback",
-        window.location.origin,
-      );
-      redirectUrl.searchParams.set("role", role);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: redirectUrl.toString() },
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) {
@@ -170,7 +128,7 @@ export default function SignupPage() {
         Create an account
       </h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Sign up with your email, password, and role.
+        Create a student account with your email or Google.
       </p>
 
       <button
@@ -214,39 +172,6 @@ export default function SignupPage() {
               role="alert"
             >
               {errors.email}
-            </p>
-          ) : null}
-        </div>
-
-        <div>
-          <label
-            htmlFor="role"
-            className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
-          >
-            Role
-          </label>
-          <select
-            id="role"
-            name="role"
-            defaultValue="student"
-            disabled={isSubmitting}
-            aria-invalid={Boolean(errors.role)}
-            aria-describedby={errors.role ? "role-error" : undefined}
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-100 dark:focus:ring-zinc-100/10"
-          >
-            {USER_ROLES.map((role) => (
-              <option key={role} value={role}>
-                {role.charAt(0).toUpperCase() + role.slice(1)}
-              </option>
-            ))}
-          </select>
-          {errors.role ? (
-            <p
-              id="role-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
-              {errors.role}
             </p>
           ) : null}
         </div>

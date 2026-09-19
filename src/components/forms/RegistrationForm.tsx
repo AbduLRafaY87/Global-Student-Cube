@@ -2,13 +2,13 @@
 
 import { useActionState } from "react";
 import { completeOnboarding } from "@/app/(dashboard)/onboarding/actions";
-import { USER_ROLES, type UserProfile } from "@/types";
+import type { UserProfile } from "@/types";
 
 const inputClassName =
   "mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-100 dark:focus:ring-zinc-100/10";
 
 interface RegistrationFormProps {
-  profile?: Pick<UserProfile, "first_name" | "last_name" | "phone" | "role"> | null;
+  profile?: Pick<UserProfile, "first_name" | "last_name" | "phone"> | null;
 }
 
 export function RegistrationForm({ profile }: RegistrationFormProps) {
@@ -119,39 +119,6 @@ export function RegistrationForm({ profile }: RegistrationFormProps) {
               role="alert"
             >
               {state.fieldErrors.phone}
-            </p>
-          ) : null}
-        </div>
-
-        <div>
-          <label
-            htmlFor="role"
-            className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
-          >
-            Role
-          </label>
-          <select
-            id="role"
-            name="role"
-            defaultValue={profile?.role ?? "student"}
-            disabled={isPending}
-            aria-invalid={Boolean(state?.fieldErrors?.role)}
-            aria-describedby={state?.fieldErrors?.role ? "role-error" : undefined}
-            className={inputClassName}
-          >
-            {USER_ROLES.map((role) => (
-              <option key={role} value={role}>
-                {role.charAt(0).toUpperCase() + role.slice(1)}
-              </option>
-            ))}
-          </select>
-          {state?.fieldErrors?.role ? (
-            <p
-              id="role-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
-              {state.fieldErrors.role}
             </p>
           ) : null}
         </div>

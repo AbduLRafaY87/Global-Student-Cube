@@ -140,22 +140,10 @@ export default async function CounselorPage() {
     ];
 
     if (contactIds.length > 0) {
-      const [{ data: profileRows }, { data: userRows }] = await Promise.all([
-        supabase
-          .from("user_profiles")
-          .select("id, first_name, last_name, phone, role")
-          .in("id", contactIds),
-        supabase.from("users").select("id, email").in("id", contactIds),
-      ]);
-
-      const emails = new Map<string, string>();
-      if (userRows) {
-        for (const row of userRows) {
-          if (typeof row.id === "string" && typeof row.email === "string") {
-            emails.set(row.id, row.email);
-          }
-        }
-      }
+      const { data: profileRows } = await supabase
+        .from("user_profiles")
+        .select("id, first_name, last_name, phone, role")
+        .in("id", contactIds);
 
       if (profileRows) {
         for (const row of profileRows) {
@@ -168,7 +156,7 @@ export default async function CounselorPage() {
                 phone: profile.phone,
                 role: profile.role,
               },
-              email: emails.get(profile.id) ?? null,
+              email: null,
             });
           }
         }

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-const USER_ROLES = new Set(["student", "parent", "counselor", "admin"]);
-
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
@@ -15,19 +13,26 @@ export async function GET(request: Request) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      const requestedRole = requestUrl.searchParams.get("role");
-      const metadataRole = user?.user_metadata?.role;
-      const role = USER_ROLES.has(requestedRole ?? "")
-        ? requestedRole
-        : USER_ROLES.has(metadataRole)
-          ? metadataRole
-          : "student";
 
-      if (user?.email) {
-        await supabase.from("users").upsert(
-          { id: user.id, email: user.email, role },
-          { onConflict: "id" },
-        );
+      if (user) {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!profile) {
+          await supabase.from("user_profiles").insert({
+            id: user.id,
+            first_name: typeof user.user_metadata?.full_name === "string"
+              ? user.user_metadata.full_name.split(" ")[0]
+              : "",
+            last_name: typeof user.user_metadata?.full_name === "string"
+              ? user.user_metadata.full_name.split(" ").slice(1).join(" ")
+              : "",
+            role: "student",
+          });
+        }
       }
     }
   }

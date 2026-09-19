@@ -2,6 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 const AUTH_ENTRY_PATHS = new Set(["/", "/login", "/signup"]);
+const ROLE_PATHS = {
+  "/admin": "admin",
+  "/counselor": "counselor",
+  "/parent-portal": "parent",
+} as const;
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -45,6 +50,29 @@ export async function proxy(request: NextRequest) {
     });
 
     return redirectResponse;
+  }
+
+  if (user) {
+    const requiredRole = Object.entries(ROLE_PATHS).find(
+      ([path]) =>
+        request.nextUrl.pathname === path ||
+        request.nextUrl.pathname.startsWith(`${path}/`),
+    )?.[1];
+
+    if (requiredRole) {
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.role !== requiredRole) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = "/profile";
+        redirectUrl.search = "";
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
   }
 
   return supabaseResponse;
