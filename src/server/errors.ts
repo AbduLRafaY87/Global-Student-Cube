@@ -1,6 +1,7 @@
 export const ERROR_STATUS = {
   INVALID_REQUEST: 400,
   AUTH_REQUIRED: 401,
+  MFA_REQUIRED: 403,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   VERSION_CONFLICT: 409,
@@ -122,6 +123,8 @@ export function messageForCode(code: ErrorCode): string {
       return "The request is not valid.";
     case "AUTH_REQUIRED":
       return "Sign in to continue.";
+    case "MFA_REQUIRED":
+      return "Confirm your authenticator to continue.";
     case "FORBIDDEN":
       return "You cannot perform this action.";
     case "NOT_FOUND":

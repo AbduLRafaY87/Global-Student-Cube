@@ -12,6 +12,7 @@ describe("command error envelope mapping", () => {
   it("maps spec codes to the documented status numbers", () => {
     assert.equal(ERROR_STATUS.INVALID_REQUEST, 400);
     assert.equal(ERROR_STATUS.AUTH_REQUIRED, 401);
+    assert.equal(ERROR_STATUS.MFA_REQUIRED, 403);
     assert.equal(ERROR_STATUS.FORBIDDEN, 403);
     assert.equal(ERROR_STATUS.NOT_FOUND, 404);
     assert.equal(ERROR_STATUS.VERSION_CONFLICT, 409);

@@ -10,6 +10,8 @@ export const AUTH_ENTRY_PATHS = new Set([
 
 export const VERIFY_EMAIL_PATH = "/verify-email";
 export const PASSWORD_RESET_PATH = "/password-reset";
+export const MFA_PATH = "/mfa";
+export const INVITE_ACCEPT_PATH = "/invite/accept";
 
 export function isAuthEntryPath(pathname: string): boolean {
   return AUTH_ENTRY_PATHS.has(pathname);
@@ -28,7 +30,12 @@ export function unverifiedProtectedRedirect(
     return VERIFY_EMAIL_PATH;
   }
 
-  if (pathname === VERIFY_EMAIL_PATH || pathname.startsWith(PASSWORD_RESET_PATH)) {
+  if (
+    pathname === VERIFY_EMAIL_PATH ||
+    pathname.startsWith(PASSWORD_RESET_PATH) ||
+    pathname === MFA_PATH ||
+    pathname.startsWith(INVITE_ACCEPT_PATH)
+  ) {
     return null;
   }
 

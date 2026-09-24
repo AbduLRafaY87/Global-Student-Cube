@@ -1,3 +1,4 @@
+import type { AssuranceLevel } from "@/domain/identity/mfa";
 import { resolveUserRole } from "@/domain/roles";
 import { createClient } from "@/lib/supabase/server";
 import { CommandError } from "@/server/errors";
@@ -10,7 +11,7 @@ export interface RequestContext {
   role: UserRole;
   caseGrantIds: string[];
   sessionId: string | null;
-  assurance: string;
+  assurance: AssuranceLevel;
 }
 
 export interface GuestContext {
@@ -51,13 +52,25 @@ export async function resolveRequestContext(
     .eq("id", user.id)
     .maybeSingle();
 
+  let assurance: AssuranceLevel = user.email_confirmed_at ? "aal1" : "none";
+  try {
+    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (data?.currentLevel === "aal2") {
+      assurance = "aal2";
+    } else if (data?.currentLevel === "aal1") {
+      assurance = "aal1";
+    }
+  } catch {
+    // Keep email-derived assurance if MFA lookup is unavailable.
+  }
+
   return {
     requestId,
     accountId: user.id,
     role: resolveUserRole(profile?.role),
     caseGrantIds: [],
     sessionId: user.id,
-    assurance: user.email_confirmed_at ? "aal1" : "none",
+    assurance,
   };
 }
 

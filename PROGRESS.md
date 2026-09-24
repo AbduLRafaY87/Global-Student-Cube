@@ -23,10 +23,10 @@ Done is unused on purpose. Do not treat Written, unverified as Done.
 These cannot be marked Done, and must not be cited as current evidence, until a remote project exists, the CLI is linked, and (for CI) GitHub secrets are set.
 
 1. `supabase link --project-ref <ref>` against a real project (dev and a separate test project).
-2. `supabase db push --linked` applying migrations `0000`–`0029` (including `0026`, `0027`, and `0029_command_architecture.sql`) to that project.
+2. `supabase db push --linked` applying migrations `0000`–`0030` (including `0026`, `0027`, `0029_command_architecture.sql`, and `0030_invitations_roles_mfa.sql`) to that project.
 3. Confirm `public.handle_new_user()` on the remote project always inserts `role = 'student'` (stop-ship).
 4. Confirm the role-change trigger / `users_role_immutable` equivalent is live on the remote project (stop-ship).
-5. `supabase test db --db-url "$SUPABASE_DB_URL"` for `rls_p0`, `auth_identity`, and `command_layer`.
+5. `supabase test db --db-url "$SUPABASE_DB_URL"` for `rls_p0`, `auth_identity`, `command_layer`, and `invitations_mfa`.
 6. GitHub Actions `ci.yml` job `supabase-pgtap` (link test project, `db push --linked`, `test db --db-url`).
 7. `npm run build` against a real `.env.local` with remote `NEXT_PUBLIC_SUPABASE_*` (build itself does not need the DB, but a production-shaped env has never been used on a linked project).
 8. AUTH-01–05 / 08 / 09 walkthrough in `docs/qa/auth-walkthrough.md` against the remote project (register, email verify, login throttle, password reset single-use, under-13 / 13–17 / adult, suspended sign-out).
@@ -50,7 +50,7 @@ Command-layer implementation pass (24 Sep 2026). No linked Supabase project. No 
 |-------|--------|------|
 | `npm run lint` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
 | `npx tsc --noEmit` | 0 errors | 24 Sep 2026 (WP-01 pass) |
-| `npm run test:unit` | 30/30 including password 11/12/128, consent gate, under-13, reset reuse | 24 Sep 2026 (AUTH gap-fill) |
+| `npm run test:unit` | 32/32 via `scripts/run-unit-tests.mjs` (not shell globs; `node --test` hangs silently on unmatched globs on Windows/Node 24) | 24 Sep 2026 (Prompt 6) |
 | `npm run build` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
 | 360px shell | `/design` at 360×800; More opens Discover/Apply/Prepare/Decide/Support; `scrollWidth === 360` | 24 Sep 2026 |
 | `supabase db push --linked` / `supabase test db` | Not run. No project linked. | |
@@ -82,6 +82,8 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | `0027_identity_command_layer.sql` | Written, unverified | `accounts`, `identities`, `cases`, `consent_events`, GSC counter, `commands.*`, `handle_new_user` always `'student'`. Not applied remotely |
 | `0028_countries_seed.sql` | Written, unverified | 234 ISO countries in the file. Not applied remotely |
 | `0029_command_architecture.sql` | Written, unverified | `gsc_api_executor`, version columns, idempotency_records, profile/application commands, revoke mutations, drop public wrappers. Not applied remotely |
+| `0030_invitations_roles_mfa.sql` | Written, unverified | invitations, parent_invitations, parent_links, staff_permissions, mfa_recovery_codes, grant/accept commands, set_user_role wrapper. Not applied remotely |
+| `supabase/tests/invitations_mfa.test.sql` | Written, unverified | Public signup stays student; expired/reused invite; counselor without aal2; no self-grant; set_user_role only. Not run remotely |
 | `supabase/tests/rls_p0.test.sql` | Written, unverified | File exists. Not run against a linked project |
 | `supabase/tests/auth_identity.test.sql` | Written, unverified | File exists. Not run against a linked project |
 | `supabase/tests/command_layer.test.sql` | Written, unverified | Direct writes denied; executor path; atomic failure. Not run against a linked project |
@@ -125,7 +127,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | AUTH-07 | Approval, guardian and correction status | — | Removed | D2 |
 | AUTH-08 | Login | `/login` | Written, unverified | Generic errors; 5/15 min throttle analog; suspended sign-out. Not proven remotely |
 | AUTH-09 | Password reset | `/password-reset` | Written, unverified | Request + confirm on one route. Token reuse rejected. Not proven remotely |
-| AUTH-10 | MFA enrollment and challenge | — | Not started | Next prompt |
+| AUTH-10 | MFA enrollment and challenge | `/mfa` | Written, unverified | TOTP enroll/challenge, recovery-code reveal, proxy aal2 guard. Not proven remotely |
 | ONB-01 | Intake welcome | — | Not started | |
 | ONB-02 | Study goals | — | Not started | |
 | ONB-03 | Academics | — | Not started | |
@@ -208,16 +210,16 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 50 |
+| Not started | 49 |
 | Partial (leftover prototype) | 16 |
-| Written, unverified | 7 |
+| Written, unverified | 8 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
 | Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
 | Removed | 1 (AUTH-07) |
 | **Total spec screens** | **97** |
 
-AUTH Written, unverified (7): AUTH-01, 02, 03, 04, 05, 08, 09.
+AUTH Written, unverified (8): AUTH-01, 02, 03, 04, 05, 08, 09, 10.
 
 Partial leftovers (16): PUB-01, STU-02, STU-03, STU-05, STU-07, PAR-01, CAT-01, CAT-07, SES-01, SES-12, MEN-01, MSG-01, MSG-02, ADM-01, JRN-02, SET-06.
 
@@ -227,7 +229,7 @@ D5 leak: `acceptance_rate` is still referenced in `src/app/(dashboard)/universit
 
 ## REST API catalogue (spec §17.6)
 
-Base path `/api/v1`. Current tree has **six** auth handlers. The previous PROGRESS claim “no `src/app/api/v1` handlers” was false.
+Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The previous PROGRESS claim “no `src/app/api/v1` handlers” was false.
 
 | Spec method / path | Status | Repo path if different |
 |--------------------|--------|------------------------|
@@ -241,7 +243,10 @@ Base path `/api/v1`. Current tree has **six** auth handlers. The previous PROGRE
 | `PATCH /me` | Written, unverified | `/api/v1/me` updates leftover `user_profiles` (not the full spec identity DTO) |
 | leftover `POST/PATCH/DELETE /applications` | Written, unverified | Prototype `applications` table, not spec APP-01 groups |
 | `POST /me/email-change` | Written, unverified | `/api/v1/auth/change-email` (path ≠ spec) |
-| `GET /students/me/profile` through `GET /feature-flags` (remainder of §17.6) | Not started | |
+| `POST /auth/mfa/enroll`; `POST /auth/mfa/verify` | Written, unverified | plus leftover `/auth/mfa/challenge` and `/auth/mfa/status` |
+| `POST /cases/{caseId}/parent-links` | Written, unverified | |
+| `POST /parent-links/accept` | Written, unverified | |
+| leftover `POST /invitations` create/preview/accept/revoke | Written, unverified | Staff/mentor/admin invites (D2). Not a named spec path |
 
 ## Automated test catalogue (spec §24.7)
 
@@ -249,7 +254,7 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 
 | What exists | Status | Notes |
 |-------------|--------|-------|
-| `src/domain/identity/identity.test.ts` | Written, unverified | Overlaps T009 / T010 / T015 themes. Last recorded 21/21 on 19 Sep; not re-run |
+| `src/domain/identity/identity.test.ts` | Written, unverified | Overlaps T009 / T010 / T015 / T018 themes (MFA redirect, invite reuse, recovery codes) |
 | `src/domain/navigation.test.ts` | Written, unverified | Not a spec T-ID |
 | `supabase/tests/rls_p0.test.sql` | Written, unverified | Overlaps T001 / T002 / T004 / T007 themes. Not run on a linked project |
 | `supabase/tests/auth_identity.test.sql` | Written, unverified | Overlaps T003 / T005 / T008 / T009 themes. Not run on a linked project |
@@ -264,8 +269,8 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Written, unverified | Command layer (`gsc_api_executor`, audit + outbox, `/api/v1` envelope) is in the tree. Not proven on a linked project. Not WP-01. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0028 in tree. Never pushed to a linked project |
-| WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08, 09 only) | Spec IDs rematched 24 Sep. AUTH-06 Deferred, AUTH-07 Removed, AUTH-10 Not started |
+| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0030 (invitations, parent_links, staff_permissions, mfa_recovery_codes). Never pushed to a linked project |
+| WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Not started | Leftover `/profile`, `/documents`, `/test-prep` are Partial, not this WP |
 | WP-05 | Intake | Not started | |
 | WP-06 | Catalog read + search | Not started | Leftover `/universities` still has `acceptance_rate` |

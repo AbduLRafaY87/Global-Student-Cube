@@ -15,6 +15,8 @@ Sensitive writes go through `commands.*` PostgreSQL functions. The browser never
 
 `COMMANDS_DATABASE_URL` is the `gsc_api_executor` connection string. It is server-only. Never prefix it with `NEXT_PUBLIC_`.
 
+Windows unit tests use `scripts/run-unit-tests.mjs`, not shell globs, because `node --test` hangs silently on unmatched globs on Windows/Node 24.
+
 Owner setup on the linked project (password is not in a migration):
 
 ```sql

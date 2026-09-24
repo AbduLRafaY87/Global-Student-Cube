@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "tsc -p tsconfig.test.json && node --test dist-test/domain/*.test.js dist-test/domain/identity/*.test.js dist-test/server/*.test.js dist-test/server/http/*.test.js"
+    "test:unit": "tsc -p tsconfig.test.json && node scripts/run-unit-tests.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

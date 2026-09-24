@@ -12,10 +12,14 @@ import {
 import { canonicalConsentPayload } from "./consent";
 import { formatGscId } from "./gsc-id";
 import { isPasswordPolicyMet, validatePassword } from "./password";
+import { projectedHomeRole } from "./home-role";
+import { isInviteUsable } from "./invitations";
+import { privilegedMfaRedirect } from "./mfa";
 import {
   consumeResetToken,
   isResetTokenReuseError,
 } from "./password-reset";
+import { generateRecoveryCodes, normalizeRecoveryCode } from "./recovery";
 import {
   EMPTY_REGISTRATION_DRAFT,
   validateIdentity,
@@ -219,6 +223,11 @@ describe("access and reset tokens", () => {
       unverifiedProtectedRedirect("/verify-email", false, false),
       null,
     );
+    assert.equal(unverifiedProtectedRedirect("/mfa", false, false), null);
+    assert.equal(
+      unverifiedProtectedRedirect("/invite/accept", false, false),
+      null,
+    );
     assert.equal(
       verifiedAuthEntryRedirect("/login", true, "/profile"),
       "/profile",
@@ -227,6 +236,59 @@ describe("access and reset tokens", () => {
       verifiedAuthEntryRedirect("/register", false, "/profile"),
       "/verify-email",
     );
+  });
+
+  it("projects the leftover home role and blocks counselor routes without aal2", () => {
+    assert.equal(projectedHomeRole(["student", "mentor"]), "student");
+    assert.equal(projectedHomeRole(["student", "parent"]), "parent");
+    assert.equal(projectedHomeRole(["student", "counselor", "parent"]), "counselor");
+    assert.equal(projectedHomeRole(["admin", "counselor"]), "admin");
+    assert.equal(
+      privilegedMfaRedirect("/counselor", "counselor", "aal1"),
+      "/mfa",
+    );
+    assert.equal(privilegedMfaRedirect("/counselor", "counselor", "aal2"), null);
+    assert.equal(privilegedMfaRedirect("/counselor", "student", "aal1"), null);
+    assert.equal(privilegedMfaRedirect("/profile", "counselor", "aal1"), null);
+  });
+
+  it("rejects expired or reused invites and consumed recovery codes", () => {
+    assert.equal(
+      isInviteUsable({
+        acceptedAt: null,
+        revokedAt: null,
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      }),
+      true,
+    );
+    assert.equal(
+      isInviteUsable({
+        acceptedAt: "2026-01-01T00:00:00.000Z",
+        revokedAt: null,
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      }),
+      false,
+    );
+    assert.equal(
+      isInviteUsable({
+        acceptedAt: null,
+        revokedAt: null,
+        expiresAt: "2020-01-01T00:00:00.000Z",
+        now: new Date("2026-01-01T00:00:00.000Z"),
+      }),
+      false,
+    );
+    let next = 0;
+    const codes = generateRecoveryCodes((size) => {
+      const bytes = new Uint8Array(size);
+      for (let index = 0; index < size; index += 1) {
+        bytes[index] = (next + index) % 256;
+      }
+      next += 1;
+      return bytes;
+    });
+    assert.equal(codes.length, 8);
+    assert.equal(normalizeRecoveryCode("ab cd-ef"), "ABCDEF");
   });
 
   it("rejects reuse of a consumed reset token", () => {
