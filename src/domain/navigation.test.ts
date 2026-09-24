@@ -52,6 +52,9 @@ describe("role navigation and guards", () => {
     assert.equal(isPathAllowedForRole("/parent-portal", "parent"), true);
     assert.equal(isPathAllowedForRole("/counselor", "counselor"), true);
     assert.equal(isPathAllowedForRole("/admin", "admin"), true);
+    assert.equal(isPathAllowedForRole("/admin/approvals", "admin"), true);
+    assert.equal(isPathAllowedForRole("/admin/users", "admin"), true);
+    assert.equal(isPathAllowedForRole("/admin/approvals", "student"), false);
     assert.equal(isPathAllowedForRole("/onboarding", "student"), true);
     assert.equal(isPathAllowedForRole("/onboarding", "admin"), true);
     assert.equal(homePathForRole("student"), "/profile");

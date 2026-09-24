@@ -181,8 +181,8 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | MSG-03 | New conversation | — | Not started | |
 | MSG-04 | Report / block | — | Not started | |
 | REC-01–03 | Recommendation letters | — | Deferred | Parked; no leftover page |
-| ADM-01 | Admin home | `/admin` | Partial | Leftover |
-| ADM-02 | User admin | — | Not started | |
+| ADM-01 | Admin overview | `/admin` | Written, unverified | Real queue counts; unpermitted metrics omitted. No applicant evidence. |
+| ADM-02 | Professional / guardian review | `/admin/approvals` | Written, unverified | No student approval queue (D2). Guardian-link for minors only. |
 | ADM-03 | Role requests | — | Not started | D2: no public role requests |
 | ADM-04 | Catalog CMS | — | Not started | |
 | ADM-05 | Taxonomy | — | Not started | |
@@ -210,9 +210,9 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 49 |
-| Partial (leftover prototype) | 16 |
-| Written, unverified | 8 |
+| Not started | 48 |
+| Partial (leftover prototype) | 15 |
+| Written, unverified | 10 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
 | Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
@@ -220,8 +220,9 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 | **Total spec screens** | **97** |
 
 AUTH Written, unverified (8): AUTH-01, 02, 03, 04, 05, 08, 09, 10.
+Admin Written, unverified (2): ADM-01, ADM-02. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are WP-15 routes, not extra spec screen IDs. Spec ADM-10 remains rewards (PROGRESS previously mislabeled it as audit).
 
-Partial leftovers (16): PUB-01, STU-02, STU-03, STU-05, STU-07, PAR-01, CAT-01, CAT-07, SES-01, SES-12, MEN-01, MSG-01, MSG-02, ADM-01, JRN-02, SET-06.
+Partial leftovers (15): PUB-01, STU-02, STU-03, STU-05, STU-07, PAR-01, CAT-01, CAT-07, SES-01, SES-12, MEN-01, MSG-01, MSG-02, JRN-02, SET-06.
 
 Parked leftover *pages* (`/essays`, `/offers`, `/interviews`, `/billing`) still exist on disk. Those modules are counted as Deferred (not Partial) so they are not treated as in-progress work.
 
@@ -247,6 +248,10 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 | `POST /cases/{caseId}/parent-links` | Written, unverified | |
 | `POST /parent-links/accept` | Written, unverified | |
 | leftover `POST /invitations` create/preview/accept/revoke | Written, unverified | Staff/mentor/admin invites (D2). Not a named spec path |
+| `GET /admin/verifications`; `POST /admin/verifications/{id}/decision` | Written, unverified | plus assign/comment/escalate |
+| `POST /admin/guardian-verifications/{id}/decision` | Written, unverified | Same decide command |
+| `GET /admin/audit` | Written, unverified | |
+| leftover `GET /admin/overview`; `GET/POST /admin/users…`; `POST /admin/support/export|deletion` | Written, unverified | Support routes are Prompt 30 stubs |
 
 ## Automated test catalogue (spec §24.7)
 
@@ -255,7 +260,9 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | What exists | Status | Notes |
 |-------------|--------|-------|
 | `src/domain/identity/identity.test.ts` | Written, unverified | Overlaps T009 / T010 / T015 / T018 themes (MFA redirect, invite reuse, recovery codes) |
+| `src/domain/admin/admin.test.ts` | Written, unverified | Unauthorized variants, omitted queues, suspend availability |
 | `src/domain/navigation.test.ts` | Written, unverified | Not a spec T-ID |
+| `supabase/tests/admin_operations.test.sql` | Written, unverified | Scope denials, audit on decide/suspend/role, escalation outbox. Not run on a linked project |
 | `supabase/tests/rls_p0.test.sql` | Written, unverified | Overlaps T001 / T002 / T004 / T007 themes. Not run on a linked project |
 | `supabase/tests/auth_identity.test.sql` | Written, unverified | Overlaps T003 / T005 / T008 / T009 themes. Not run on a linked project |
 | `supabase/tests/command_layer.test.sql` | Written, unverified | Direct-write deny, executor path, atomic rollback. Not run on a linked project |
@@ -269,7 +276,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Written, unverified | Command layer (`gsc_api_executor`, audit + outbox, `/api/v1` envelope) is in the tree. Not proven on a linked project. Not WP-01. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0030 (invitations, parent_links, staff_permissions, mfa_recovery_codes). Never pushed to a linked project |
+| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0031 (`verification_cases` + admin commands). Never pushed to a linked project |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Not started | Leftover `/profile`, `/documents`, `/test-prep` are Partial, not this WP |
 | WP-05 | Intake | Not started | |
@@ -282,7 +289,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-12 | Messaging + reports | Not started | |
 | WP-13 | Mentorship | Not started | |
 | WP-14 | Journey CMS | Not started | |
-| WP-15 | Admin + cases + audit + flags | Not started | |
+| WP-15 | Admin + cases + audit + flags | Written, unverified | ADM-01/02, people, audit viewer. Prompt 30 export/deletion are stubs (audit+outbox only). ADM-11/13 intros not built. Cases/flags remain. |
 | WP-16 | Parent access | Not started | |
 | WP-17 | Notifications + outbox worker | Not started | Outbox table may exist in migrations; worker is not built |
 | WP-18 | Billing | Deferred | Parked |
@@ -301,4 +308,6 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 - GSC ID is allocated at signup (D2 removed approval). Status stays `email_pending` until verify. Spec said allocate on approval.
 - Three auth API paths do not match spec §17.6 names (`password-update`, `email-verification`, `me/email-change`).
 - Parked leftover pages still routable; hidden from nav only.
-- `npm run lint` / `test:unit` / `build` re-run 24 Sep 2026 (no DB). pgTAP and executor E2E still unverified.
+- `npm run lint` exit 0 and `test:unit` 41/41 on 24 Sep 2026 (no DB). `npm run build` fails on pre-existing TS errors in dashboard layout MFA typing and invitations preview (not this slice). pgTAP and `supabase db push --linked` still unverified.
+- Prompt 30: `POST /admin/support/export` and `POST /admin/support/deletion` only write audit + outbox (`completed_by=prompt_30`). No export package, no 30-day deletion workflow.
+- Admin people/safety belongs to WP-15, not WP-03 (AUTH).

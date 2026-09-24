@@ -1,120 +1,83 @@
-import { AdminStatsCard } from "@/components/AdminStatsCard";
-import { createClient } from "@/lib/supabase/server";
-import { USER_ROLES, type AdminDashboardStats, type UserRole } from "@/types";
+import { AdminChrome } from "@/app/(dashboard)/admin/_components/AdminChrome";
+import { ErrorState, ForbiddenState } from "@/components/ui/States";
+import { ToneChip } from "@/components/ui/Status";
+import { MICROCOPY } from "@/domain/microcopy";
+import { listAdminOverviewSql } from "@/server/modules/admin/commands";
+import { loadAdminCommand } from "@/server/modules/admin/load";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin",
+  title: "Admin overview",
 };
 
-function parseUserRole(value: unknown): UserRole | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  for (const role of USER_ROLES) {
-    if (role === value) {
-      return role;
-    }
-  }
-
-  return null;
-}
-
-async function countRows(
-  query: PromiseLike<{ count: number | null }>,
-): Promise<number> {
-  const { count } = await query;
-  return count ?? 0;
-}
-
-export default async function AdminPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let isAdmin = false;
-  const stats: AdminDashboardStats = {
-    total_users: 0,
-    active_applications: 0,
-    university_count: 0,
-  };
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    isAdmin = parseUserRole(profile?.role) === "admin";
-
-    if (isAdmin) {
-      const [totalUsers, activeApplications, universityCount] = await Promise.all(
-        [
-          countRows(
-            supabase
-              .from("user_profiles")
-              .select("id", { count: "exact", head: true }),
-          ),
-          countRows(
-            supabase
-              .from("applications")
-              .select("id", { count: "exact", head: true })
-              .in("status", ["draft", "submitted"]),
-          ),
-          countRows(
-            supabase
-              .from("universities")
-              .select("id", { count: "exact", head: true }),
-          ),
-        ],
-      );
-
-      stats.total_users = totalUsers;
-      stats.active_applications = activeApplications;
-      stats.university_count = universityCount;
-    }
-  }
+export default async function AdminOverviewPage() {
+  const result = await loadAdminCommand((context) => listAdminOverviewSql(context));
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-12">
-      <header>
-        <p className="text-sm font-medium tracking-wide text-zinc-500 uppercase">
-          Global Student Cube
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          System administration
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-          Aggregated platform statistics for administrators.
-        </p>
-      </header>
-
-      {!isAdmin ? (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400" role="alert">
-          You do not have access to this page.
+    <AdminChrome
+      title="Operations overview"
+      description="Live queues for the scopes assigned to you. Unpermitted counts are omitted, not shown as zero."
+    >
+      {!result.ok ? (
+        result.forbidden ? (
+          <ForbiddenState />
+        ) : (
+          <ErrorState message={MICROCOPY.retryableError} />
+        )
+      ) : result.data.queues.length === 0 ? (
+        <p className="text-sm text-text-muted">
+          No queues are assigned to your staff permissions.
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <li>
-            <AdminStatsCard label="Total users" value={stats.total_users} />
-          </li>
-          <li>
-            <AdminStatsCard
-              label="Active applications"
-              value={stats.active_applications}
-            />
-          </li>
-          <li>
-            <AdminStatsCard
-              label="Universities"
-              value={stats.university_count}
-            />
-          </li>
-        </ul>
+        <div className="grid gap-6 min-[900px]:grid-cols-2">
+          <section aria-labelledby="admin-queues">
+            <h2 id="admin-queues" className="text-lg font-semibold text-text">
+              Queues
+            </h2>
+            <ul className="mt-3 grid gap-3">
+              {result.data.queues.map((queue) => (
+                <li key={queue.id}>
+                  <Link
+                    href={queue.href}
+                    className="block rounded-[var(--radius-card)] border border-border bg-surface p-4"
+                  >
+                    <p className="text-sm text-text-muted">{queue.label}</p>
+                    <p className="mt-2 text-3xl font-semibold text-text">
+                      {queue.count}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+          {result.data.recentAudit.length > 0 ? (
+            <section aria-labelledby="admin-audit">
+              <h2 id="admin-audit" className="text-lg font-semibold text-text">
+                Recent audited actions
+              </h2>
+              <ul className="mt-3 flex flex-col gap-3">
+                {result.data.recentAudit.map((event) => (
+                  <li
+                    key={event.id}
+                    className="rounded-[var(--radius-card)] border border-border bg-surface p-4"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ToneChip tone="neutral" label={event.action} />
+                      <span className="text-sm text-text-muted">
+                        {new Date(event.occurred_at).toLocaleString()}
+                      </span>
+                    </div>
+                    {event.reason ? (
+                      <p className="mt-2 text-sm text-text">{event.reason}</p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
       )}
-    </div>
+    </AdminChrome>
   );
 }

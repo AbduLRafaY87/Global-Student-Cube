@@ -144,6 +144,10 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       label: "Operations",
       items: [
         { href: "/admin", label: "Overview", icon: "shield" },
+        { href: "/admin/approvals", label: "Reviews", icon: "clipboardCheck" },
+        { href: "/admin/users", label: "People", icon: "users" },
+        { href: "/admin/audit", label: "Audit", icon: "fileText" },
+        { href: "/admin/support", label: "Support", icon: "settings" },
         { href: "/universities", label: "Universities", icon: "graduationCap" },
         { href: "/scholarships", label: "Scholarships", icon: "award" },
         { href: "/profile", label: "Profile", icon: "user" },
