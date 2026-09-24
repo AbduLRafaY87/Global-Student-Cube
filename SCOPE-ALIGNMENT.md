@@ -166,7 +166,7 @@ A fresh install and the current development database are not the same product.
 **REQUIRED:**
 
 1. Delete `0000` and squash the set, or add explicit `ALTER TABLE` corrections in a new migration.
-2. A from-scratch `supabase db reset` must pass in CI before every merge.
+2. CI must `supabase link` the dedicated remote **test** project and `supabase db push --linked` before every merge. There is no local Docker/`supabase start`/`db reset`.
 
 ### 2.4 Two identity tables — HIGH
 
@@ -364,7 +364,7 @@ RLS can check row ownership. It cannot count, sequence, or transact. With direct
 | Q4 | **No design tokens.** `globals.css` defines two custom properties. The palette is Tailwind's default `zinc`, hardcoded twice per element for dark mode. A deadline three days away looks identical to one three months away. | Build a token layer: one brand hue, a neutral ramp biased toward it, and a **separate semantic set** (critical / warning / positive / neutral) used consistently for deadline proximity, application status and offer state. **REFERENCE:** *Brand tokens and typography*; *Universal state and microcopy contract*. |
 | Q5 | **Messaging has no realtime.** Zero Supabase realtime subscriptions; messages arrive on page refresh. | Counselor–student messaging is one of our few differentiating features and currently behaves worse than email. **REFERENCE:** MSG-01, MSG-02. |
 | Q6 | **No audit trail.** Zero occurrences of `audit`. No record of who changed an application status, assigned a counselor, or viewed a student's documents. | Spec requires audit and outbox rows written **in the same transaction** as the change. Required for minors' data. |
-| Q7 | **No tests, no CI, default README.** Zero test suites. No CI. The README is unedited `create-next-app` boilerplate with no mention of Supabase setup, environment variables or migrations. | With 23 RLS migrations, the untested surface is exactly where §2.1 lives. Minimum: RLS policy tests per role, and CI running `supabase db reset` + `next build` + `eslint`. |
+| Q7 | **No tests, no CI, default README.** Zero test suites. No CI. The README is unedited `create-next-app` boilerplate with no mention of Supabase setup, environment variables or migrations. | With 23 RLS migrations, the untested surface is exactly where §2.1 lives. Minimum: RLS policy tests per role, and CI linking the remote test project then `supabase db push --linked` + `next build` + `eslint`. No Docker. |
 | Q8 | **Migration 0013 missing.** Sequence runs 0012 → 0014. Module 13 (Admission Odds) has a page and a calculator but no schema. Module 24 (Guest) has a spec file and nothing else. | Explain whether 0013 was lost or never written. Either answer is a process finding. |
 
 ---
@@ -372,7 +372,7 @@ RLS can check row ownership. It cannot count, sequence, or transact. With direct
 ## 9. Delivery order
 
 **Sprint 1 — Stop-ship. Nothing else.**
-§2.1 role escalation · §2.3 migration conflict + CI `db reset` · §2.2 role-based navigation and route guards · §2.4 collapse to one identity table.
+§2.1 role escalation · §2.3 migration conflict + CI `db push --linked` on the remote test project · §2.2 role-based navigation and route guards · §2.4 collapse to one identity table.
 Deliver a written confirmation that a fresh student account cannot reach admin data.
 
 **Sprint 2 — Foundation.**

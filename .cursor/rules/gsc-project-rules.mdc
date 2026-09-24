@@ -1,0 +1,47 @@
+---
+description: Global Student Cube binding project rules
+alwaysApply: true
+---
+
+# Source of truth
+- The single specification is `Global-Student-Cube-Complete-Development-Specification.md` (repo root). The product reference is `Global_Student_Cube__final_Document.md`. The `specs/` folder and `SCOPE-ALIGNMENT.md` are implementation notes. If the spec and the notes disagree, the spec wins, EXCEPT the owner decisions below, which win over the spec.
+- The spec is about 3,800 lines. NEVER load it whole. Use `docs/spec-index.md` and `scripts/spec-section.sh "<heading>"` to read only the sections a prompt names.
+- If the spec is silent or ambiguous, STOP and ask the owner. Never invent modules, screens, fields or rules.
+- Follow `AGENTS.md`: this Next.js version differs from your training data; read the relevant docs in `node_modules/next/dist/docs/` before writing framework code.
+
+# Owner decisions (binding)
+- D1 Web only. Responsive from 360px to desktop; every content page must work on a phone. Native (Android/iOS/Expo) is deferred, not cancelled: keep business rules in framework-agnostic code under `src/domain/` so native can reuse it later.
+- D2 No registration approval flow. Everyone signs up as a student and can explore immediately. Keep: age routing (under 18), privacy/consent capture, email verification, login, password reset. Removed: role picker, evidence upload, approval email, approval status screen. Counselor, parent, mentor and admin accounts are created only by invitation or admin action, never by public signup. MFA is required for staff and counselor accounts, not students. Phone verification is a late-phase item.
+- D3 University/program/scholarship features follow spec sections CAT-01 to CAT-08 exactly.
+- D4 The spec is the single source of truth (see above).
+- D5 Acceptance rate is removed everywhere (database, types, forms, pages, copy). Never show or compute admission probability. Use "self-reported, not an admission probability" wording where spec says so.
+- Application systems: an application belongs to an application group, which belongs to an application system (UCAS, Common App, UC, OUAC, UAC, uni-assist, Parcoursup and so on). Systems carry their own fee rules, deadline types, essay model and document requirements.
+- Parked modules (hidden behind a feature flag, code and tables kept, never extended): Essays, Offers, Billing/Subscriptions, Interviews, Recommendation letters.
+- Folded modules: Documents -> STU-07; Test Prep -> STU-03; Activities -> STU-05; Housing -> CAT-02/CAT-03 accommodation; Visa -> JRN-02/ADM-09 (editorial content, not student-entered rows); Tasks -> SES-12; Alumni -> Mentorship (MEN); Admission Odds -> removed, replaced by CAT-05.
+
+# Hard business rules (from spec; always enforce on the server)
+- Recommendations: at most 10 distinct universities, each with a program. Saved shortlist: 0 to 3 university+program pairs, hard cap, concurrency-safe. Review flags only on saved rows. Unknown costs sort after known costs.
+- Booking: 30-minute virtual sessions, 15-minute buffer, reschedule only 48+ hours before start, a calendar or video-link failure leaves the booking confirmed with a "Preparing link" state.
+- FX snapshots older than 72 hours show a stale warning. Readiness 120/100 displays 120% while the bar caps at 100%. The annual comparison is never labelled "total cost of attendance".
+- A month-only deadline is never rendered as an invented last day. Missing data shows "Not provided". Unknown data never means a requirement is waived.
+
+# Architecture rules
+- Stack per spec chapter "Technical foundation and rationale": Next.js + Supabase (Postgres, Auth, Storage, Realtime), `/api/v1` handlers, a Node worker for background jobs, adapters for Resend, Twilio, Daily, OpenAI (behind a replaceable AIProvider), Google/Microsoft calendar, ExchangeRate-API. Skip Expo (D1).
+- Sensitive writes go through server commands / transactional database functions, never directly from the browser. Every privileged action writes an audit row and an outbox row in the SAME transaction.
+- Validate every rule on the server. UI validation is only a convenience. Hiding a button is never authorization.
+- No secret (service role key, provider keys) may reach the client bundle. Only NEXT_PUBLIC_ variables are public.
+- NEVER fabricate real-world data (universities, fees, deadlines, rankings, scholarships). Fixtures must be clearly labelled SYNTHETIC. Real data enters only through the admin tools with sources.
+- No Docker. Never suggest, install, or depend on Docker, docker-compose, or `supabase start` / local Supabase containers. All Postgres access is through a remote, linked Supabase project (dev or test) over `supabase db push` / `supabase migration up --linked` / direct connection strings. If a task later says `supabase db reset`, treat that as `supabase db push --linked` against the appropriate remote project instead, and flag the mismatch to the owner.
+
+# Quality rules
+- TypeScript strict, no `any`. Small components. Follow the design tokens and component contracts from the spec's design-system chapter. Every screen has loading, empty, error, success and disabled states with the spec's microcopy. WCAG 2.2 AA: keyboard, focus, labels, contrast.
+- Every list that can grow uses pagination.
+- Do not add libraries without saying why.
+
+# Workflow for every task
+1. Read only the named spec sections. Write a SHORT plan (files, tables, routes) before coding. If the prompt says PLAN FIRST, stop after the plan and wait for "go".
+2. Implement. Add migrations as NEW files (never edit an applied migration).
+3. Verify. Run and report the results of: `npm run lint`, `npm run build`, `supabase db push --linked` against the remote project (dev while developing; the dedicated test project in CI), and the tests for what you touched. Never run `supabase start`, `supabase db reset`, or Docker. If a prompt says `supabase db reset`, treat it as `supabase db push --linked` and flag the mismatch to the owner. See `docs/database-workflow.md`.
+4. Update `PROGRESS.md` for every screen/work package you touched. Mark Done ONLY if every acceptance line has evidence (a passing test, a command output, or a route you loaded).
+5. Final report, in exactly this format: DONE (with evidence) / NOT DONE (with reason) / NEEDS OWNER (questions, accounts, keys, content, legal) / FILES CHANGED.
+6. Never claim "complete" while any acceptance line lacks evidence. Say so plainly instead.

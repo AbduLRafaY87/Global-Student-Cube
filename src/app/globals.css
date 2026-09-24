@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand hue: restrained teal */
+  --gsc-primary: #005a63;
+  --gsc-primary-hover: #004850;
+  --gsc-primary-pressed: #003d44;
+  --gsc-primary-subtle: #e6f3f4;
+
+  /* Neutral ramp biased toward teal */
+  --gsc-neutral-50: #f7f8fa;
+  --gsc-neutral-100: #eef2f4;
+  --gsc-neutral-200: #d8dee8;
+  --gsc-neutral-300: #c5ced8;
+  --gsc-neutral-400: #718096;
+  --gsc-neutral-500: #526175;
+  --gsc-neutral-600: #3d5166;
+  --gsc-neutral-700: #2c4258;
+  --gsc-neutral-800: #172b4d;
+  --gsc-neutral-900: #0f1c33;
+
+  --gsc-background: #f7f8fa;
+  --gsc-surface: #ffffff;
+  --gsc-text: #172b4d;
+  --gsc-text-muted: #526175;
+  --gsc-border: #d8dee8;
+  --gsc-control-border: #718096;
+  --gsc-focus: #2563eb;
+
+  /* Semantic set — separate from brand; used for deadlines, application status, offers */
+  --gsc-critical: #b42318;
+  --gsc-critical-bg: #fce8e6;
+  --gsc-warning: #8a4b08;
+  --gsc-warning-bg: #fdf0e0;
+  --gsc-positive: #177245;
+  --gsc-positive-bg: #e6f4ea;
+  --gsc-neutral: #526175;
+  --gsc-neutral-bg: #eef2f4;
+
+  --gsc-radius-control: 8px;
+  --gsc-radius-card: 12px;
+  --gsc-radius-modal: 16px;
+  --gsc-backdrop: rgb(23 43 77 / 40%);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-poppins);
-  --font-mono: var(--font-poppins);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--gsc-background);
+  --color-surface: var(--gsc-surface);
+  --color-text: var(--gsc-text);
+  --color-text-muted: var(--gsc-text-muted);
+  --color-primary: var(--gsc-primary);
+  --color-primary-hover: var(--gsc-primary-hover);
+  --color-primary-pressed: var(--gsc-primary-pressed);
+  --color-primary-subtle: var(--gsc-primary-subtle);
+  --color-border: var(--gsc-border);
+  --color-control-border: var(--gsc-control-border);
+  --color-focus: var(--gsc-focus);
+  --color-critical: var(--gsc-critical);
+  --color-critical-bg: var(--gsc-critical-bg);
+  --color-warning: var(--gsc-warning);
+  --color-warning-bg: var(--gsc-warning-bg);
+  --color-positive: var(--gsc-positive);
+  --color-positive-bg: var(--gsc-positive-bg);
+  --color-neutral: var(--gsc-neutral);
+  --color-neutral-bg: var(--gsc-neutral-bg);
+  --color-neutral-50: var(--gsc-neutral-50);
+  --color-neutral-100: var(--gsc-neutral-100);
+  --color-neutral-200: var(--gsc-neutral-200);
+  --color-neutral-400: var(--gsc-neutral-400);
+  --color-neutral-500: var(--gsc-neutral-500);
+  --color-neutral-800: var(--gsc-neutral-800);
+
+  --radius-control: var(--gsc-radius-control);
+  --radius-card: var(--gsc-radius-card);
+  --radius-modal: var(--gsc-radius-modal);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--gsc-background);
+  color: var(--gsc-text);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-poppins), sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gsc-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

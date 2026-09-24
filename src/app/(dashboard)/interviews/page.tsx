@@ -152,15 +152,9 @@ export default async function InterviewsPage({
   }
 
   const editing = interviews.find((interview) => interview.id === editId);
-  const now = Date.now();
-  const upcoming = interviews.filter((interview) => {
-    const scheduled = Date.parse(interview.scheduled_at);
-    return (
-      interview.status === "scheduled" &&
-      !Number.isNaN(scheduled) &&
-      scheduled >= now
-    );
-  });
+  const upcoming = interviews.filter(
+    (interview) => interview.status === "scheduled",
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-12">

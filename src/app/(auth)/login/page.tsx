@@ -1,213 +1,122 @@
 "use client";
 
+import { PasswordField } from "@/components/auth/PasswordField";
+import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/ui/TextField";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
-interface LoginErrors {
-  email?: string;
-  password?: string;
-  form?: string;
-}
-
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<LoginErrors>({});
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(
+    searchParams.get("reason") === "suspended"
+      ? "This account is suspended. Sign-in cannot continue."
+      : null,
+  );
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    let cancelled = false;
-
-    void supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!cancelled && user) {
-        router.push("/profile");
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
-
-  async function handleSignIn(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrors({});
-
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim();
-    const password = String(formData.get("password") ?? "");
-    const nextErrors: LoginErrors = {};
-
-    if (!email) {
-      nextErrors.email = "Enter your email.";
-    }
-
-    if (!password) {
-      nextErrors.password = "Enter your password.";
-    }
-
-    if (nextErrors.email || nextErrors.password) {
-      setErrors(nextErrors);
-      return;
-    }
-
-    setIsSubmitting(true);
+    setError(null);
+    setSubmitting(true);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          next: searchParams.get("next"),
+        }),
       });
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        redirectTo?: string;
+      };
 
-      if (error) {
-        setErrors({ form: error.message });
+      if (!response.ok || !payload.ok) {
+        setError(payload.error ?? "Email or password is incorrect.");
         return;
       }
 
-      router.push("/profile");
+      router.push(payload.redirectTo ?? "/profile");
       router.refresh();
     } catch {
-      setErrors({ form: "Unable to sign in. Please try again." });
+      setError("Unable to sign in. Please try again.");
     } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setErrors({});
-    setIsSubmitting(true);
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        setErrors({ form: error.message });
-        setIsSubmitting(false);
-      }
-    } catch {
-      setErrors({ form: "Unable to continue with Google. Please try again." });
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-      <p className="text-sm font-medium tracking-wide text-zinc-500 uppercase">
+    <section className="mx-auto w-full max-w-[480px] rounded-[var(--radius-card)] border border-border bg-surface p-6">
+      <p className="text-sm font-medium tracking-wide text-text-muted uppercase">
         Global Student Cube
       </p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-        Sign in
-      </h1>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        Use your email and password to continue.
+      <h1 className="mt-2 text-2xl font-semibold text-text">Log in</h1>
+      <p className="mt-2 text-sm text-text-muted">
+        Staff and counselor accounts use this same screen. There is no privileged
+        bypass here.
       </p>
 
-      <button
-        type="button"
-        onClick={handleGoogleSignIn}
-        disabled={isSubmitting}
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-      >
-        <span aria-hidden="true" className="font-semibold text-base">G</span>
-        Continue with Google
-      </button>
-
-      <div className="my-6 flex items-center gap-3 text-xs text-zinc-400">
-        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-        OR
-        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
-      </div>
-
-      <form className="space-y-4" onSubmit={handleSignIn} noValidate>
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
+      <form className="mt-6 space-y-4" onSubmit={(event) => void handleSubmit(event)} noValidate>
+        <TextField
+          id="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+        <PasswordField
+          id="password"
+          label="Password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+        <p className="text-right text-sm">
+          <Link
+            href="/password-reset"
+            className="font-medium text-primary underline-offset-4 hover:underline"
           >
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            disabled={isSubmitting}
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-100 dark:focus:ring-zinc-100/10"
-          />
-          {errors.email ? (
-            <p
-              id="email-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
-              {errors.email}
-            </p>
-          ) : null}
-        </div>
-
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            disabled={isSubmitting}
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-100 dark:focus:ring-zinc-100/10"
-          />
-          {errors.password ? (
-            <p
-              id="password-error"
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-              role="alert"
-            >
-              {errors.password}
-            </p>
-          ) : null}
-        </div>
-
-        {errors.form ? (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-            {errors.form}
+            Forgot password?
+          </Link>
+        </p>
+        {error ? (
+          <p className="text-sm text-critical" role="alert">
+            {error}
           </p>
         ) : null}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-        >
-          {isSubmitting ? "Signing in..." : "Sign in"}
-        </button>
+        <Button type="submit" loading={submitting}>
+          Log in
+        </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-6 text-center text-sm text-text-muted">
         Need an account?{" "}
-        <Link
-          href="/signup"
-          className="font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-50"
-        >
-          Sign up
+        <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
+          Create account
+        </Link>
+        {" · "}
+        <Link href="/" className="font-medium text-primary underline-offset-4 hover:underline">
+          Continue as guest
         </Link>
       </p>
     </section>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-text-muted">Loading…</p>}>
+      <LoginForm />
+    </Suspense>
   );
 }

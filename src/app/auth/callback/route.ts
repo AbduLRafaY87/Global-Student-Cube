@@ -1,40 +1,56 @@
-import { NextResponse } from "next/server";
+import { safeInternalPath } from "@/domain/identity/return-path";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const next = safeInternalPath(requestUrl.searchParams.get("next"));
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (!code) {
+    return NextResponse.redirect(new URL("/login", requestUrl.origin));
+  }
 
-    if (!error) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("id")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (!profile) {
-          await supabase.from("user_profiles").insert({
-            id: user.id,
-            first_name: typeof user.user_metadata?.full_name === "string"
-              ? user.user_metadata.full_name.split(" ")[0]
-              : "",
-            last_name: typeof user.user_metadata?.full_name === "string"
-              ? user.user_metadata.full_name.split(" ").slice(1).join(" ")
-              : "",
-            role: "student",
-          });
-        }
-      }
+  if (error) {
+    if (next === "/password-reset") {
+      return NextResponse.redirect(
+        new URL("/password-reset?error=expired", requestUrl.origin),
+      );
     }
+    return NextResponse.redirect(
+      new URL("/verify-email?error=expired", requestUrl.origin),
+    );
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.redirect(new URL("/login", requestUrl.origin));
+  }
+
+  if (next === "/password-reset") {
+    return NextResponse.redirect(
+      new URL("/password-reset?state=new", requestUrl.origin),
+    );
+  }
+
+  if (!user.email_confirmed_at) {
+    return NextResponse.redirect(new URL("/verify-email", requestUrl.origin));
+  }
+
+  try {
+    const admin = createAdminClient();
+    await admin.rpc("activate_after_email_verified", {
+      p_account_id: user.id,
+    });
+  } catch {
+    // Account row may not exist yet for legacy users.
   }
 
   return NextResponse.redirect(new URL("/profile", requestUrl.origin));

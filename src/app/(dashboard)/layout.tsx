@@ -1,23 +1,14 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import type { DashboardHeaderUser } from "@/components/layout/Header";
-import { DASHBOARD_NAV } from "@/components/layout/Sidebar";
+import {
+  BOTTOM_NAV,
+  DASHBOARD_NAV,
+  dashboardRoleRedirect,
+} from "@/domain/navigation";
+import { resolveUserRole } from "@/domain/roles";
 import { createClient } from "@/lib/supabase/server";
-import { USER_ROLES, type UserRole } from "@/types";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-function parseUserRole(value: unknown): UserRole | null {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  for (const role of USER_ROLES) {
-    if (role === value) {
-      return role;
-    }
-  }
-
-  return null;
-}
 
 export default async function DashboardRouteLayout({
   children,
@@ -33,6 +24,10 @@ export default async function DashboardRouteLayout({
     redirect("/login");
   }
 
+  if (!user.email_confirmed_at) {
+    redirect("/verify-email");
+  }
+
   const [{ data: profile }, { count }] = await Promise.all([
     supabase
       .from("user_profiles")
@@ -46,20 +41,27 @@ export default async function DashboardRouteLayout({
       .eq("is_read", false),
   ]);
 
+  const role = resolveUserRole(profile?.role);
+  const pathname = (await headers()).get("x-gsc-pathname") ?? "";
+
+  const mismatchPath = dashboardRoleRedirect(pathname, role);
+  if (mismatchPath) {
+    redirect(mismatchPath);
+  }
+
   const shellUser: DashboardHeaderUser = {
     email: user.email ?? "",
     first_name: typeof profile?.first_name === "string" ? profile.first_name : "",
     last_name: typeof profile?.last_name === "string" ? profile.last_name : "",
-    role: parseUserRole(profile?.role),
+    role,
   };
-
-  const role = shellUser.role ?? "student";
 
   return (
     <DashboardLayout
       user={shellUser}
       unreadCount={count ?? 0}
-      navItems={DASHBOARD_NAV[role]}
+      sections={DASHBOARD_NAV[role]}
+      bottomNav={BOTTOM_NAV[role]}
     >
       {children}
     </DashboardLayout>

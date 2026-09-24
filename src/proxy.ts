@@ -1,16 +1,39 @@
 import { createServerClient } from "@supabase/ssr";
+import {
+  isAuthEntryPath,
+  unverifiedProtectedRedirect,
+  verifiedAuthEntryRedirect,
+} from "@/domain/identity/access";
+import { isSuspended, type AccountStatus } from "@/domain/identity/account-status";
+import {
+  dashboardRoleRedirect,
+  homePathForRole,
+  isExistingDashboardPath,
+} from "@/domain/navigation";
+import { resolveUserRole } from "@/domain/roles";
 import { type NextRequest, NextResponse } from "next/server";
 
-const AUTH_ENTRY_PATHS = new Set(["/", "/login", "/signup"]);
-const ROLE_PATHS = {
-  "/admin": "admin",
-  "/counselor": "counselor",
-  "/parent-portal": "parent",
-} as const;
+function redirectWithCookies(
+  request: NextRequest,
+  supabaseResponse: NextResponse,
+  pathname: string,
+): NextResponse {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = pathname;
+  redirectUrl.search = "";
+  const redirectResponse = NextResponse.redirect(redirectUrl);
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value);
+  });
+  return redirectResponse;
+}
 
 export async function proxy(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-gsc-pathname", request.nextUrl.pathname);
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   });
 
   const supabase = createServerClient(
@@ -26,7 +49,7 @@ export async function proxy(request: NextRequest) {
             request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
@@ -40,38 +63,59 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user && AUTH_ENTRY_PATHS.has(request.nextUrl.pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/profile";
-
-    const redirectResponse = NextResponse.redirect(url);
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value);
-    });
-
-    return redirectResponse;
+  if (!user) {
+    return supabaseResponse;
   }
 
-  if (user) {
-    const requiredRole = Object.entries(ROLE_PATHS).find(
-      ([path]) =>
-        request.nextUrl.pathname === path ||
-        request.nextUrl.pathname.startsWith(`${path}/`),
-    )?.[1];
+  const pathname = request.nextUrl.pathname;
+  const emailVerified = Boolean(user.email_confirmed_at);
+  const unverifiedRedirect = unverifiedProtectedRedirect(
+    pathname,
+    emailVerified,
+    isExistingDashboardPath(pathname),
+  );
 
-    if (requiredRole) {
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
+  if (unverifiedRedirect) {
+    return redirectWithCookies(request, supabaseResponse, unverifiedRedirect);
+  }
 
-      if (profile?.role !== requiredRole) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = "/profile";
-        redirectUrl.search = "";
-        return NextResponse.redirect(redirectUrl);
-      }
+  const { data: account } = await supabase
+    .from("accounts")
+    .select("status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const status = (account?.status ?? null) as AccountStatus | null;
+
+  if (isSuspended(status)) {
+    await supabase.auth.signOut();
+    return redirectWithCookies(request, supabaseResponse, "/login");
+  }
+
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = resolveUserRole(profile?.role);
+  const homePath = homePathForRole(role);
+
+  if (isAuthEntryPath(pathname)) {
+    const entryRedirect = verifiedAuthEntryRedirect(
+      pathname,
+      emailVerified,
+      homePath,
+    );
+    if (entryRedirect) {
+      return redirectWithCookies(request, supabaseResponse, entryRedirect);
+    }
+  }
+
+  if (isExistingDashboardPath(pathname)) {
+    const mismatchPath = dashboardRoleRedirect(pathname, role);
+    if (mismatchPath) {
+      return redirectWithCookies(request, supabaseResponse, mismatchPath);
     }
   }
 

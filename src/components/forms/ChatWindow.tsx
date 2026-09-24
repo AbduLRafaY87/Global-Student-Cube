@@ -91,10 +91,6 @@ export function ChatWindow({
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages]);
-
-  useEffect(() => {
     void markMessagesAsRead(counterpartId);
   }, [counterpartId]);
 
