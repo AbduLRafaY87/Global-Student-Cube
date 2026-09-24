@@ -1,6 +1,7 @@
 import { safeInternalPath } from "@/domain/identity/return-path";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { actorContext } from "@/server/context";
+import { activateAfterEmailVerifiedSql } from "@/server/modules/identity/sql-commands";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -45,10 +46,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const admin = createAdminClient();
-    await admin.rpc("activate_after_email_verified", {
-      p_account_id: user.id,
-    });
+    await activateAfterEmailVerifiedSql(actorContext(user.id), user.id);
   } catch {
     // Account row may not exist yet for legacy users.
   }

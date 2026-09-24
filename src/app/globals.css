@@ -41,6 +41,19 @@
   --gsc-radius-card: 12px;
   --gsc-radius-modal: 16px;
   --gsc-backdrop: rgb(23 43 77 / 40%);
+
+  --gsc-text-body: 16px;
+  --gsc-text-body-leading: 24px;
+  --gsc-text-label: 14px;
+  --gsc-text-label-leading: 20px;
+  --gsc-text-caption: 12px;
+  --gsc-text-caption-leading: 18px;
+  --gsc-text-title-phone: 24px;
+  --gsc-text-title-phone-leading: 32px;
+  --gsc-text-title-desktop: 32px;
+  --gsc-text-title-desktop-leading: 40px;
+  --gsc-text-section: 20px;
+  --gsc-text-section-leading: 28px;
 }
 
 @theme inline {
@@ -75,6 +88,23 @@
   --radius-control: var(--gsc-radius-control);
   --radius-card: var(--gsc-radius-card);
   --radius-modal: var(--gsc-radius-modal);
+
+  --text-body: var(--gsc-text-body);
+  --text-body--line-height: var(--gsc-text-body-leading);
+  --text-label: var(--gsc-text-label);
+  --text-label--line-height: var(--gsc-text-label-leading);
+  --text-caption: var(--gsc-text-caption);
+  --text-caption--line-height: var(--gsc-text-caption-leading);
+  --text-title-phone: var(--gsc-text-title-phone);
+  --text-title-phone--line-height: var(--gsc-text-title-phone-leading);
+  --text-title-desktop: var(--gsc-text-title-desktop);
+  --text-title-desktop--line-height: var(--gsc-text-title-desktop-leading);
+  --text-section: var(--gsc-text-section);
+  --text-section--line-height: var(--gsc-text-section-leading);
+}
+
+html {
+  color-scheme: light;
 }
 
 html,

@@ -40,7 +40,10 @@ export function ApplicationForm({
 
       <form className="mt-6 space-y-4" action={formAction} noValidate>
         {application ? (
-          <input type="hidden" name="id" value={application.id} />
+          <>
+            <input type="hidden" name="id" value={application.id} />
+            <input type="hidden" name="version" value={application.version} />
+          </>
         ) : null}
 
         <div>

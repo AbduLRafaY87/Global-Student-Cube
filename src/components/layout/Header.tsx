@@ -62,7 +62,7 @@ export function Header({ user, unreadCount, onOpenMobile }: HeaderProps) {
         >
           <Menu className="size-6" aria-hidden />
         </IconButton>
-        <h1 className="truncate text-xl leading-7 font-semibold tracking-tight text-text">
+        <h1 className="truncate text-title-phone font-semibold tracking-tight text-text min-[900px]:text-title-desktop">
           {title}
         </h1>
       </div>

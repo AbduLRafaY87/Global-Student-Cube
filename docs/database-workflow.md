@@ -16,7 +16,7 @@ npx supabase login
 npx supabase link --project-ref <dev-project-ref>
 ```
 
-Copy the project's API URL and anon key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Put the service role key and the Database connection string in `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_DB_URL`. Those last two are server-only.
+Copy the project's API URL and anon key into `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Put the service role key and the Database connection string in `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_DB_URL`. After `0029_command_architecture.sql` is applied, `ALTER ROLE gsc_api_executor LOGIN PASSWORD '...'` and set `COMMANDS_DATABASE_URL` to that role’s URI. Those last three are server-only. The app must not use `SUPABASE_SERVICE_ROLE_KEY` to write `user_profiles` or `applications`.
 
 `link` does not start a local database.
 

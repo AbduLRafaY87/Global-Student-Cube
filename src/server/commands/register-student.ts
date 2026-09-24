@@ -9,6 +9,8 @@ import {
 } from "@/lib/crypto/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { actorContext } from "@/server/context";
+import { registerStudentAccountSql } from "@/server/modules/identity/sql-commands";
 
 export type RegisterCommandResult =
   | { ok: true; redirectTo: "/verify-email" }
@@ -82,34 +84,31 @@ async function persistIdentity(
     occurredAt,
   );
   const hash = await sha256Hex(payload);
-  const admin = createAdminClient();
-  const { error } = await admin.rpc("register_student_account", {
-    p_account_id: userId,
-    p_email_normalized: value.emailNormalized,
-    p_full_name: value.fullName,
-    p_family_name: value.familyName,
-    p_parent_spouse_name: value.parentSpouseName,
-    p_gender: value.gender,
-    p_dob: value.dob,
-    p_nationality: value.nationality,
-    p_residence_country: value.residenceCountry,
-    p_city: value.city,
-    p_address: value.address,
-    p_phone_cipher_hex: phone.cipherHex,
-    p_phone_hash: phone.hash,
-    p_whatsapp_cipher_hex: whatsapp?.cipherHex ?? null,
-    p_social_urls: value.socialUrls,
-    p_passport_status: value.passportStatus,
-    p_age_band: value.ageBand,
-    p_policy_version: value.consent.policyVersion,
-    p_evidence_hash: hash,
-    p_consent_email: value.consent.emailNotices,
-    p_consent_whatsapp: value.consent.whatsappNotices,
+  await registerStudentAccountSql(actorContext(userId), {
+    accountId: userId,
+    emailNormalized: value.emailNormalized,
+    fullName: value.fullName,
+    familyName: value.familyName,
+    parentSpouseName: value.parentSpouseName || null,
+    gender: value.gender,
+    dob: value.dob,
+    nationality: value.nationality,
+    residenceCountry: value.residenceCountry,
+    city: value.city,
+    address: value.address,
+    phoneCipher: Buffer.from(phone.cipherHex, "hex"),
+    phoneHash: phone.hash,
+    whatsappCipher: whatsapp
+      ? Buffer.from(whatsapp.cipherHex, "hex")
+      : null,
+    socialUrls: value.socialUrls,
+    passportStatus: value.passportStatus,
+    ageBand: value.ageBand,
+    policyVersion: value.consent.policyVersion,
+    evidenceHash: hash,
+    consentEmail: value.consent.emailNotices,
+    consentWhatsapp: value.consent.whatsappNotices,
   });
-
-  if (error) {
-    throw error;
-  }
 }
 
 async function rollbackAuthUser(userId: string): Promise<void> {

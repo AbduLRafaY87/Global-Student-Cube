@@ -66,6 +66,7 @@ function toApplicationRow(row: {
   university_id: unknown;
   status: unknown;
   deadline: unknown;
+  version: unknown;
   created_at: unknown;
   updated_at: unknown;
   universities: unknown;
@@ -109,6 +110,7 @@ function toApplicationRow(row: {
     university_id: row.university_id,
     status,
     deadline: toDateOnly(row.deadline),
+    version: typeof row.version === "number" ? row.version : 1,
     created_at: typeof row.created_at === "string" ? row.created_at : "",
     updated_at: typeof row.updated_at === "string" ? row.updated_at : "",
     university_name: universityName,
@@ -181,7 +183,7 @@ export default async function ApplicationsPage({
     const { data: applicationRows } = await supabase
       .from("applications")
       .select(
-        "id, student_id, university_id, status, deadline, created_at, updated_at, universities(name, country)",
+        "id, student_id, university_id, status, deadline, version, created_at, updated_at, universities(name, country)",
       )
       .eq("student_id", user.id)
       .order("deadline", { ascending: true });
@@ -314,6 +316,11 @@ export default async function ApplicationsPage({
                       className="flex flex-wrap items-center gap-2"
                     >
                       <input type="hidden" name="id" value={application.id} />
+                      <input
+                        type="hidden"
+                        name="version"
+                        value={application.version}
+                      />
                       <select
                         name="status"
                         defaultValue={application.status}
@@ -343,6 +350,11 @@ export default async function ApplicationsPage({
                       </Link>
                       <form action={deleteApplication}>
                         <input type="hidden" name="id" value={application.id} />
+                        <input
+                          type="hidden"
+                          name="version"
+                          value={application.version}
+                        />
                         <button
                           type="submit"
                           className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"

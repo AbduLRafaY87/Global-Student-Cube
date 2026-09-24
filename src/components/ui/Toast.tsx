@@ -41,21 +41,31 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
+  const scheduleInfoDismiss = useCallback(
+    (id: string) => {
+      const existing = timers.current.get(id);
+      if (existing) {
+        window.clearTimeout(existing);
+      }
+      timers.current.set(
+        id,
+        window.setTimeout(() => {
+          dismissToast(id);
+        }, 6000),
+      );
+    },
+    [dismissToast],
+  );
+
   const pushToast = useCallback(
     (toast: Omit<ToastMessage, "id">) => {
       const id = crypto.randomUUID();
       setToasts((current) => [...current, { ...toast, id }]);
-
       if (toast.tone === "info") {
-        timers.current.set(
-          id,
-          window.setTimeout(() => {
-            dismissToast(id);
-          }, 6000),
-        );
+        scheduleInfoDismiss(id);
       }
     },
-    [dismissToast],
+    [scheduleInfoDismiss],
   );
 
   const value = useMemo(
@@ -85,11 +95,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 timers.current.delete(toast.id);
               }
             }}
+            onMouseLeave={() => {
+              if (toast.tone === "info") {
+                scheduleInfoDismiss(toast.id);
+              }
+            }}
             onFocus={() => {
               const timer = timers.current.get(toast.id);
               if (timer) {
                 window.clearTimeout(timer);
                 timers.current.delete(toast.id);
+              }
+            }}
+            onBlur={() => {
+              if (toast.tone === "info") {
+                scheduleInfoDismiss(toast.id);
               }
             }}
           >

@@ -78,6 +78,7 @@ export default function RegisterContactPage() {
             required
             inputMode="tel"
             autoComplete="tel-country-code"
+            hint="Include +. We never read a SIM."
             value={draft.contact.phoneCountryCode}
             onChange={(event) =>
               setDraft({
@@ -165,6 +166,24 @@ export default function RegisterContactPage() {
           </div>
         </div>
       ) : null}
+
+      <label className="flex min-h-12 items-start gap-3 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={draft.review.consentWhatsappNotices}
+          onChange={(event) =>
+            setDraft({
+              ...draft,
+              review: {
+                ...draft.review,
+                consentWhatsappNotices: event.target.checked,
+              },
+            })
+          }
+        />
+        Optional: allow WhatsApp notices. This is separate from having a number.
+      </label>
 
       <PasswordField
         id="password"

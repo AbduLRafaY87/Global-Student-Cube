@@ -3,7 +3,8 @@ import {
   LOGIN_WINDOW_SECONDS,
 } from "@/domain/identity/abuse";
 import { sha256Hex } from "@/domain/identity/hash";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { guestContext } from "@/server/context";
+import { bumpAbuseSql } from "@/server/modules/identity/sql-commands";
 
 export function clientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -30,19 +31,13 @@ export async function bumpAbuse(
   windowSeconds: number,
   limit: number,
 ): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
-  const admin = createAdminClient();
   const keyHash = await sha256Hex(key);
-  const { data, error } = await admin.rpc("bump_abuse", {
-    p_key_hash: keyHash,
-    p_window_seconds: windowSeconds,
-    p_limit: limit,
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  const payload = data as { allowed?: boolean; retry_after_seconds?: number };
+  const payload = await bumpAbuseSql(
+    guestContext(),
+    keyHash,
+    windowSeconds,
+    limit,
+  );
   return {
     allowed: payload.allowed === true,
     retryAfterSeconds: payload.retry_after_seconds ?? 0,

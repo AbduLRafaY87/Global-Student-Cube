@@ -8,7 +8,20 @@
     "skipLibCheck": true,
     "rootDir": "src",
     "outDir": "dist-test",
-    "noEmit": false
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/domain/**/*.ts", "src/types/index.ts"]
+  "include": [
+    "src/domain/**/*.ts",
+    "src/types/index.ts",
+    "src/server/errors.ts",
+    "src/server/errors.test.ts",
+    "src/server/http/body.ts",
+    "src/server/http/envelope.ts",
+    "src/server/http/headers.ts",
+    "src/server/http/headers.test.ts"
+  ]
 }

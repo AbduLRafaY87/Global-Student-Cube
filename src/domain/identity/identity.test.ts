@@ -20,6 +20,7 @@ import {
   EMPTY_REGISTRATION_DRAFT,
   validateIdentity,
   validateRegistrationSubmission,
+  validateReview,
   type RegistrationDraft,
 } from "./registration";
 
@@ -68,6 +69,10 @@ function adultDraft(): RegistrationDraft {
 describe("password policy", () => {
   it("enforces 12–128 with upper, lower, number and symbol", () => {
     assert.equal(validatePassword("Short1!"), "Use at least 12 characters.");
+    assert.equal(validatePassword("ValidPass1!"), "Use at least 12 characters.");
+    assert.equal(validatePassword("ValidPass1!x"), null);
+    assert.equal(validatePassword(`A1!${"a".repeat(125)}`), null);
+    assert.equal(validatePassword("abcdefghijkl"), "Use upper and lower case letters, a number and a symbol.");
     assert.equal(isPasswordPolicyMet("abcdefghijkl"), false);
     assert.equal(isPasswordPolicyMet("Abcdefghijkl"), false);
     assert.equal(isPasswordPolicyMet("Abcdefghijk1"), false);
@@ -161,6 +166,18 @@ describe("registration submission", () => {
 });
 
 describe("consent evidence", () => {
+  it("blocks submission until required data-use consent is checked", () => {
+    const draft = adultDraft();
+    draft.review.consentDataUse = false;
+    const errors = validateReview(draft.review, draft.eligibility.stage, "adult");
+    assert.match(errors.consentDataUse ?? "", /data-use policy/i);
+    const result = validateRegistrationSubmission(draft, TODAY);
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.step, "review");
+    }
+  });
+
   it("canonicalizes decisions for an immutable hash payload", () => {
     const first = canonicalConsentPayload(
       "actor-1",

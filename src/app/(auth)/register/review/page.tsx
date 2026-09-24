@@ -119,7 +119,11 @@ export default function RegisterReviewPage() {
       backHref="/register/contact"
       backLabel="Back to contact"
       footer={
-        <Button loading={submitting} onClick={() => void handleSubmit()}>
+        <Button
+          loading={submitting}
+          disabled={Object.keys(errors).length > 0}
+          onClick={() => void handleSubmit()}
+        >
           Create account and verify
         </Button>
       }
@@ -215,8 +219,45 @@ export default function RegisterReviewPage() {
                   });
                 }}
               />
+              {draft.review.socialUrls.length > 1 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    const next = draft.review.socialUrls.filter(
+                      (_, itemIndex) => itemIndex !== index,
+                    );
+                    setDraft({
+                      ...draft,
+                      review: { ...draft.review, socialUrls: next },
+                    });
+                  }}
+                >
+                  Remove this profile
+                </Button>
+              ) : null}
             </div>
           ))}
+          {draft.review.socialUrls.length < 5 ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  review: {
+                    ...draft.review,
+                    socialUrls: [
+                      ...draft.review.socialUrls,
+                      { kind: "other", url: "" },
+                    ],
+                  },
+                })
+              }
+            >
+              Add another profile
+            </Button>
+          ) : null}
           {errors.socialUrls ? (
             <p className="text-sm text-critical" role="alert">
               {errors.socialUrls}
@@ -229,7 +270,13 @@ export default function RegisterReviewPage() {
         <legend className="text-sm font-medium text-text">Data use *</legend>
         <p className="text-sm text-text-muted">
           Policy version {DATA_USE_POLICY_VERSION}. Required to create an account.
-          Marketing is optional and is not pre-checked.
+          Marketing is optional and is not pre-checked.{" "}
+          <Link
+            href="/privacy?document=data-use"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Read the data-use policy
+          </Link>
         </p>
         <label className="flex min-h-12 items-start gap-3 text-sm">
           <input

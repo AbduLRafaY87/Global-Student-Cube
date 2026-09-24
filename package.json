@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "tsc -p tsconfig.test.json && node --test dist-test/domain/*.test.js dist-test/domain/identity/*.test.js"
+    "test:unit": "tsc -p tsconfig.test.json && node --test dist-test/domain/*.test.js dist-test/domain/identity/*.test.js dist-test/server/*.test.js dist-test/server/http/*.test.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.46.0",
     "next": "16.3.5",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.7.0"
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

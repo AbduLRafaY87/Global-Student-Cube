@@ -6,6 +6,8 @@ import {
 } from "@/domain/identity/password";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { actorContext } from "@/server/context";
+import { consumeResetTokenSql } from "@/server/modules/identity/sql-commands";
 import { NextResponse } from "next/server";
 
 interface ConfirmBody {
@@ -41,16 +43,18 @@ export async function POST(request: Request) {
   }
 
   const tokenHash = await sha256Hex(`reset:${session.access_token}`);
-  const admin = createAdminClient();
-  const { data: consumed, error: consumeError } = await admin.rpc(
-    "consume_reset_token",
-    {
-      p_token_hash: tokenHash,
-      p_account_id: session.user.id,
-    },
-  );
+  let consumed = false;
+  try {
+    consumed = await consumeResetTokenSql(
+      actorContext(session.user.id),
+      tokenHash,
+      session.user.id,
+    );
+  } catch {
+    consumed = false;
+  }
 
-  if (consumeError || consumed === false) {
+  if (consumed === false) {
     return NextResponse.json(
       {
         ok: false,
@@ -79,6 +83,7 @@ export async function POST(request: Request) {
     );
   }
 
+  const admin = createAdminClient();
   await admin.auth.admin.signOut(session.user.id, "global");
 
   return NextResponse.json({ ok: true, redirectTo: "/login" });

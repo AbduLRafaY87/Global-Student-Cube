@@ -30,6 +30,7 @@ export interface UserProfile {
   phone: string | null;
   role: UserRole;
   onboarding_completed: boolean;
+  version: number;
   created_at: string;
   updated_at: string;
 }
@@ -85,6 +86,7 @@ export interface Application {
   university_id: string;
   status: ApplicationStatus;
   deadline: string;
+  version: number;
   created_at: string;
   updated_at: string;
 }

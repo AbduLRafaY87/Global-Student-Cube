@@ -26,7 +26,7 @@ export function Field({
 
   return (
     <div className="flex flex-col">
-      <label htmlFor={id} className="text-sm leading-5 font-medium text-text">
+      <label htmlFor={id} className="text-label font-medium text-text">
         {label}
         {required ? <span className="text-critical"> *</span> : null}
         {optional ? (

@@ -35,10 +35,11 @@ export function Dialog({
 
     if (open && !node.open) {
       node.showModal();
+      document.getElementById(titleId)?.focus();
     } else if (!open && node.open) {
       node.close();
     }
-  }, [open]);
+  }, [open, titleId]);
 
   return (
     <dialog
@@ -52,13 +53,13 @@ export function Dialog({
       }}
     >
       <div className="flex max-h-[inherit] flex-col">
-        <div className="flex items-start justify-between gap-4 p-6 pb-0">
-          <h2 id={titleId} className="text-xl leading-7 font-semibold">
+        <div className="relative flex items-start justify-between gap-4 p-6 pr-14 pb-0">
+          <h2 id={titleId} tabIndex={-1} className="text-section font-semibold">
             {title}
           </h2>
           <IconButton
             label={`Close ${title}`}
-            className="-mt-2 -mr-2"
+            className="absolute top-2 right-2"
             onClick={onClose}
           >
             <X className="size-6" aria-hidden />

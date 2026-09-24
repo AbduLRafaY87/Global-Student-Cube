@@ -78,7 +78,31 @@ export function ForbiddenState({
 }) {
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-surface p-6" role="alert">
-      <p className="text-sm text-text">{message}</p>
+      <p className="text-label text-text">{message}</p>
+    </div>
+  );
+}
+
+export function OfflineState({
+  message = MICROCOPY.offline,
+}: {
+  message?: string;
+}) {
+  return (
+    <div className="rounded-[var(--radius-card)] border border-warning bg-warning-bg p-6" role="status">
+      <p className="text-label text-warning">{message}</p>
+    </div>
+  );
+}
+
+export function SessionExpiredState({
+  message = MICROCOPY.expiredSession,
+}: {
+  message?: string;
+}) {
+  return (
+    <div className="rounded-[var(--radius-card)] border border-border bg-surface p-6" role="alert">
+      <p className="text-label text-text">{message}</p>
     </div>
   );
 }

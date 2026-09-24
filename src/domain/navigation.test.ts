@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   BOTTOM_NAV,
+  DASHBOARD_NAV,
   dashboardRoleRedirect,
   flattenNavItems,
   homePathForRole,
@@ -16,6 +17,10 @@ import {
 
 describe("role navigation and guards", () => {
   it("groups student destinations by journey stage", () => {
+    assert.deepEqual(
+      DASHBOARD_NAV.student.map((section) => section.label),
+      ["Discover", "Apply", "Prepare", "Decide", "Support"],
+    );
     const hrefs = flattenNavItems("student").map((item) => item.href);
     assert.ok(hrefs.includes("/universities"));
     assert.ok(hrefs.includes("/applications"));

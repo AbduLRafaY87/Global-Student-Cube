@@ -29,7 +29,8 @@ export function BottomNav({ items, onOpenMore }: BottomNavProps) {
             <button
               key="more"
               type="button"
-              className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 text-xs text-text-muted"
+              className="flex min-h-12 flex-1 flex-col items-center justify-center gap-1 text-caption text-text-muted"
+              aria-label="More"
               onClick={onOpenMore}
             >
               <Icon className={navIconSizeClass("standard")} aria-hidden />

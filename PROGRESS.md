@@ -1,349 +1,299 @@
-# Global Student Cube progress
+# Implementation progress
 
-Inspected from the current tree on 19 Sep 2026. Statuses are **not** taken from older module notes. **Done** is unused: no screen has evidence for every spec acceptance line.
+Last recomputed: 24 Sep 2026, by inspecting the current tree only.
 
-There is no public REST catalogue implemented beyond `/api/v1/auth/*` (register, login, password-reset, verify-email, change-email). `src/domain/` currently holds navigation, identity/auth rules, status tones and microcopy — not the rest of the spec business package. Existing App Router pages are early prototypes, often on the wrong route, and several leftover modules are parked or folded by owner decision. Database P0 checks live in `supabase/tests/rls_p0.test.sql` (pgTAP via `supabase test db`); identity command tests live in `supabase/tests/auth_identity.test.sql`. That is not the spec T001–Txxx catalogue.
+No live Supabase project is linked. Nothing in this file was proven against a remote database. Historical local-Docker `supabase db reset` / `supabase test db` results (19 Sep 2026: 84/84) are **not** current evidence.
 
-## Screen inventory
+Status vocabulary (use only these):
 
-| ID | Title | Planned route | Status | Owner prompt | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| AUTH-01 | Role, purpose and eligibility | `/register` | Partial | this slice | Student-only; eligibility Yes/No; no role picker. `/signup` redirects here. Not the spec 3-role cards. |
-| AUTH-02 | Identity and age routing | `/register/identity` | Partial | this slice | Name rules, DOB, nationality/residence/city. Under-13 blocked. 13–17 notice without evidence upload. |
-| AUTH-03 | Contact and password | `/register/contact` | Partial | this slice | 12–128 password policy, WhatsApp optional, spaces kept. Phone stored encrypted via command. |
-| AUTH-04 | Evidence, privacy and submission | `/register/review` | Partial | this slice | Consent only (D2). Immutable `consent_events`. No evidence upload. GSC allocated at create (approval removed). |
-| AUTH-05 | Email verification | `/verify-email` | Partial | this slice | Masked address, 60s resend, callback, unverified users blocked from dashboard. |
-| AUTH-06 | Phone verification | `/verify-phone` | Deferred | — | Owner: late-phase. No `/verify-phone` route. |
-| AUTH-07 | Approval, guardian and correction status | `/account/status` | Removed | — | Owner D2: no registration approval flow. |
-| AUTH-08 | Login | `/login` | Partial | this slice | Generic errors, 5/15min throttle, suspended handling. No MFA branch (AUTH-10 next). |
-| AUTH-09 | Password reset | `/password-reset` | Partial | this slice | Generic request, new-password, expiry, consumed-token reject, global sign-out. |
-| AUTH-10 | MFA enrollment and challenge | `/mfa` | Not started | — | No MFA screens. D2 requires MFA for staff/counselor, not students. |
-| PUB-01 | Overview and guest home | `/` | Partial | — | `src/app/page.tsx` landing. Missing tour, match, mentor, stories actions from spec. |
-| PUB-02 | Role-aware app tour | `/tour` | Not started | — | No tour route. |
-| PUB-03 | Guest course and university match | `/quick-match` | Not started | — | No guest match route. |
-| PUB-04 | Scholarship preview | `/preview/scholarships` | Not started | — | Guest scholarship list is not this preview. |
-| PUB-05 | Mentor teaser | `/preview/mentors/:mentorId` | Not started | — | No public mentor teaser. |
-| PUB-06 | Success stories wall | `/stories` | Not started | — | No stories route. |
-| STU-01 | Student dashboard | `/home` | Not started | — | Dashboard shell exists; no `/home` next-step dashboard. |
-| STU-02 | Academic history | `/cases/:caseId/profile/education` | Partial | — | `src/app/(dashboard)/profile/page.tsx` stores GPA/major on `student_profiles`, not institution records. |
-| STU-03 | Tests and result evidence | `/cases/:caseId/profile/tests` | Partial | — | Folded leftover: `src/app/(dashboard)/test-prep/page.tsx`. Not case-scoped test evidence. |
-| STU-04 | Study and destination preferences | `/cases/:caseId/profile/preferences` | Not started | — | No preferences screen. |
-| STU-05 | Interests, achievements and introduction | `/cases/:caseId/profile/experience` | Partial | — | Folded leftover: `src/app/(dashboard)/activities/page.tsx`. |
-| STU-06 | Parent and financial information | `/cases/:caseId/profile/finances` | Not started | — | No finance profile. |
-| STU-07 | Complete-profile review and document vault | `/cases/:caseId/profile` | Partial | — | Folded leftover: `src/app/(dashboard)/documents/page.tsx` plus `/profile`. Not a complete-profile review. |
-| PAR-01 | Parent dashboard | `/parent/home` | Partial | — | `src/app/(dashboard)/parent-portal/page.tsx` (wrong route). |
-| PAR-02 | Family linkage and permission review | `/family-links/:linkId?` | Not started | — | No invitation/scope UI. |
-| PAR-03 | Student case chooser | `/parent/cases` | Not started | — | No case chooser. |
-| CAT-01 | University discovery and recommendations | `/explore/universities` | Partial | — | `src/app/(dashboard)/universities/page.tsx`. Shows `acceptance_rate` (D5 forbids). No 10-university recs or program pairing. |
-| CAT-02 | University detail | `/universities/:universityId` | Not started | — | List only. Housing leftover is not this screen. |
-| CAT-03 | Program detail | `/universities/:universityId/programs/:programId` | Not started | — | No programs table/page. |
-| CAT-04 | Cost comparison and financial readiness | `/cases/:caseId/costs` | Not started | — | No budget/readiness UI. |
-| CAT-05 | Program self-assessment | `/cases/:caseId/assessment/:programId` | Not started | — | `/admission-odds` is the removed odds module, not CAT-05. |
-| CAT-06 | Saved shortlist and counselor-review flags | `/cases/:caseId/shortlist` | Not started | — | No 0–3 saved university+program cap. |
-| CAT-07 | Full scholarship directory | `/explore/scholarships` | Partial | — | `src/app/(dashboard)/scholarships/page.tsx`. Not the spec directory/filters. |
-| CAT-08 | Scholarship detail and provider handoff | `/scholarships/:scholarshipId` | Not started | — | No detail route. |
-| SES-01 | Counselor selection | `/cases/:caseId/counselors` | Partial | — | `src/app/(dashboard)/counselor/page.tsx` student assignment widget. |
-| SES-02 | Counselor public profile and selection | `/counselors/:counselorId` | Not started | — | No public counselor profile. |
-| SES-03 | Book or reschedule appointment | `/cases/:caseId/book/:expertId` | Not started | — | No booking. |
-| SES-04 | Appointment detail and confirmation | `/sessions/:sessionId` | Not started | — | No appointment detail. |
-| SES-05 | Cancel appointment | `/sessions/:sessionId/cancel` | Not started | — | — |
-| SES-06 | Session lobby and equipment check | `/sessions/:sessionId/lobby` | Not started | — | — |
-| SES-07 | Live video session | `/sessions/:sessionId/live` | Not started | — | — |
-| SES-08 | Per-session recording consent | `/sessions/:sessionId/consent` | Not started | — | — |
-| SES-09 | Approved advisory report | `/sessions/:sessionId/report` | Not started | — | — |
-| SES-10 | Counseling feedback | `/sessions/:sessionId/feedback` | Not started | — | — |
-| SES-11 | Counselor change and handoff | `/cases/:caseId/change-counselor` | Not started | — | — |
-| SES-12 | Follow-up tasks and evidence | `/cases/:caseId/tasks/:taskId?` | Partial | — | Folded leftover: `src/app/(dashboard)/tasks/page.tsx`. |
-| MEN-01 | Mentor community and leaderboard | `/mentors` | Partial | — | Folded leftover: `src/app/(dashboard)/alumni/page.tsx`. Not community/leaderboard. |
-| MEN-02 | Mentor profile and connection request | `/mentors/:mentorId` | Not started | — | — |
-| MEN-03 | Alumni/current-student mentor profile | `/mentor/profile` | Not started | — | — |
-| MEN-04 | Parent mentor profile | `/mentor/parent-profile` | Not started | — | — |
-| MEN-05 | Mentor dashboard | `/mentor/home` | Not started | — | — |
-| MEN-06 | Mentoring requests and connections | `/mentoring/requests/:requestId?` | Not started | — | — |
-| MEN-07 | Mentor session summary and mutual feedback | `/mentoring/sessions/:sessionId/summary` | Not started | — | — |
-| COU-01 | Counselor dashboard | `/counselor/home` | Not started | — | `/counselor` is student-facing, not this dashboard. |
-| COU-02 | Counselor professional profile | `/counselor/profile` | Not started | — | — |
-| COU-03 | Company and affiliation details | `/counselor/company` | Not started | — | — |
-| COU-04 | Availability and calendar connections | `/availability` | Not started | — | — |
-| COU-05 | Caseload and student case workbench | `/counselor/students/:caseId?` | Not started | — | — |
-| COU-06 | Session report editor and approval | `/counselor/sessions/:sessionId/report` | Not started | — | — |
-| COU-07 | Private AI coaching and improvement | `/counselor/coaching/:sessionId?` | Not started | — | — |
-| COU-08 | Counselor catalog contributions | `/counselor/catalog-contributions/:draftId?` | Not started | — | — |
-| MSG-01 | Conversation inbox | `/messages` | Partial | — | `src/app/(dashboard)/messages/page.tsx`. Not relationship-scoped inbox. |
-| MSG-02 | Scoped conversation | `/messages/:conversationId` | Partial | — | Chat UI on the messages page; no conversation route. |
-| ADM-01 | Admin overview | `/admin` | Partial | — | `src/app/(dashboard)/admin/page.tsx` user/application/university counts only. |
-| ADM-02 | Registration, guardian and professional review | `/admin/approvals/:applicationId?` | Not started | — | D2 removed public approval; staff invitation review still unspecified here. |
-| ADM-03 | Data ingestion submission | `/admin/ingestion/new` | Not started | — | — |
-| ADM-04 | Extracted data review and reconciliation | `/admin/ingestion/:jobId/review` | Not started | — | — |
-| ADM-05 | Catalog management | `/admin/catalog` | Not started | — | — |
-| ADM-06 | University and accommodation editor | `/admin/universities/:universityId` | Not started | — | — |
-| ADM-07 | Program and pricing editor | `/admin/programs/:programId` | Not started | — | — |
-| ADM-08 | Entry requirement rules | `/admin/programs/:programId/requirements` | Not started | — | — |
-| ADM-09 | Visa and destination guidance editor | `/admin/visa/:visaRuleId` | Not started | — | Editorial visa content is not the student `/visa` leftover. |
-| ADM-10 | Rewards verification and fulfillment | `/admin/rewards/:itemId?` | Not started | — | — |
-| ADM-11 | Moderation, quality and safety review | `/admin/moderation/:reviewId?` | Not started | — | — |
-| ADM-12 | Operational and outcome analytics | `/admin/analytics` | Not started | — | — |
-| ADM-13 | Jobs, delivery and integration operations | `/admin/jobs/:jobId?` | Not started | — | — |
-| ADM-14 | Scholarship URL and metadata editor | `/admin/scholarships/:scholarshipId` | Not started | — | — |
-| ADM-15 | Learning, news and recognition content editor | `/admin/content/:contentId?` | Not started | — | — |
-| REW-01 | Points, tiers and activity ledger | `/rewards` | Not started | — | — |
-| REW-02 | Referral sharing and status | `/rewards/referrals` | Not started | — | — |
-| REW-03 | Reward catalog and redemption | `/rewards/redeem/:redemptionId?` | Not started | — | — |
-| REW-04 | Certificates and appreciation letters | `/rewards/certificates/:certificateId?` | Not started | — | — |
-| LRN-01 | Learning home and course discovery | `/learning` | Not started | — | — |
-| LRN-02 | Course overview and lesson player | `/learning/courses/:courseId/lessons/:lessonId?` | Not started | — | — |
-| LRN-03 | Resource library and downloads | `/learning/library/:resourceId?` | Not started | — | — |
-| NEW-01 | News feed and followed topics | `/news` | Not started | — | — |
-| NEW-02 | News detail | `/news/:articleId` | Not started | — | — |
-| NEW-03 | Counselor news submission | `/news/submit/:draftId?` | Not started | — | — |
-| JRN-01 | Selected-target application roadmap | `/cases/:caseId/roadmap` | Not started | — | `/applications` is a leftover tracker, not this roadmap. |
-| JRN-02 | Destination visa and work guidance | `/cases/:caseId/visa` | Partial | — | Folded leftover: `src/app/(dashboard)/visa/page.tsx` is student-entered rows, not editorial guidance. |
-| JRN-03 | Private milestones and success-story submission | `/journey` | Not started | — | — |
-| SET-01 | More and account settings | `/settings` | Not started | — | — |
-| SET-02 | Notification and integration preferences | `/settings/preferences` | Not started | — | — |
-| SET-03 | Privacy, consent and data rights | `/privacy` | Not started | — | — |
-| SET-04 | Password, MFA and active sessions | `/settings/security` | Not started | — | — |
-| SET-05 | Help, issue reporting and protected safety intake | `/help/:requestId?` | Not started | — | — |
-| SET-06 | Notification center | `/notifications` | Partial | — | `src/app/(dashboard)/notifications/page.tsx`. Not typed deep links or categories. |
+| Status | Meaning |
+|--------|---------|
+| **Not started** | No spec-faithful implementation in the tree |
+| **Partial** | Leftover prototype or incomplete code exists; not spec-complete and not proven |
+| **Written, unverified** | Spec-aligned code or SQL is in the tree; not proven on a linked Supabase project |
+| **Checked (no DB)** | Proven locally without a database: file inspection, or a recorded lint / `tsc` / `npm run test:unit` / `npm run build` run |
+| **Done** | Every acceptance line has current evidence. Unused until a linked project + CI + walkthrough exist |
+| **Deferred** | Owner decision: later phase |
+| **Removed** | Owner decision: do not build |
 
-### Screen counts
+Done is unused on purpose. Do not treat Written, unverified as Done.
+
+## Verification that is blocked until a Supabase project is linked
+
+These cannot be marked Done, and must not be cited as current evidence, until a remote project exists, the CLI is linked, and (for CI) GitHub secrets are set.
+
+1. `supabase link --project-ref <ref>` against a real project (dev and a separate test project).
+2. `supabase db push --linked` applying migrations `0000`–`0029` (including `0026`, `0027`, and `0029_command_architecture.sql`) to that project.
+3. Confirm `public.handle_new_user()` on the remote project always inserts `role = 'student'` (stop-ship).
+4. Confirm the role-change trigger / `users_role_immutable` equivalent is live on the remote project (stop-ship).
+5. `supabase test db --db-url "$SUPABASE_DB_URL"` for `rls_p0`, `auth_identity`, and `command_layer`.
+6. GitHub Actions `ci.yml` job `supabase-pgtap` (link test project, `db push --linked`, `test db --db-url`).
+7. `npm run build` against a real `.env.local` with remote `NEXT_PUBLIC_SUPABASE_*` (build itself does not need the DB, but a production-shaped env has never been used on a linked project).
+8. AUTH-01–05 / 08 / 09 walkthrough in `docs/qa/auth-walkthrough.md` against the remote project (register, email verify, login throttle, password reset single-use, under-13 / 13–17 / adult, suspended sign-out).
+9. P0 procedure in `docs/security/p0-verification.md` against the remote project (role-change SQL rejection, student RLS isolation, privilege-path audit+outbox same transaction).
+10. `scripts/bootstrap-admin.sql` executed on the remote project (admin is never created by public signup).
+11. Confirm `0028_countries_seed.sql` (234 ISO countries) is actually present in `public.countries` on the remote project.
+12. Confirm `commands.*` are executable only by `gsc_api_executor` (public service-role wrappers dropped in `0029`). Direct `authenticated` INSERT/UPDATE/DELETE on `user_profiles` and `applications` is denied.
+13. Confirm contact-encryption env (`GSC_CONTACT_ENCRYPTION_KEY`) works end-to-end on register (ciphertext in DB, not plaintext phone).
+14. Confirm Resend (or whatever outbound mail is configured) delivers verification and reset mail from the remote project.
+15. Confirm Site URL and redirect allow-list on the remote Auth settings match `docs/database-workflow.md`.
+16. `ALTER ROLE gsc_api_executor LOGIN PASSWORD '…'` and set `COMMANDS_DATABASE_URL`. Prove `PATCH /api/v1/me` and leftover application writes go through the executor (audit + outbox in the same transaction).
+17. Re-run identity register/login/reset against the executor path (no `service_role` RPC).
+
+Owner still owes: create remote projects (EU Frankfurt if available), Site URL / redirects, Resend, `supabase link`, `ALTER ROLE gsc_api_executor LOGIN`, GitHub secrets including `COMMANDS_DATABASE_URL`.
+
+## What was actually checked (no live database)
+
+Command-layer implementation pass (24 Sep 2026). No linked Supabase project. No `db push`. No pgTAP.
+
+| Check | Result | Date |
+|-------|--------|------|
+| `npm run lint` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
+| `npx tsc --noEmit` | 0 errors | 24 Sep 2026 (WP-01 pass) |
+| `npm run test:unit` | 30/30 including password 11/12/128, consent gate, under-13, reset reuse | 24 Sep 2026 (AUTH gap-fill) |
+| `npm run build` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
+| 360px shell | `/design` at 360×800; More opens Discover/Apply/Prepare/Decide/Support; `scrollWidth === 360` | 24 Sep 2026 |
+| `supabase db push --linked` / `supabase test db` | Not run. No project linked. | |
+
+UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `notFound()` when `NODE_ENV === "production"`. 360px shell was re-checked on 24 Sep 2026 (see table above).
+
+## Infrastructure and process (Docker removal, CI, docs)
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| No-Docker rule in `.cursor/rules/gsc-project-rules.mdc` | Checked (no DB) | File contains the rule; `db push --linked` is the verify step |
+| `README.md` remote-only setup | Checked (no DB) | File rewritten; no `supabase start` / Docker as required setup |
+| `.env.example` remote-only + `SUPABASE_DB_URL` + `COMMANDS_DATABASE_URL` | Checked (no DB) | File inspected |
+| `docs/database-workflow.md` | Checked (no DB) | File exists; two-project (dev + test) workflow |
+| `docs/qa/auth-walkthrough.md` | Written, unverified | Procedure written; not executed on a linked project |
+| `docs/security/p0-verification.md` | Written, unverified | Procedure rewritten for remote. 19 Sep results labelled historical / local Docker |
+| `supabase/migrations/README.md` | Checked (no DB) | Push-not-reset wording |
+| `supabase/config.toml` | Checked (no DB) | Ports labelled unused CLI defaults; not a local stack |
+| `.github/workflows/ci.yml` | Written, unverified | YAML uses `supabase link` + `db push --linked` + `test db --db-url`. Job has never run with real secrets |
+| Tree search: no operational `supabase start` / `db reset` / `54322` as required steps | Checked (no DB) | Remaining mentions are historical labels or unused CLI defaults |
+
+## Migrations and SQL tests
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| `supabase/migrations/0000`–`0025` (schema + RLS + seed) | Written, unverified | Files in tree; never pushed to a linked project |
+| `0013_reserved.sql` | Written, unverified | No-op placeholder; `users` table does not exist |
+| `0026_role_change_guard.sql` | Written, unverified | File in tree; stop-ship. Not applied remotely |
+| `0027_identity_command_layer.sql` | Written, unverified | `accounts`, `identities`, `cases`, `consent_events`, GSC counter, `commands.*`, `handle_new_user` always `'student'`. Not applied remotely |
+| `0028_countries_seed.sql` | Written, unverified | 234 ISO countries in the file. Not applied remotely |
+| `0029_command_architecture.sql` | Written, unverified | `gsc_api_executor`, version columns, idempotency_records, profile/application commands, revoke mutations, drop public wrappers. Not applied remotely |
+| `supabase/tests/rls_p0.test.sql` | Written, unverified | File exists. Not run against a linked project |
+| `supabase/tests/auth_identity.test.sql` | Written, unverified | File exists. Not run against a linked project |
+| `supabase/tests/command_layer.test.sql` | Written, unverified | Direct writes denied; executor path; atomic failure. Not run against a linked project |
+| `scripts/bootstrap-admin.sql` | Written, unverified | File exists. Not executed remotely |
+| `supabase/seed.sql` | Written, unverified | File exists. Not applied remotely |
+
+## Domain / app code (no live database required to exist; not proven end-to-end)
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| `src/domain/identity/*` + `identity.test.ts` | Written, unverified | Code present. Unit file exists; last recorded 21/21 on 19 Sep, not re-run |
+| `src/domain/navigation.ts` + `navigation.test.ts` | Written, unverified | Code present. Same unit-run caveat |
+| `src/server/commands/register-student.ts`, `abuse.ts` | Written, unverified | Now call `commands.*` via `gsc_api_executor` / `pg`, not `service_role` RPC |
+| `src/server/executor.ts`, `context.ts`, `errors.ts` | Written, unverified | Module-level pool, `finally` release, single-digit max, connect timeout. Needs `COMMANDS_DATABASE_URL` |
+| `src/lib/supabase/admin.ts`, `src/lib/crypto/contact.ts` | Written, unverified | Admin client kept for Auth Admin API only. Needs encryption key on a real project |
+| `/api/v1/auth/*` (6 routes) | Written, unverified | Files exist (see REST table). Identity writes now go through the executor |
+| `PATCH /api/v1/me`, leftover `/api/v1/applications` | Written, unverified | Command path. Never hit a linked project |
+| `docs/architecture/command-layer.md` | Written, unverified | Add-a-command steps + serverless pool constraint |
+| AUTH screens (register, login, password-reset, verify-email) | Written, unverified | Pages exist. Walkthrough not run on remote |
+| `src/proxy.ts` unverified-email + suspended sign-out | Written, unverified | Code present. Not proven against remote Auth users |
+| `(dashboard)/layout.tsx` redirects unverified to `/verify-email` | Written, unverified | Code present |
+| `(auth)/signup/page.tsx` | Written, unverified | `redirect("/register")` only |
+| Design-system UI + `/design` | Written, unverified | Code present. `/design` hidden in production via `notFound()` |
+| Role-based nav (`src/domain/navigation.ts`) | Written, unverified | Student bottom nav ≤5; parked modules omitted from nav |
+
+## Screen catalogue (spec §11)
+
+| ID | Screen | Route in repo | Status | Evidence |
+|----|--------|---------------|--------|----------|
+| PUB-01 | Marketing home | `/` | Partial | Leftover marketing page, not spec landing |
+| PUB-02 | How it works | — | Not started | |
+| PUB-03 | Pricing | — | Not started | |
+| PUB-04 | Trust and safety | — | Not started | |
+| PUB-05 | Counselor directory | — | Not started | |
+| AUTH-01 | Role, purpose and eligibility | `/register` | Written, unverified | D2: no role picker. Eligibility Yes/No + stage. Domain unit file exists; no remote walkthrough |
+| AUTH-02 | Identity and age routing | `/register/identity` | Written, unverified | Name rules, DOB, nationality, residence, under-13 stop / 13–17 notice. Not proven remotely |
+| AUTH-03 | Contact and password | `/register/contact` | Written, unverified | Spec 12–128 password policy. WhatsApp optional. Not proven remotely |
+| AUTH-04 | Privacy notice and consent | `/register/review` | Written, unverified | Consent only (no evidence upload). Policy link `/privacy?document=data-use`. Immutable `consent_events` in SQL. Not proven remotely |
+| AUTH-05 | Email verification | `/verify-email` | Written, unverified | Resend cooldown, change email, expired callback, activation via executor. Not proven remotely |
+| AUTH-06 | Phone verification | — | Deferred | Owner: late phase |
+| AUTH-07 | Approval, guardian and correction status | — | Removed | D2 |
+| AUTH-08 | Login | `/login` | Written, unverified | Generic errors; 5/15 min throttle analog; suspended sign-out. Not proven remotely |
+| AUTH-09 | Password reset | `/password-reset` | Written, unverified | Request + confirm on one route. Token reuse rejected. Not proven remotely |
+| AUTH-10 | MFA enrollment and challenge | — | Not started | Next prompt |
+| ONB-01 | Intake welcome | — | Not started | |
+| ONB-02 | Study goals | — | Not started | |
+| ONB-03 | Academics | — | Not started | |
+| ONB-04 | Budget and constraints | — | Not started | |
+| ONB-05 | Preferences | — | Not started | |
+| ONB-06 | Intake review | — | Not started | |
+| STU-01 | Student home | — | Not started | `/profile` leftover is not this screen |
+| STU-02 | Profile view / edit | `/profile` | Partial | Leftover form, not spec STU-02. `student_profiles` remains a command-layer gap until Prompt 12 |
+| STU-03 | Academic record | `/test-prep` | Partial | Folded Test Prep leftover; not spec STU-03 |
+| STU-04 | Test scores | — | Not started | |
+| STU-05 | Activities | `/activities` | Partial | Folded leftover |
+| STU-06 | Shortlist | — | Not started | `/recommendations` leftover is not this |
+| STU-07 | Documents | `/documents` | Partial | Folded leftover |
+| STU-08 | Readiness | — | Not started | |
+| PAR-01 | Parent dashboard | `/parent` | Partial | Leftover |
+| PAR-02 | Linked student | — | Not started | |
+| PAR-03 | Consent and sharing | — | Not started | |
+| CAT-01 | University search | `/universities` | Partial | Leftover; still contains `acceptance_rate` (D5 violation) |
+| CAT-02 | University profile | — | Not started | |
+| CAT-03 | Program profile | — | Not started | |
+| CAT-04 | Saved shortlist | — | Not started | |
+| CAT-05 | Comparison | — | Not started | |
+| CAT-06 | Deadline calendar | — | Not started | |
+| CAT-07 | Scholarship search | `/scholarships` | Partial | Leftover |
+| CAT-08 | Scholarship profile | — | Not started | |
+| SES-01 | Counselor search | `/counselors` | Partial | Leftover |
+| SES-02 | Counselor profile | — | Not started | |
+| SES-03 | Availability | — | Not started | |
+| SES-04 | Book session | — | Not started | |
+| SES-05 | Booking confirmed | — | Not started | |
+| SES-06 | Reschedule / cancel | — | Not started | |
+| SES-07 | Join session | — | Not started | |
+| SES-08 | Session workspace | — | Not started | |
+| SES-09 | Session notes | — | Not started | |
+| SES-10 | Session recap | — | Not started | |
+| SES-11 | Session history | — | Not started | |
+| SES-12 | Tasks | `/timeline` | Partial | Folded leftover |
+| APP-01 | Application list | — | Not started | |
+| APP-02 | Application workspace | — | Not started | |
+| APP-03 | Requirement checklist | — | Not started | |
+| APP-04 | Application review | — | Not started | |
+| APP-05 | Application group | — | Not started | |
+| ESS-01–07 | Essays | `/essays` leftover page | Deferred | Parked; page exists, omitted from nav, must not be extended |
+| OFF-01–04 | Offers | `/offers` leftover page | Deferred | Parked; same rule |
+| MEN-01 | Mentor directory | `/alumni` | Partial | Folded leftover |
+| MEN-02 | Mentor profile | — | Not started | |
+| MEN-03 | Request mentorship | — | Not started | |
+| MEN-04 | Mentorship thread | — | Not started | |
+| MSG-01 | Inbox | `/messages` | Partial | Leftover |
+| MSG-02 | Thread | `/messages` ChatWindow | Partial | Leftover |
+| MSG-03 | New conversation | — | Not started | |
+| MSG-04 | Report / block | — | Not started | |
+| REC-01–03 | Recommendation letters | — | Deferred | Parked; no leftover page |
+| ADM-01 | Admin home | `/admin` | Partial | Leftover |
+| ADM-02 | User admin | — | Not started | |
+| ADM-03 | Role requests | — | Not started | D2: no public role requests |
+| ADM-04 | Catalog CMS | — | Not started | |
+| ADM-05 | Taxonomy | — | Not started | |
+| ADM-06 | Scholarship CMS | — | Not started | |
+| ADM-07 | Case queue | — | Not started | |
+| ADM-08 | Case detail | — | Not started | |
+| ADM-09 | Editorial | — | Not started | |
+| ADM-10 | Audit log | — | Not started | |
+| ADM-11 | Feature flags | — | Not started | |
+| JRN-01 | Journey home | — | Not started | |
+| JRN-02 | Journey article | `/visa` | Partial | Folded leftover |
+| JRN-03 | Journey by stage | — | Not started | |
+| SET-01 | Account | — | Not started | |
+| SET-02 | Security | — | Not started | |
+| SET-03 | Notifications | — | Not started | |
+| SET-04 | Privacy | — | Not started | |
+| SET-05 | Linked people | — | Not started | |
+| SET-06 | Appearance | `/settings` | Partial | Leftover |
+| INT-01–04 | Interviews | `/interviews` leftover page | Deferred | Parked; same rule as essays |
+| BIL-01–04 | Billing | `/billing` leftover page | Deferred | Parked; same rule |
+
+Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **Deferred**, not Partial. They must not be extended.
+
+## Screen counts
 
 | Status | Count |
-| --- | ---: |
-| Not started | 72 |
-| Partial | 23 |
+|--------|-------|
+| Not started | 50 |
+| Partial (leftover prototype) | 16 |
+| Written, unverified | 7 |
+| Checked (no DB) | 0 (screens) |
 | Done | 0 |
-| Deferred | 1 |
-| Parked | 0 |
-| Removed | 1 |
-| **Total** | **97** |
+| Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
+| Removed | 1 (AUTH-07) |
+| **Total spec screens** | **97** |
 
-Parked **modules** are listed below; they are not these screen IDs.
+AUTH Written, unverified (7): AUTH-01, 02, 03, 04, 05, 08, 09.
 
-## Work packages (WP-01–WP-17)
+Partial leftovers (16): PUB-01, STU-02, STU-03, STU-05, STU-07, PAR-01, CAT-01, CAT-07, SES-01, SES-12, MEN-01, MSG-01, MSG-02, ADM-01, JRN-02, SET-06.
 
-From “Dependency-aware epic and work-package backlog”.
+Parked leftover *pages* (`/essays`, `/offers`, `/interviews`, `/billing`) still exist on disk. Those modules are counted as Deferred (not Partial) so they are not treated as in-progress work.
 
-| WP | Title / priority | Exit gate | Status | Notes |
-| --- | --- | --- | --- | --- |
-| WP-01 | Foundation / P0 | All three clients build; empty-DB migration; no production secret in client bundles. | Partial | Next.js web only (D1). Design tokens, role-grouped shell, `/api/v1/auth/*` command routes using service role. Still no Expo. Contact encryption key is server-only. |
-| WP-02 | Identity and safety / P0 | Identity and cross-role denial tests including approval races and identifier rollover. | Partial | Student register/login/verify/reset screens exist with age routing, consent rows, GSC allocation, unverified dashboard block. No staff MFA (AUTH-10). Approval removed (D2). GSC concurrent-approval race (T014) does not apply. Walkthrough: `docs/qa/auth-walkthrough.md`. |
-| WP-03 | Admin operations / P0 | Privileged transitions record actor/reason/version; unauthorized denied. | Partial | Stats-only `/admin`. No review queues, audit, or outbox. |
-| WP-04 | Catalog foundation / P0 | Published fixtures have attribution, verification status, review date; missing stays explicit. | Partial | `universities` / `scholarships` tables and list pages. Schema still has `acceptance_rate`. No programs, sourced facts, or SYNTHETIC labels. |
-| WP-05 | Profiles and finance / P0 | Optional declines unlock correctly; finance fixtures reconcile. | Partial | Thin student profile + documents leftover. No Module 3 finance. |
-| WP-06 | Exploration and assessment / P0 | Deterministic results, threshold boundaries, concurrent cap tests. | Partial | University/scholarship lists only. No 10/3/3 caps or CAT-05. |
-| WP-07 | Counselor practice / P0 | Only approved active experts match; private credentials never public. | Partial | Student counselor widget. No expert publication/credentials. |
-| WP-08 | Scheduling / P0 | Concurrency/DST suite; provider outage does not lose confirmed appointments. | Not started | No bookings. |
-| WP-09 | Counseling case loop / P0 | End-to-end student/guardian/adult flows without recording or AI. | Partial | Tasks leftover only. No sessions/reports. |
-| WP-10 | Media and AI / P1 | Injected instructions cannot act; no unapproved draft to students. | Not started | No AIProvider/recording. |
-| WP-11 | Mentorship / P1 | Mentor/parent-mentor isolation and verified contribution counting. | Partial | Alumni leftover search only. |
-| WP-12 | Rewards / P1 | Reconciliation and concurrent redemption/expiry; displayed rewards fulfillable. | Not started | — |
-| WP-13 | Catalog enrichment / P1 | Imports never autopublish; downstream changes traceable. | Partial | Housing leftover is not sourced accommodation. |
-| WP-14 | Learning / P1 | Each source category has reviewed launch content and accessible fallback. | Not started | — |
-| WP-15 | News and stories / P1 | Unpublished items leave public discovery; stale links resolve safely. | Not started | — |
-| WP-16 | Journey and roadmap / P1 | Self-reported status explicit; public consent independent; temporal inconsistencies flagged. | Partial | Applications/visa leftovers, not the roadmap. |
-| WP-17 | Full-product release / P0+P1 | All required scope has evidence; no unverified critical/high-risk defect. | Not started | — |
+D5 leak: `acceptance_rate` is still referenced in `src/app/(dashboard)/universities/page.tsx`, `src/app/(dashboard)/admission-odds/page.tsx`, and `src/types/index.ts`. Admission-odds leftover is not a spec screen (module removed).
 
-## REST API contract
+## REST API catalogue (spec §17.6)
 
-All paths are under `/api/v1`. Current code has **no** `src/app/api/v1` handlers. Combined spec cells are split into one row each. Status is **Not started** unless noted.
+Base path `/api/v1`. Current tree has **six** auth handlers. The previous PROGRESS claim “no `src/app/api/v1` handlers” was false.
 
-| Method | Path | Status |
-| --- | --- | --- |
-| POST | `/auth/register` | Not started |
-| POST | `/auth/login` | Not started |
-| POST | `/auth/refresh` | Not started |
-| POST | `/auth/logout` | Not started |
-| POST | `/auth/password-reset` | Not started |
-| POST | `/auth/password-update` | Not started |
-| POST | `/auth/email-verification` | Not started |
-| POST | `/auth/phone-challenges` | Not started |
-| POST | `/auth/phone-challenges/{id}/verify` | Not started |
-| POST | `/auth/mfa/enroll` | Not started |
-| POST | `/auth/mfa/verify` | Not started |
-| GET | `/me` | Not started |
-| PATCH | `/me` | Not started |
-| POST | `/me/email-change` | Not started |
-| POST | `/cases` | Not started |
-| GET | `/cases/{caseId}/profile` | Not started |
-| PATCH | `/cases/{caseId}/profile` | Not started |
-| POST | `/cases/{caseId}/profile/complete` | Not started |
-| PUT | `/cases/{caseId}/finance` | Not started |
-| POST | `/cases/{caseId}/finance/complete` | Not started |
-| POST | `/cases/{caseId}/parent-links` | Not started |
-| POST | `/parent-links/accept` | Not started |
-| DELETE | `/cases/{caseId}/parent-links/{id}` | Not started |
-| GET | `/universities` | Not started |
-| GET | `/universities/{id}` | Not started |
-| GET | `/programs/{id}` | Not started |
-| GET | `/scholarships` | Not started |
-| GET | `/scholarships/{id}` | Not started |
-| POST | `/guest/match` | Not started |
-| POST | `/cases/{caseId}/matches` | Not started |
-| GET | `/cases/{caseId}/shortlist` | Not started |
-| POST | `/cases/{caseId}/shortlist` | Not started |
-| PATCH | `/cases/{caseId}/shortlist/{id}` | Not started |
-| DELETE | `/cases/{caseId}/shortlist/{id}` | Not started |
-| POST | `/cases/{caseId}/assessments` | Not started |
-| POST | `/cases/{caseId}/budgets` | Not started |
-| POST | `/cases/{caseId}/shares` | Not started |
-| PUT | `/cases/{caseId}/target` | Not started |
-| GET | `/cases/{caseId}/application-guidance` | Not started |
-| GET | `/mentors` | Not started |
-| GET | `/counselors` | Not started |
-| PUT | `/me/mentor-profile` | Not started |
-| PUT | `/me/counselor-profile` | Not started |
-| GET | `/hosts/{id}/availability` | Not started |
-| PUT | `/me/availability` | Not started |
-| POST | `/cases/{caseId}/assignments` | Not started |
-| POST | `/cases/{caseId}/counselor-change` | Not started |
-| POST | `/mentor-requests` | Not started |
-| POST | `/mentor-requests/{id}/decision` | Not started |
-| GET | `/bookings` | Not started |
-| POST | `/bookings` | Not started |
-| POST | `/bookings/{id}/reschedule` | Not started |
-| POST | `/bookings/{id}/cancel` | Not started |
-| POST | `/bookings/{id}/join` | Not started |
-| POST | `/bookings/{id}/participants` | Not started |
-| POST | `/bookings/{id}/participants/accept` | Not started |
-| POST | `/bookings/{id}/recording-consent` | Not started |
-| POST | `/bookings/{id}/recording/start` | Not started |
-| POST | `/bookings/{id}/recording/stop` | Not started |
-| POST | `/bookings/{id}/complete` | Not started |
-| POST | `/bookings/{id}/feedback` | Not started |
-| POST | `/bookings/{id}/mentor-log` | Not started |
-| POST | `/cases/{caseId}/reports` | Not started |
-| PATCH | `/reports/{id}` | Not started |
-| POST | `/reports/{id}/approve` | Not started |
-| GET | `/reports/{id}` | Not started |
-| GET | `/reports/{id}/download` | Not started |
-| GET | `/bookings/{id}/qa` | Not started |
-| POST | `/cases/{caseId}/private-notes` | Not started |
-| GET | `/cases/{caseId}/tasks` | Not started |
-| POST | `/cases/{caseId}/tasks` | Not started |
-| PATCH | `/tasks/{id}` | Not started |
-| POST | `/cases/{caseId}/roadmap` | Not started |
-| GET | `/rewards` | Not started |
-| GET | `/rewards/ledger` | Not started |
-| GET | `/rewards/catalog` | Not started |
-| POST | `/rewards/redemptions` | Not started |
-| GET | `/rewards/redemptions/{id}` | Not started |
-| POST | `/referrals/code` | Not started |
-| GET | `/referrals` | Not started |
-| GET | `/conversations` | Not started |
-| GET | `/conversations/{id}/messages` | Not started |
-| POST | `/conversations/{id}/messages` | Not started |
-| POST | `/safety-reports` | Not started |
-| PUT | `/blocks/{accountId}` | Not started |
-| POST | `/files/uploads` | Not started |
-| POST | `/files/{id}/complete` | Not started |
-| GET | `/files/{id}/download` | Not started |
-| GET | `/learning` | Not started |
-| GET | `/learning/{id}` | Not started |
-| GET | `/learning/library` | Not started |
-| PUT | `/learning/{id}/progress` | Not started |
-| GET | `/news` | Not started |
-| GET | `/news/{id}` | Not started |
-| PUT | `/content/{id}/engagement` | Not started |
-| DELETE | `/content/{id}/engagement` | Not started |
-| PUT | `/topics/{id}/follow` | Not started |
-| DELETE | `/topics/{id}/follow` | Not started |
-| GET | `/cases/{caseId}/journey` | Not started |
-| POST | `/cases/{caseId}/journey` | Not started |
-| PATCH | `/journey/{id}` | Not started |
-| POST | `/stories` | Not started |
-| GET | `/notifications` | Not started |
-| PATCH | `/notifications/{id}` | Not started |
-| PUT | `/me/notification-preferences` | Not started |
-| POST | `/calendar/connections` | Not started |
-| GET | `/calendar/callback/{provider}` | Not started |
-| DELETE | `/calendar/connections/{id}` | Not started |
-| POST | `/me/data-requests` | Not started |
-| GET | `/me/data-requests/{id}` | Not started |
-| GET | `/admin/verifications` | Not started |
-| POST | `/admin/verifications/{id}/decision` | Not started |
-| POST | `/admin/guardian-verifications/{id}/decision` | Not started |
-| POST | `/admin/staff-grants` | Not started |
-| POST | `/admin/case-access` | Not started |
-| POST | `/admin/imports` | Not started |
-| GET | `/admin/imports/{id}` | Not started |
-| POST | `/admin/imports/{id}/apply` | Not started |
-| POST | `/admin/ingestions` | Not started |
-| POST | `/admin/catalog/{entityType}/{id}/publish` | Not started |
-| POST | `/admin/content` | Not started |
-| PATCH | `/admin/content/{id}` | Not started |
-| POST | `/admin/content/{id}/publish` | Not started |
-| POST | `/admin/mentor-logs/{id}/approve` | Not started |
-| PUT | `/admin/reward-catalog/{id}` | Not started |
-| POST | `/admin/redemptions/{id}/decision` | Not started |
-| GET | `/admin/analytics` | Not started |
-| GET | `/admin/audit` | Not started |
-| POST | `/admin/jobs/{id}/replay` | Not started |
-| POST | `/webhooks/{provider}` | Not started |
+| Spec method / path | Status | Repo path if different |
+|--------------------|--------|------------------------|
+| `POST /auth/register` | Written, unverified | `/api/v1/auth/register` |
+| `POST /auth/login` | Written, unverified | `/api/v1/auth/login` |
+| `POST /auth/logout` | Not started | |
+| `POST /auth/password-reset` | Written, unverified | `/api/v1/auth/password-reset` |
+| `POST /auth/password-update` | Written, unverified | `/api/v1/auth/password-reset/confirm` (path ≠ spec) |
+| `POST /auth/email-verification` | Written, unverified | `/api/v1/auth/verify-email` (path ≠ spec) |
+| `GET /me` | Not started | |
+| `PATCH /me` | Written, unverified | `/api/v1/me` updates leftover `user_profiles` (not the full spec identity DTO) |
+| leftover `POST/PATCH/DELETE /applications` | Written, unverified | Prototype `applications` table, not spec APP-01 groups |
+| `POST /me/email-change` | Written, unverified | `/api/v1/auth/change-email` (path ≠ spec) |
+| `GET /students/me/profile` through `GET /feature-flags` (remainder of §17.6) | Not started | |
 
-Related but **out of contract**: `src/app/auth/callback/route.ts` (OAuth/code exchange, not `/api/v1`). Server Actions on dashboard pages are also not the REST contract.
+## Automated test catalogue (spec §24.7)
 
-## Specified test catalogue
+Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tests are not those IDs:
 
-| Group | Spec IDs | Specified | Automated |
-| --- | --- | ---: | ---: |
-| Guest and public overview | T001–T006 | 6 | 0 |
-| Module 1: registration and consent | T007–T020 | 14 | 0 |
-| Module 2: academics and exploration | T021–T030 | 10 | 0 |
-| Module 3: parent and finances | T031–T039 | 9 | 0 |
-| Module 4: alumni mentoring | T040–T046 | 7 | 0 |
-| Module 5: parent mentoring | T047–T050 | 4 | 0 |
-| Module 6: counselors | T051–T055 | 5 | 0 |
-| Module 7: university and scholarship database | T056–T067 | 12 | 0 |
-| Module 8: matching, sessions and follow-up | T068–T086 | 19 | 0 |
-| Rewards, referrals and reward administration | T087–T096 | 10 | 0 |
-| Module 11: learning | T097–T100 | 4 | 0 |
-| Module 12: news | T101–T104 | 4 | 0 |
-| Alumni journey and roadmap | T105–T108 | 4 | 0 |
-| Administration, privacy and operations | T109–T116 | 8 | 0 |
-| **Total** | T001–T116 | **116** | **0** |
+| What exists | Status | Notes |
+|-------------|--------|-------|
+| `src/domain/identity/identity.test.ts` | Written, unverified | Overlaps T009 / T010 / T015 themes. Last recorded 21/21 on 19 Sep; not re-run |
+| `src/domain/navigation.test.ts` | Written, unverified | Not a spec T-ID |
+| `supabase/tests/rls_p0.test.sql` | Written, unverified | Overlaps T001 / T002 / T004 / T007 themes. Not run on a linked project |
+| `supabase/tests/auth_identity.test.sql` | Written, unverified | Overlaps T003 / T005 / T008 / T009 themes. Not run on a linked project |
+| `supabase/tests/command_layer.test.sql` | Written, unverified | Direct-write deny, executor path, atomic rollback. Not run on a linked project |
+| `src/server/errors.test.ts`, `src/server/http/headers.test.ts` | Written, unverified | Envelope / If-Match / unknown keys. No DB |
 
-No Jest/Playwright `*.spec.*` files and none of T001–T116 are automated. Domain unit tests live in `src/domain/*.test.ts` (`npm run test:unit`). `supabase/tests/rls_p0.test.sql` covers P0 RLS and role escalation; it does not map onto T001–T116.
+CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
 
-## Owner decisions, parked modules, folded modules
+## Work-package tracker
 
-Copied from `.cursor/rules/gsc-project-rules.mdc`.
+| WP | Title | Status | Notes |
+|----|-------|--------|-------|
+| WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Written, unverified | Command layer (`gsc_api_executor`, audit + outbox, `/api/v1` envelope) is in the tree. Not proven on a linked project. Not WP-01. |
+| WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
+| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0028 in tree. Never pushed to a linked project |
+| WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08, 09 only) | Spec IDs rematched 24 Sep. AUTH-06 Deferred, AUTH-07 Removed, AUTH-10 Not started |
+| WP-04 | Student profile + academics + documents | Not started | Leftover `/profile`, `/documents`, `/test-prep` are Partial, not this WP |
+| WP-05 | Intake | Not started | |
+| WP-06 | Catalog read + search | Not started | Leftover `/universities` still has `acceptance_rate` |
+| WP-07 | Catalog authoring | Not started | |
+| WP-08 | Recommendations + shortlist + compare | Not started | |
+| WP-09 | Deadlines + applications + groups | Not started | |
+| WP-10 | Scholarships | Not started | Leftover `/scholarships` is Partial |
+| WP-11 | Sessions + availability + bookings | Not started | |
+| WP-12 | Messaging + reports | Not started | |
+| WP-13 | Mentorship | Not started | |
+| WP-14 | Journey CMS | Not started | |
+| WP-15 | Admin + cases + audit + flags | Not started | |
+| WP-16 | Parent access | Not started | |
+| WP-17 | Notifications + outbox worker | Not started | Outbox table may exist in migrations; worker is not built |
+| WP-18 | Billing | Deferred | Parked |
+| WP-19 | AI provider + essays | Deferred | Parked |
+| WP-20 | Offers + interviews + rec letters | Deferred | Parked |
+| WP-21 | Observability + load + a11y audit | Not started | |
+| WP-22 | Production launch | Not started | Blocked on owner: remote projects, keys, legal |
 
-### D1–D5
+## Known gaps (do not mark these Done)
 
-- **D1** Web only. Responsive from 360px to desktop; every content page must work on a phone. Native (Android/iOS/Expo) is deferred, not cancelled: keep business rules in framework-agnostic code under `src/domain/` so native can reuse it later.
-- **D2** No registration approval flow. Everyone signs up as a student and can explore immediately. Keep: age routing (under 18), privacy/consent capture, email verification, login, password reset. Removed: role picker, evidence upload, approval email, approval status screen. Counselor, parent, mentor and admin accounts are created only by invitation or admin action, never by public signup. MFA is required for staff and counselor accounts, not students. Phone verification is a late-phase item.
-- **D3** University/program/scholarship features follow spec sections CAT-01 to CAT-08 exactly.
-- **D4** The spec is the single source of truth (see project rules).
-- **D5** Acceptance rate is removed everywhere (database, types, forms, pages, copy). Never show or compute admission probability. Use "self-reported, not an admission probability" wording where spec says so.
-
-Also binding: an application belongs to an application group, which belongs to an application system (UCAS, Common App, UC, OUAC, UAC, uni-assist, Parcoursup and so on). Systems carry their own fee rules, deadline types, essay model and document requirements.
-
-### Parked modules
-
-Hidden behind a feature flag; code and tables kept, never extended:
-
-| Module | Leftover route (not spec screen IDs) |
-| --- | --- |
-| Essays | `/essays` |
-| Offers | `/offers` |
-| Billing/Subscriptions | `/billing` |
-| Interviews | `/interviews` |
-| Recommendation letters | `/recommendations` |
-
-Parked leftover URLs still exist as pages. They are omitted from role navigation and denied by `dashboardRoleRedirect` (proxy + dashboard layout). No feature-flag wrapper is implemented.
-
-### Folded modules
-
-| Old module | Folds into | Leftover route |
-| --- | --- | --- |
-| Documents | STU-07 | `/documents` |
-| Test Prep | STU-03 | `/test-prep` |
-| Activities | STU-05 | `/activities` |
-| Housing | CAT-02/CAT-03 accommodation | `/housing` |
-| Visa | JRN-02/ADM-09 (editorial, not student-entered rows) | `/visa` |
-| Tasks | SES-12 | `/tasks` |
-| Alumni | Mentorship (MEN) | `/alumni` |
-| Admission Odds | Removed; replaced by CAT-05 | `/admission-odds` |
-
-`/admission-odds` still computes Reach/Match/Safety from GPA and **acceptance rate**. That contradicts D5.
+- No linked Supabase project. All SQL, RLS, command RPCs, and pgTAP are unproven on the only database this repo is allowed to use.
+- `student_profiles` is a known command-layer gap until Prompt 12 (STU-02). This slice does not revoke its grants and does not add a command for it. Direct Data API writes remain possible.
+- `acceptance_rate` still in leftover university / admission-odds code (D5).
+- Login lockout 5 failures / 15 minutes is an invented analog (spec silent). NEEDS OWNER to confirm or replace.
+- Community-eligibility “Yes” is a client gate only; not a persisted column.
+- GSC ID is allocated at signup (D2 removed approval). Status stays `email_pending` until verify. Spec said allocate on approval.
+- Three auth API paths do not match spec §17.6 names (`password-update`, `email-verification`, `me/email-change`).
+- Parked leftover pages still routable; hidden from nav only.
+- `npm run lint` / `test:unit` / `build` re-run 24 Sep 2026 (no DB). pgTAP and executor E2E still unverified.

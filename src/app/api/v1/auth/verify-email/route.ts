@@ -5,8 +5,9 @@ import {
   retryAfterMessage,
 } from "@/domain/identity/abuse";
 import { bumpAbuse } from "@/server/commands/abuse";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { actorContext } from "@/server/context";
+import { activateAfterEmailVerifiedSql } from "@/server/modules/identity/sql-commands";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -104,13 +105,13 @@ export async function PUT() {
     });
   }
 
-  const admin = createAdminClient();
-  const { data: status, error } = await admin.rpc(
-    "activate_after_email_verified",
-    { p_account_id: user.id },
-  );
-
-  if (error) {
+  let status: string;
+  try {
+    status = await activateAfterEmailVerifiedSql(
+      actorContext(user.id),
+      user.id,
+    );
+  } catch {
     return NextResponse.json(
       { ok: false, error: "Unable to update your account status." },
       { status: 500 },

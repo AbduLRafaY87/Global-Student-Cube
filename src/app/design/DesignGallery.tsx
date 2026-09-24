@@ -15,6 +15,8 @@ import {
   ErrorState,
   ForbiddenState,
   LoadingState,
+  OfflineState,
+  SessionExpiredState,
 } from "@/components/ui/States";
 import {
   ApplicationStatusBadge,
@@ -25,18 +27,64 @@ import { Table } from "@/components/ui/Table";
 import { Tabs } from "@/components/ui/Tabs";
 import { TextField } from "@/components/ui/TextField";
 import { ToastProvider, useToasts } from "@/components/ui/Toast";
+import { ICON_REGISTER } from "@/domain/icon-register";
 import { MICROCOPY } from "@/domain/microcopy";
 import { BOTTOM_NAV, DASHBOARD_NAV } from "@/domain/navigation";
+import { navIconSizeClass } from "@/components/layout/nav-icons";
 import {
+  AlertCircle,
+  ArrowDownUp,
+  ArrowLeft,
+  Award,
+  Bell,
   Bookmark,
+  CalendarDays,
   CheckCircle,
+  ChevronDown,
+  Clock,
+  Eye,
+  Flag,
+  Globe,
   GraduationCap,
   Info,
+  MapPin,
   Menu,
+  MessageSquare,
+  MoreHorizontal,
   Search,
+  Send,
   Settings,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentType } from "react";
+
+const ICON_COMPONENTS: Record<string, ComponentType<{ className?: string }>> = {
+  Menu,
+  ArrowLeft,
+  X,
+  Search,
+  SlidersHorizontal,
+  ArrowDownUp,
+  ChevronDown,
+  Eye,
+  Info,
+  AlertCircle,
+  CheckCircle,
+  CalendarDays,
+  Clock,
+  Globe,
+  MapPin,
+  GraduationCap,
+  Award,
+  Bookmark,
+  Flag,
+  Bell,
+  MessageSquare,
+  Send,
+  MoreHorizontal,
+  Settings,
+};
 
 function nowMs(): number {
   return Date.parse("2026-09-19T00:00:00Z");
@@ -54,7 +102,7 @@ function DesignGalleryInner() {
     <div className="mx-auto flex max-w-[720px] flex-col gap-10 py-8">
       <header>
         <p className="text-sm font-medium text-text-muted">Development only</p>
-        <h1 className="mt-1 text-2xl leading-8 font-semibold text-text min-[900px]:text-[32px] min-[900px]:leading-10">
+        <h1 className="mt-1 text-title-phone font-semibold text-text min-[900px]:text-title-desktop">
           Design system
         </h1>
         <p className="mt-2 text-base text-text-muted">
@@ -113,6 +161,8 @@ function DesignGalleryInner() {
           <Button>Save profile</Button>
           <Button variant="secondary">Cancel draft</Button>
           <Button variant="destructive">Remove application</Button>
+          <Button variant="ghost">Keep editing</Button>
+          <Button className="bg-primary-pressed">Save profile (pressed)</Button>
           <Button loading>Save profile</Button>
           <Button disabled>Save profile</Button>
           <IconButton label="Open navigation">
@@ -143,6 +193,16 @@ function DesignGalleryInner() {
         <SelectField
           id="status"
           label="Application status"
+          placeholder="Select a status"
+          options={[
+            { value: "draft", label: "Draft" },
+            { value: "submitted", label: "Submitted" },
+          ]}
+        />
+        <SelectField
+          id="status-error"
+          label="Application status"
+          error="Select a status."
           placeholder="Select a status"
           options={[
             { value: "draft", label: "Draft" },
@@ -235,6 +295,15 @@ function DesignGalleryInner() {
           ]}
           empty="No applications yet."
         />
+        <Table
+          caption="Empty applications"
+          rowKey={(row) => row.id}
+          columns={[
+            { key: "name", header: "University", cell: (row) => row.name },
+          ]}
+          rows={[] as { id: string; name: string }[]}
+          empty="No applications yet."
+        />
         <Pagination page={page} hasMore={page < 2} onPageChange={setPage} />
       </section>
 
@@ -245,11 +314,12 @@ function DesignGalleryInner() {
         <EmptyState filtered onResetFilters={() => undefined} />
         <ErrorState onRetry={() => undefined} />
         <ForbiddenState />
-        <p className="text-sm text-warning">{MICROCOPY.staleSource}</p>
-        <p className="text-sm text-text-muted">{MICROCOPY.offline}</p>
-        <p className="text-sm text-text-muted">{MICROCOPY.expiredSession}</p>
-        <p className="text-sm text-text-muted">{MICROCOPY.conflict}</p>
-        <p className="text-sm text-text-muted">{MICROCOPY.lockedFeature}</p>
+        <OfflineState />
+        <SessionExpiredState />
+        <p className="text-label text-warning">{MICROCOPY.staleSource}</p>
+        <p className="text-label text-text-muted">{MICROCOPY.conflict}</p>
+        <p className="text-label text-text-muted">{MICROCOPY.lockedFeature}</p>
+        <p className="text-label text-critical">{MICROCOPY.saveFailed}</p>
       </section>
 
       <section className="space-y-3">
@@ -283,32 +353,23 @@ function DesignGalleryInner() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-xl leading-7 font-semibold">Icon placement</h2>
-        <ul className="space-y-2 text-sm text-text">
-          <li className="flex h-12 items-center gap-2">
-            <Menu className="size-6" aria-hidden />
-            Open navigation
-          </li>
-          <li className="flex h-12 items-center gap-2">
-            <Search className="size-5" aria-hidden />
-            Search
-          </li>
-          <li className="flex h-11 items-center gap-2">
-            <Info className="size-5" aria-hidden />
-            About field
-          </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle className="size-4" aria-hidden />
-            Verified
-          </li>
-          <li className="flex h-12 items-center gap-2">
-            <GraduationCap className="size-6" aria-hidden />
-            Universities
-          </li>
-          <li className="flex h-12 items-center gap-2">
-            <Settings className="size-6" aria-hidden />
-            Settings
-          </li>
+        <h2 className="text-section font-semibold">Icon placement</h2>
+        <ul className="space-y-2 text-label text-text">
+          {ICON_REGISTER.map((entry) => {
+            const Icon = ICON_COMPONENTS[entry.name];
+            if (!Icon) {
+              return null;
+            }
+            return (
+              <li key={entry.name} className="flex h-12 items-center gap-2">
+                <Icon
+                  className={navIconSizeClass(entry.size)}
+                  aria-hidden
+                />
+                {entry.label}
+              </li>
+            );
+          })}
         </ul>
       </section>
     </div>

@@ -14,6 +14,10 @@ Files in this folder apply in filename order on the linked **remote** project th
 
 `0013_reserved.sql` is a no-op. There is no `0013` migration with real DDL in this repository. **History of any 0013 that may have existed is unknown** and needs the project owner.
 
+## Command layer (`0029`)
+
+`0029_command_architecture.sql` creates `gsc_api_executor` (NOLOGIN in the file), adds `version` on `user_profiles` and `applications`, stores idempotency rows, and revokes browser/service-role mutations on those two tables. Command functions live in the unexposed `commands` schema. After push, the owner must `ALTER ROLE gsc_api_executor LOGIN PASSWORD '…'` and set `COMMANDS_DATABASE_URL`. See `docs/architecture/command-layer.md`.
+
 ## Role changes
 
 `user_profiles.role` cannot be updated by a direct client `UPDATE`. `set_user_role(target_user_id, target_role)` is `SECURITY DEFINER`, checks `is_admin()`, then sets transaction-local `gsc.role_change_allowed = on` so the trigger allows that statement only.

@@ -26,7 +26,7 @@ npx supabase login
 npx supabase link --project-ref <dev-project-ref>
 ```
 
-3. In `.env.local` set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from that project's **Settings → API**. Set server-only `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (Settings → Database connection string), and `GSC_CONTACT_ENCRYPTION_KEY`.
+3. In `.env.local` set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from that project's **Settings → API**. Set server-only `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (Settings → Database connection string), `COMMANDS_DATABASE_URL` (`gsc_api_executor` URI after `ALTER ROLE … LOGIN`), and `GSC_CONTACT_ENCRYPTION_KEY`.
 4. Apply any migrations that are not yet on the remote project (see below).
 5. Start the Next.js app:
 
@@ -46,8 +46,9 @@ All variables the app and CLI read are listed in `.env.example`. Only `NEXT_PUBL
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts`, `src/proxy.ts` | **Dev** project API URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same | Publishable anon key; Row Level Security enforces access |
-| `SUPABASE_SERVICE_ROLE_KEY` | server `/api/v1` commands | Server only. Never `NEXT_PUBLIC_` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Auth Admin API only (not table writes) | Server only. Never `NEXT_PUBLIC_` |
 | `SUPABASE_DB_URL` | CLI migrations/tests | Server-only Postgres URI. Never `NEXT_PUBLIC_` |
+| `COMMANDS_DATABASE_URL` | `src/server/executor.ts` | `gsc_api_executor` URI. Server only. Never `NEXT_PUBLIC_` |
 | `GSC_CONTACT_ENCRYPTION_KEY` | contact encryption | Server only |
 
 ## Database migrations

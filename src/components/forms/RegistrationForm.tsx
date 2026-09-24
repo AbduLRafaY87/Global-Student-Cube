@@ -8,7 +8,7 @@ const inputClassName =
   "mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:border-zinc-100 dark:focus:ring-zinc-100/10";
 
 interface RegistrationFormProps {
-  profile?: Pick<UserProfile, "first_name" | "last_name" | "phone"> | null;
+  profile?: Pick<UserProfile, "first_name" | "last_name" | "phone" | "version"> | null;
 }
 
 export function RegistrationForm({ profile }: RegistrationFormProps) {
@@ -30,6 +30,7 @@ export function RegistrationForm({ profile }: RegistrationFormProps) {
       </p>
 
       <form className="mt-8 space-y-4" action={formAction} noValidate>
+        <input type="hidden" name="version" value={profile?.version ?? ""} />
         <div>
           <label
             htmlFor="first_name"

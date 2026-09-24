@@ -4,16 +4,21 @@ import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import { maskEmail } from "@/domain/identity/mask";
 import { Mail } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function VerifyEmailPage() {
+function VerifyEmailFlow() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [verified, setVerified] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    searchParams.get("error") === "expired"
+      ? "This verification link has expired. Request a new one."
+      : null,
+  );
   const [seconds, setSeconds] = useState(60);
   const [newEmail, setNewEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -181,5 +186,13 @@ export default function VerifyEmailPage() {
         </p>
       ) : null}
     </section>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-text-muted">Loading…</p>}>
+      <VerifyEmailFlow />
+    </Suspense>
   );
 }

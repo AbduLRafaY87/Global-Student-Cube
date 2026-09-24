@@ -15,13 +15,13 @@ export default async function OnboardingPage() {
 
   let profile: Pick<
     UserProfile,
-    "first_name" | "last_name" | "phone"
+    "first_name" | "last_name" | "phone" | "version"
   > | null = null;
 
   if (user) {
     const { data } = await supabase
       .from("user_profiles")
-      .select("first_name, last_name, phone")
+      .select("first_name, last_name, phone, version")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -30,6 +30,7 @@ export default async function OnboardingPage() {
         first_name: typeof data.first_name === "string" ? data.first_name : "",
         last_name: typeof data.last_name === "string" ? data.last_name : "",
         phone: typeof data.phone === "string" ? data.phone : null,
+        version: typeof data.version === "number" ? data.version : 1,
       };
     }
   }
