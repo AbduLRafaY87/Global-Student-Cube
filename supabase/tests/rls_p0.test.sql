@@ -108,16 +108,13 @@ BEGIN
   PERFORM set_config('gsc.role_change_allowed', 'off', true);
 
   INSERT INTO public.universities (
-    id, name, country, tuition_fee, acceptance_rate, minimum_gpa, ranking
+    id, name, country, publication_state
   )
   VALUES (
     uni_id,
     'Synthetic Test University',
     'KE',
-    10000,
-    0,
-    3.0,
-    100
+    'withdrawn'
   )
   ON CONFLICT (id) DO NOTHING;
 
@@ -128,10 +125,27 @@ BEGIN
     (student_a, 'Ada', 'A', 'CS', 'KE', 2027, 3.5),
     (student_b, 'Bea', 'B', 'Law', 'KE', 2027, 3.4);
 
-  INSERT INTO public.applications (student_id, university_id, status, deadline)
+  INSERT INTO public.application_groups (id, system_id, state, migration_source)
   VALUES
-    (student_a, uni_id, 'draft', '2027-01-15'),
-    (student_b, uni_id, 'submitted', '2027-01-15');
+    (
+      'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+      '10000000-0000-4000-8000-000000000011',
+      'draft',
+      'leftover_no_case'
+    ),
+    (
+      'cccccccc-cccc-4ccc-8ccc-cccccccccc02',
+      '10000000-0000-4000-8000-000000000011',
+      'submitted',
+      'leftover_no_case'
+    );
+
+  INSERT INTO public.applications (
+    student_id, university_id, status, deadline, group_id
+  )
+  VALUES
+    (student_a, uni_id, 'draft', '2027-01-15', 'cccccccc-cccc-4ccc-8ccc-cccccccccc01'),
+    (student_b, uni_id, 'submitted', '2027-01-15', 'cccccccc-cccc-4ccc-8ccc-cccccccccc02');
 
   INSERT INTO public.documents (user_id, file_name, file_url, document_type)
   VALUES
@@ -151,7 +165,7 @@ BEGIN
     (student_a, 'Ref A', 'ref-a@example.invalid', 'Teacher', 'tutor', 'requested', '2027-02-01'),
     (student_b, 'Ref B', 'ref-b@example.invalid', 'Teacher', 'tutor', 'requested', '2027-02-01');
 
-  INSERT INTO public.scholarships (
+  INSERT INTO public.leftover_scholarships (
     title, provider, amount, country, minimum_gpa, deadline, application_url
   )
   VALUES (
@@ -335,9 +349,14 @@ SELECT is_empty(
   'student cannot read another student_profiles row'
 );
 
+SELECT is_empty(
+  $$SELECT id FROM public.catalog_universities_public$$,
+  'unpublished leftover universities are invisible on the public catalog projection'
+);
+
 SELECT isnt_empty(
   $$SELECT id FROM public.universities$$,
-  'authenticated student can read universities catalog'
+  'student can still resolve a leftover university tied to their own application'
 );
 
 SELECT is_empty(
@@ -361,8 +380,8 @@ SELECT is_empty(
 );
 
 SELECT isnt_empty(
-  $$SELECT id FROM public.scholarships$$,
-  'authenticated student can read scholarships catalog'
+  $$SELECT id FROM public.leftover_scholarships$$,
+  'authenticated student can read leftover scholarships prototype'
 );
 
 SELECT is_empty(
@@ -565,7 +584,8 @@ SELECT is_empty($$SELECT id FROM public.admission_offers$$, 'anon sees no admiss
 SELECT is_empty($$SELECT id FROM public.subscriptions$$, 'anon sees no subscriptions');
 SELECT is_empty($$SELECT id FROM public.notifications$$, 'anon sees no notifications');
 SELECT is_empty($$SELECT id FROM public.universities$$, 'anon sees no universities');
-SELECT is_empty($$SELECT id FROM public.scholarships$$, 'anon sees no scholarships');
+SELECT is_empty($$SELECT id FROM public.leftover_scholarships$$, 'anon sees no leftover scholarships');
+SELECT is_empty($$SELECT id FROM public.catalog_scholarships_public$$, 'anon sees no unpublished spec scholarships');
 SELECT is_empty($$SELECT id FROM public.housing_options$$, 'anon sees no housing_options');
 SELECT is_empty($$SELECT id FROM public.alumni_profiles$$, 'anon sees no alumni_profiles');
 

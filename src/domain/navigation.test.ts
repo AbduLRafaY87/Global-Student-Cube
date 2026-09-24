@@ -64,7 +64,6 @@ describe("role navigation and guards", () => {
   it("redirects parked leftover routes away from students", () => {
     assert.equal(isPathAllowedForRole("/essays", "student"), false);
     assert.equal(isPathAllowedForRole("/billing", "student"), false);
-    assert.equal(isPathAllowedForRole("/admission-odds", "student"), false);
   });
 
   it("uses the same mismatch redirect in proxy and dashboard layout", () => {

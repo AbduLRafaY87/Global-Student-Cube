@@ -107,7 +107,7 @@ export default async function ScholarshipsPage({
   const supabase = await createClient();
 
   let query = supabase
-    .from("scholarships")
+    .from("leftover_scholarships")
     .select(
       "id, title, provider, amount, country, minimum_gpa, deadline, application_url, created_at",
     )

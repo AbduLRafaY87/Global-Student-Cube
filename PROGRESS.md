@@ -50,7 +50,7 @@ Command-layer implementation pass (24 Sep 2026). No linked Supabase project. No 
 |-------|--------|------|
 | `npm run lint` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
 | `npx tsc --noEmit` | 0 errors | 24 Sep 2026 (WP-01 pass) |
-| `npm run test:unit` | 32/32 via `scripts/run-unit-tests.mjs` (not shell globs; `node --test` hangs silently on unmatched globs on Windows/Node 24) | 24 Sep 2026 (Prompt 6) |
+| `npm run test:unit` | 50/50 via `scripts/run-unit-tests.mjs` (not shell globs; `node --test` hangs silently on unmatched globs on Windows/Node 24) | 24 Sep 2026 (ADM catalog editorial) |
 | `npm run build` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
 | 360px shell | `/design` at 360×800; More opens Discover/Apply/Prepare/Decide/Support; `scrollWidth === 360` | 24 Sep 2026 |
 | `supabase db push --linked` / `supabase test db` | Not run. No project linked. | |
@@ -77,6 +77,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | Item | Status | Evidence |
 |------|--------|----------|
 | `supabase/migrations/0000`–`0025` (schema + RLS + seed) | Written, unverified | Files in tree; never pushed to a linked project |
+| `0033`–`0035` catalog + ingestion | Written, unverified | Reference data, programs, publication, ingestion/import/review-due. Not applied remotely |
 | `0013_reserved.sql` | Written, unverified | No-op placeholder; `users` table does not exist |
 | `0026_role_change_guard.sql` | Written, unverified | File in tree; stop-ship. Not applied remotely |
 | `0027_identity_command_layer.sql` | Written, unverified | `accounts`, `identities`, `cases`, `consent_events`, GSC counter, `commands.*`, `handle_new_user` always `'student'`. Not applied remotely |
@@ -100,7 +101,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | `src/server/executor.ts`, `context.ts`, `errors.ts` | Written, unverified | Module-level pool, `finally` release, single-digit max, connect timeout. Needs `COMMANDS_DATABASE_URL` |
 | `src/lib/supabase/admin.ts`, `src/lib/crypto/contact.ts` | Written, unverified | Admin client kept for Auth Admin API only. Needs encryption key on a real project |
 | `/api/v1/auth/*` (6 routes) | Written, unverified | Files exist (see REST table). Identity writes now go through the executor |
-| `PATCH /api/v1/me`, leftover `/api/v1/applications` | Written, unverified | Command path. Never hit a linked project |
+| `PATCH /api/v1/me`, leftover `/api/v1/applications` | Written, unverified | Command path. After 0032, leftover creates open a `direct` group. Retire at Prompt 17. Never hit a linked project |
 | `docs/architecture/command-layer.md` | Written, unverified | Add-a-command steps + serverless pool constraint |
 | AUTH screens (register, login, password-reset, verify-email) | Written, unverified | Pages exist. Walkthrough not run on remote |
 | `src/proxy.ts` unverified-email + suspended sign-out | Written, unverified | Code present. Not proven against remote Auth users |
@@ -145,13 +146,13 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | PAR-01 | Parent dashboard | `/parent` | Partial | Leftover |
 | PAR-02 | Linked student | — | Not started | |
 | PAR-03 | Consent and sharing | — | Not started | |
-| CAT-01 | University search | `/universities` | Partial | Leftover; still contains `acceptance_rate` (D5 violation) |
+| CAT-01 | University search | `/universities` | Partial | Reads `catalog_universities_public` only. Empty published catalog is valid. D5 `acceptance_rate` removed |
 | CAT-02 | University profile | — | Not started | |
 | CAT-03 | Program profile | — | Not started | |
-| CAT-04 | Saved shortlist | — | Not started | |
-| CAT-05 | Comparison | — | Not started | |
-| CAT-06 | Deadline calendar | — | Not started | |
-| CAT-07 | Scholarship search | `/scholarships` | Partial | Leftover |
+| CAT-04 | Cost comparison and financial readiness | — | Not started | |
+| CAT-05 | Program self-assessment | — | Not started | |
+| CAT-06 | Saved shortlist and counselor-review flags | — | Not started | Save never opens an application group |
+| CAT-07 | Scholarship search | `/scholarships` | Partial | Leftover prototype now reads `leftover_scholarships`. Spec scholarships are unpublished/empty |
 | CAT-08 | Scholarship profile | — | Not started | |
 | SES-01 | Counselor search | `/counselors` | Partial | Leftover |
 | SES-02 | Counselor profile | — | Not started | |
@@ -165,11 +166,6 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | SES-10 | Session recap | — | Not started | |
 | SES-11 | Session history | — | Not started | |
 | SES-12 | Tasks | `/timeline` | Partial | Folded leftover |
-| APP-01 | Application list | — | Not started | |
-| APP-02 | Application workspace | — | Not started | |
-| APP-03 | Requirement checklist | — | Not started | |
-| APP-04 | Application review | — | Not started | |
-| APP-05 | Application group | — | Not started | |
 | ESS-01–07 | Essays | `/essays` leftover page | Deferred | Parked; page exists, omitted from nav, must not be extended |
 | OFF-01–04 | Offers | `/offers` leftover page | Deferred | Parked; same rule |
 | MEN-01 | Mentor directory | `/alumni` | Partial | Folded leftover |
@@ -183,16 +179,20 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | REC-01–03 | Recommendation letters | — | Deferred | Parked; no leftover page |
 | ADM-01 | Admin overview | `/admin` | Written, unverified | Real queue counts; unpermitted metrics omitted. No applicant evidence. |
 | ADM-02 | Professional / guardian review | `/admin/approvals` | Written, unverified | No student approval queue (D2). Guardian-link for minors only. |
-| ADM-03 | Role requests | — | Not started | D2: no public role requests |
-| ADM-04 | Catalog CMS | — | Not started | |
-| ADM-05 | Taxonomy | — | Not started | |
-| ADM-06 | Scholarship CMS | — | Not started | |
-| ADM-07 | Case queue | — | Not started | |
-| ADM-08 | Case detail | — | Not started | |
-| ADM-09 | Editorial | — | Not started | |
-| ADM-10 | Audit log | — | Not started | |
-| ADM-11 | Feature flags | — | Not started | |
-| JRN-01 | Journey home | — | Not started | |
+| ADM-03 | Data ingestion submission | `/admin/ingestion/new` | Written, unverified | Allowlisted URL, timestamp/hash/excerpt only. Import dry-run. Never auto-publish. |
+| ADM-04 | Extracted data review and reconciliation | `/admin/ingestion/:jobId/review` | Written, unverified | Per-field accept/reject. Reviewer recorded. Live values unchanged on reject. |
+| ADM-05 | Catalog management | `/admin/catalog` | Written, unverified | Entity selectors, review-due queue, import entry. Visa selector notes ADM-09 is not built. |
+| ADM-06 | University and accommodation editor | `/admin/universities/:universityId` | Written, unverified | Draft/source/publish. No acceptance-rate field. Withdraw keeps history. |
+| ADM-07 | Program and pricing editor | `/admin/programs/:programId` | Written, unverified | Annual vs full-program fees. Gated application URL excluded from public payloads. |
+| ADM-08 | Entry requirement rules | `/admin/programs/:programId/requirements` | Written, unverified | Per-criterion draft + source. Publish versions rules. |
+| ADM-09 | Visa and destination guidance editor | — | Not started | |
+| ADM-10 | Rewards verification and fulfillment | — | Not started | |
+| ADM-11 | Moderation, quality and safety review | — | Not started | |
+| ADM-12 | Operational and outcome analytics | — | Not started | |
+| ADM-13 | Jobs, delivery and integration operations | — | Not started | Ingestion creates a durable job row; ADM-13 runner is not built. |
+| ADM-14 | Scholarship URL and metadata editor | `/admin/scholarships/:scholarshipId` | Written, unverified | Official URL + minimal metadata. No in-app scholarship application schema. |
+| ADM-15 | Learning, news and recognition content editor | — | Not started | |
+| JRN-01 | Selected-target application roadmap | — | Not started | Closest real spec apply screen; leftover `/applications` is not this |
 | JRN-02 | Journey article | `/visa` | Partial | Folded leftover |
 | JRN-03 | Journey by stage | — | Not started | |
 | SET-01 | Account | — | Not started | |
@@ -210,23 +210,27 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 48 |
+| Not started | 40 |
 | Partial (leftover prototype) | 15 |
-| Written, unverified | 10 |
+| Written, unverified | 17 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
 | Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
 | Removed | 1 (AUTH-07) |
-| **Total spec screens** | **97** |
+| **Total spec screens** | **96** |
+
+APP-01–05 were **not spec screen IDs** (absent from the spec and `docs/spec-index.md`). They were removed from this catalogue. The spec application-adjacent screen is **JRN-01** (selected-target application roadmap). Leftover `/applications` remains a prototype, not a spec screen. Previous totals (97 / 48 not started) included those five invented rows.
 
 AUTH Written, unverified (8): AUTH-01, 02, 03, 04, 05, 08, 09, 10.
-Admin Written, unverified (2): ADM-01, ADM-02. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are WP-15 routes, not extra spec screen IDs. Spec ADM-10 remains rewards (PROGRESS previously mislabeled it as audit).
+Admin Written, unverified (9): ADM-01, 02, 03, 04, 05, 06, 07, 08, 14. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are WP-15 routes, not extra spec screen IDs. Spec ADM-10 is rewards. Previous invented ADM-03–11 titles (role requests, Catalog CMS, Taxonomy, …) were replaced by spec IDs; that correction adds four screens (92 → 96).
+
+Catalog authoring is **WP-07**. WP-04 is student profile. WP-13 is Mentorship. Neither changed in this slice. Real-country catalog data is an owner task, not an agent task.
 
 Partial leftovers (15): PUB-01, STU-02, STU-03, STU-05, STU-07, PAR-01, CAT-01, CAT-07, SES-01, SES-12, MEN-01, MSG-01, MSG-02, JRN-02, SET-06.
 
 Parked leftover *pages* (`/essays`, `/offers`, `/interviews`, `/billing`) still exist on disk. Those modules are counted as Deferred (not Partial) so they are not treated as in-progress work.
 
-D5 leak: `acceptance_rate` is still referenced in `src/app/(dashboard)/universities/page.tsx`, `src/app/(dashboard)/admission-odds/page.tsx`, and `src/types/index.ts`. Admission-odds leftover is not a spec screen (module removed).
+D5: `acceptance_rate` removed from leftover universities reads, types, and the database (0033). Admission Odds page, calculator, card, nav prefix, and landing copy deleted. CAT-05 remains Not started.
 
 ## REST API catalogue (spec §17.6)
 
@@ -242,7 +246,7 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 | `POST /auth/email-verification` | Written, unverified | `/api/v1/auth/verify-email` (path ≠ spec) |
 | `GET /me` | Not started | |
 | `PATCH /me` | Written, unverified | `/api/v1/me` updates leftover `user_profiles` (not the full spec identity DTO) |
-| leftover `POST/PATCH/DELETE /applications` | Written, unverified | Prototype `applications` table, not spec APP-01 groups |
+| leftover `POST/PATCH/DELETE /applications` | Written, unverified | Prototype 1:1 university rows. After 0032 each row belongs to a group. Retire this API when Prompt 17 ships. |
 | `POST /me/email-change` | Written, unverified | `/api/v1/auth/change-email` (path ≠ spec) |
 | `POST /auth/mfa/enroll`; `POST /auth/mfa/verify` | Written, unverified | plus leftover `/auth/mfa/challenge` and `/auth/mfa/status` |
 | `POST /cases/{caseId}/parent-links` | Written, unverified | |
@@ -252,6 +256,7 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 | `POST /admin/guardian-verifications/{id}/decision` | Written, unverified | Same decide command |
 | `GET /admin/audit` | Written, unverified | |
 | leftover `GET /admin/overview`; `GET/POST /admin/users…`; `POST /admin/support/export|deletion` | Written, unverified | Support routes are Prompt 30 stubs |
+| leftover `POST /admin/catalog/ingestion`; `…/review`; `…/reject`; `…/import`; `…/publish`; university/program/scholarship/accommodation/source-facts upserts | Written, unverified | Command-layer catalog editorial. Not spec-named paths |
 
 ## Automated test catalogue (spec §24.7)
 
@@ -260,6 +265,12 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | What exists | Status | Notes |
 |-------------|--------|-------|
 | `src/domain/identity/identity.test.ts` | Written, unverified | Overlaps T009 / T010 / T015 / T018 themes (MFA redirect, invite reuse, recovery codes) |
+| `src/domain/catalog/catalog.test.ts` | Written, unverified | Publication transitions, page clamp, private DTO strip |
+| `src/domain/catalog/ingestion.test.ts` | Written, unverified | Private hosts blocked; import rejects unsourced rows; never auto-publish |
+| `supabase/tests/catalog.test.sql` | Written, unverified | Draft hidden; provenance required to publish; duration/ratio/amount-currency checks. Not run on a linked project |
+| `supabase/tests/catalog_editorial.test.sql` | Written, unverified | Cannot publish without provenance; import rejects unsourced rows; withdraw hides from public views; audit written. SYNTHETIC only. Not run on a linked project |
+| `src/domain/applications/systems.test.ts` | Written, unverified | Leftover group-state mapping; apply file purposes |
+| `supabase/tests/application_systems.test.sql` | Written, unverified | No country inference; no invented fees; catalog_editorial required. Not run on a linked project |
 | `src/domain/admin/admin.test.ts` | Written, unverified | Unauthorized variants, omitted queues, suspend availability |
 | `src/domain/navigation.test.ts` | Written, unverified | Not a spec T-ID |
 | `supabase/tests/admin_operations.test.sql` | Written, unverified | Scope denials, audit on decide/suspend/role, escalation outbox. Not run on a linked project |
@@ -276,15 +287,15 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Written, unverified | Command layer (`gsc_api_executor`, audit + outbox, `/api/v1` envelope) is in the tree. Not proven on a linked project. Not WP-01. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0031 (`verification_cases` + admin commands). Never pushed to a linked project |
+| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0035. Never pushed to a linked project |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Not started | Leftover `/profile`, `/documents`, `/test-prep` are Partial, not this WP |
 | WP-05 | Intake | Not started | |
-| WP-06 | Catalog read + search | Not started | Leftover `/universities` still has `acceptance_rate` |
-| WP-07 | Catalog authoring | Not started | |
+| WP-06 | Catalog read + search | Written, unverified | Public views + leftover `/universities` on published rows only. Pagination helper 1..50. Empty catalog works. Not CAT-01 complete. |
+| WP-07 | Catalog authoring | Written, unverified | `0033`–`0035` tables, ingestion/import/review-due commands, ADM-03–08 and ADM-14 screens. SYNTHETIC fixtures test-only. No real-country data entered. Not pushed to a linked project. |
 | WP-08 | Recommendations + shortlist + compare | Not started | |
-| WP-09 | Deadlines + applications + groups | Not started | |
-| WP-10 | Scholarships | Not started | Leftover `/scholarships` is Partial |
+| WP-09 | Deadlines + applications + groups | Written, unverified | `0032` systems/groups/fee+deadline+essay+document metadata + leftover backfill. No APP screens. No fee amounts. CAT-06 save does not open a group. |
+| WP-10 | Scholarships | Written, unverified | Spec `scholarships` + public projection in `0034`. Leftover page still uses `leftover_scholarships`. |
 | WP-11 | Sessions + availability + bookings | Not started | |
 | WP-12 | Messaging + reports | Not started | |
 | WP-13 | Mentorship | Not started | |
@@ -302,12 +313,12 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 
 - No linked Supabase project. All SQL, RLS, command RPCs, and pgTAP are unproven on the only database this repo is allowed to use.
 - `student_profiles` is a known command-layer gap until Prompt 12 (STU-02). This slice does not revoke its grants and does not add a command for it. Direct Data API writes remain possible.
-- `acceptance_rate` still in leftover university / admission-odds code (D5).
+- Catalog schema (`0033`–`0035`) is written but not pushed to a linked project. Public catalog is empty until editorial publish. SYNTHETIC fixtures are excluded from `supabase/seed.sql`.
 - Login lockout 5 failures / 15 minutes is an invented analog (spec silent). NEEDS OWNER to confirm or replace.
 - Community-eligibility “Yes” is a client gate only; not a persisted column.
 - GSC ID is allocated at signup (D2 removed approval). Status stays `email_pending` until verify. Spec said allocate on approval.
 - Three auth API paths do not match spec §17.6 names (`password-update`, `email-verification`, `me/email-change`).
 - Parked leftover pages still routable; hidden from nav only.
-- `npm run lint` exit 0 and `test:unit` 41/41 on 24 Sep 2026 (no DB). `npm run build` fails on pre-existing TS errors in dashboard layout MFA typing and invitations preview (not this slice). pgTAP and `supabase db push --linked` still unverified.
+- `npm run lint` exit 0 and `test:unit` 50/50 on 24 Sep 2026 (no DB). `npm run build` / app `tsc` not re-claimed for this slice. pgTAP and `supabase db push --linked` still unverified. No real-country catalog data was entered.
 - Prompt 30: `POST /admin/support/export` and `POST /admin/support/deletion` only write audit + outbox (`completed_by=prompt_30`). No export package, no 30-day deletion workflow.
 - Admin people/safety belongs to WP-15, not WP-03 (AUTH).

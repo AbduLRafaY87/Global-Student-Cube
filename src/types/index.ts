@@ -63,21 +63,18 @@ export interface University {
   id: string;
   name: string;
   country: string;
-  tuition_fee: number;
-  acceptance_rate: number;
-  minimum_gpa: number;
-  ranking: number;
-  created_at: string;
+  city?: string | null;
+  slug?: string;
+  type?: string | null;
+  website_url?: string | null;
 }
 
 export interface UniversitySearchFilters {
-  name?: string;
+  q?: string;
   country?: string;
-  tuition_fee?: number;
-  max_tuition_fee?: number;
-  acceptance_rate?: number;
-  minimum_gpa?: number;
-  ranking?: number;
+  city?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface Application {

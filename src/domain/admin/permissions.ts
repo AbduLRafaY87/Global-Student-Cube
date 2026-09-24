@@ -17,6 +17,8 @@ export const ADMIN_ROUTE_SCOPES = {
   users: "operations",
   audit: "operations",
   support: "operations",
+  catalog: "catalog_editorial",
+  ingestion: "catalog_editorial",
 } as const;
 
 export type AdminRouteId = keyof typeof ADMIN_ROUTE_SCOPES;

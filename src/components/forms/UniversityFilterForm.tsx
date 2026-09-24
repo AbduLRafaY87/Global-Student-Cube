@@ -18,6 +18,23 @@ export function UniversityFilterForm({ filters }: UniversityFilterFormProps) {
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label
+            htmlFor="q"
+            className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
+          >
+            Name
+          </label>
+          <input
+            id="q"
+            name="q"
+            type="search"
+            defaultValue={filters.q ?? ""}
+            placeholder="Search published universities"
+            className={inputClassName}
+          />
+        </div>
+
+        <div>
+          <label
             htmlFor="country"
             className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
           >
@@ -28,50 +45,26 @@ export function UniversityFilterForm({ filters }: UniversityFilterFormProps) {
             name="country"
             type="text"
             defaultValue={filters.country ?? ""}
-            placeholder="e.g. Canada"
+            placeholder="e.g. CA"
             className={inputClassName}
           />
         </div>
 
         <div>
           <label
-            htmlFor="max_tuition_fee"
+            htmlFor="city"
             className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
           >
-            Max tuition fee
+            City
           </label>
           <input
-            id="max_tuition_fee"
-            name="max_tuition_fee"
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="0.01"
-            defaultValue={filters.max_tuition_fee ?? ""}
+            id="city"
+            name="city"
+            type="text"
+            defaultValue={filters.city ?? ""}
+            placeholder="e.g. Toronto"
             className={inputClassName}
           />
-        </div>
-
-        <div>
-          <label
-            htmlFor="minimum_gpa"
-            className="block text-sm font-medium text-zinc-800 dark:text-zinc-200"
-          >
-            Minimum GPA
-          </label>
-          <input
-            id="minimum_gpa"
-            name="minimum_gpa"
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="0.01"
-            defaultValue={filters.minimum_gpa ?? ""}
-            className={inputClassName}
-          />
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Shows universities whose requirement is at most this GPA.
-          </p>
         </div>
       </div>
 

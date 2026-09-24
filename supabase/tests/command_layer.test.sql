@@ -62,16 +62,13 @@ DECLARE
 BEGIN
   PERFORM gsc_tests.create_auth_user(student_id, 'cmd-student@example.invalid');
   INSERT INTO public.universities (
-    id, name, country, tuition_fee, acceptance_rate, minimum_gpa, ranking
+    id, name, country, publication_state
   )
   VALUES (
     uni_id,
     'Synthetic Command University',
     'KE',
-    10000,
-    0,
-    3.0,
-    100
+    'withdrawn'
   );
 END
 $$;

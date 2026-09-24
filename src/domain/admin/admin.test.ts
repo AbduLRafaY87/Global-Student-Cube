@@ -51,10 +51,29 @@ describe("admin route scopes", () => {
       true,
     );
     assert.equal(canAccessAdminRoute("admin", "aal2", [], "overview"), true);
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["catalog_editorial"], "catalog"),
+      true,
+    );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["operations"], "catalog"),
+      false,
+    );
   });
 });
 
 describe("permission-aware overview", () => {
+  it("shows catalog review queues only with catalog_editorial", () => {
+    const queues = visibleOverviewQueues(["catalog_editorial"], {
+      ingestion_review: 2,
+      catalog_review_due: 1,
+    });
+    assert.deepEqual(
+      queues.map((queue) => queue.id),
+      ["ingestion_review", "catalog_review_due"],
+    );
+  });
+
   it("omits unpermitted queues instead of showing zero", () => {
     const queues = visibleOverviewQueues(["operations"], {
       professional_review: 4,

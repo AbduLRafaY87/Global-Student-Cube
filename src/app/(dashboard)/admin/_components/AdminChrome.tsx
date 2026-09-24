@@ -44,6 +44,18 @@ export function AdminChrome({ title, description, children }: AdminChromeProps) 
           >
             Support
           </Link>
+          <Link
+            className="text-primary underline-offset-2 hover:underline"
+            href="/admin/catalog"
+          >
+            Catalog
+          </Link>
+          <Link
+            className="text-primary underline-offset-2 hover:underline"
+            href="/admin/ingestion/new"
+          >
+            Ingestion
+          </Link>
         </nav>
       </header>
       {children}

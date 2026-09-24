@@ -23,11 +23,6 @@ const FEATURES = [
       "Log deadlines, essays, documents, and recommendations in one checklist.",
   },
   {
-    title: "Admission odds",
-    description:
-      "See Reach, Match, and Safety for every school on your list.",
-  },
-  {
     title: "Scholarships and aid",
     description:
       "Filter awards and compare offer tuition against financial aid.",
@@ -104,8 +99,8 @@ export default function Home() {
                 University directory
               </h2>
               <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Preview schools by country, ranking, and requirements after you
-                create an account.
+                Preview published universities by country and city after you
+                create an account. Missing facts stay Not provided.
               </p>
             </div>
             <Link
