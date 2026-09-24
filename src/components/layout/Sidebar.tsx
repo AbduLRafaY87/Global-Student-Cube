@@ -44,7 +44,7 @@ export function Sidebar({
         }
       >
         <Link
-          href="/profile"
+          href="/home"
           className="truncate text-sm font-semibold tracking-tight text-text"
           onClick={onCloseMobile}
         >

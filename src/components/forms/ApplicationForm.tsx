@@ -35,7 +35,8 @@ export function ApplicationForm({
         {isEditing ? "Edit application" : "Add application"}
       </h2>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-        Track a university deadline and keep the status up to date.
+        Opens a direct institution-portal group with one choice. This does not
+        assign UCAS, Common App, or another named platform.
       </p>
 
       <form className="mt-6 space-y-4" action={formAction} noValidate>

@@ -51,5 +51,5 @@ export async function GET(request: Request) {
     // Account row may not exist yet for legacy users.
   }
 
-  return NextResponse.redirect(new URL("/profile", requestUrl.origin));
+  return NextResponse.redirect(new URL("/home", requestUrl.origin));
 }

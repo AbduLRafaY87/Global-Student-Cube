@@ -89,7 +89,7 @@ function VerifyEmailFlow() {
       };
       if (payload.verified) {
         setVerified(true);
-        router.push(payload.redirectTo ?? "/profile");
+        router.push(payload.redirectTo ?? "/home");
         router.refresh();
         return;
       }
@@ -142,7 +142,7 @@ function VerifyEmailFlow() {
 
       {verified ? (
         <div className="mt-6">
-          <Button onClick={() => router.push("/profile")}>Continue</Button>
+          <Button onClick={() => router.push("/home")}>Continue</Button>
         </div>
       ) : (
         <div className="mt-6 space-y-4">

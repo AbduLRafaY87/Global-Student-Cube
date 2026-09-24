@@ -22,14 +22,21 @@ describe("role navigation and guards", () => {
       ["Discover", "Apply", "Prepare", "Decide", "Support"],
     );
     const hrefs = flattenNavItems("student").map((item) => item.href);
-    assert.ok(hrefs.includes("/universities"));
+    assert.ok(hrefs.includes("/home"));
+    assert.ok(hrefs.includes("/explore/universities"));
+    assert.ok(hrefs.includes("/shortlist"));
     assert.ok(hrefs.includes("/applications"));
+    assert.ok(hrefs.includes("/costs"));
+    assert.ok(hrefs.includes("/family-links"));
     assert.ok(hrefs.includes("/housing"));
     assert.ok(hrefs.includes("/counselor"));
     assert.equal(hrefs.includes("/admin"), false);
     assert.equal(hrefs.includes("/parent-portal"), false);
     assert.equal(hrefs.includes("/essays"), false);
     assert.equal(hrefs.includes("/admission-odds"), false);
+    assert.equal(hrefs.includes("/documents"), false);
+    assert.equal(hrefs.includes("/test-prep"), false);
+    assert.equal(hrefs.includes("/activities"), false);
   });
 
   it("keeps bottom navigation to at most five destinations", () => {
@@ -42,14 +49,19 @@ describe("role navigation and guards", () => {
   it("blocks role-mismatched dashboard routes", () => {
     assert.equal(isPathAllowedForRole("/admin", "student"), false);
     assert.equal(isPathAllowedForRole("/parent-portal", "student"), false);
+    assert.equal(isPathAllowedForRole("/parent/home", "student"), false);
     assert.equal(isPathAllowedForRole("/applications", "parent"), false);
     assert.equal(isPathAllowedForRole("/admin", "counselor"), false);
     assert.equal(isPathAllowedForRole("/parent-portal", "admin"), false);
   });
 
   it("allows each role its own home and shared onboarding", () => {
+    assert.equal(isPathAllowedForRole("/home", "student"), true);
     assert.equal(isPathAllowedForRole("/profile", "student"), true);
-    assert.equal(isPathAllowedForRole("/parent-portal", "parent"), true);
+    assert.equal(isPathAllowedForRole("/cases/example/profile", "student"), true);
+    assert.equal(isPathAllowedForRole("/parent/home", "parent"), true);
+    assert.equal(isPathAllowedForRole("/parent/cases", "parent"), true);
+    assert.equal(isPathAllowedForRole("/family-links", "parent"), true);
     assert.equal(isPathAllowedForRole("/counselor", "counselor"), true);
     assert.equal(isPathAllowedForRole("/admin", "admin"), true);
     assert.equal(isPathAllowedForRole("/admin/approvals", "admin"), true);
@@ -57,8 +69,8 @@ describe("role navigation and guards", () => {
     assert.equal(isPathAllowedForRole("/admin/approvals", "student"), false);
     assert.equal(isPathAllowedForRole("/onboarding", "student"), true);
     assert.equal(isPathAllowedForRole("/onboarding", "admin"), true);
-    assert.equal(homePathForRole("student"), "/profile");
-    assert.equal(homePathForRole("parent"), "/parent-portal");
+    assert.equal(homePathForRole("student"), "/home");
+    assert.equal(homePathForRole("parent"), "/parent/home");
   });
 
   it("redirects parked leftover routes away from students", () => {
@@ -67,13 +79,13 @@ describe("role navigation and guards", () => {
   });
 
   it("uses the same mismatch redirect in proxy and dashboard layout", () => {
-    assert.equal(dashboardRoleRedirect("/admin", "student"), "/profile");
-    assert.equal(dashboardRoleRedirect("/parent-portal", "student"), "/profile");
+    assert.equal(dashboardRoleRedirect("/admin", "student"), "/home");
+    assert.equal(dashboardRoleRedirect("/parent-portal", "student"), "/home");
     assert.equal(
       dashboardRoleRedirect("/applications", "parent"),
-      "/parent-portal",
+      "/parent/home",
     );
-    assert.equal(dashboardRoleRedirect("/admin", "counselor"), "/counselor");
+    assert.equal(dashboardRoleRedirect("/admin", "counselor"), "/counselor/home");
     assert.equal(dashboardRoleRedirect("/parent-portal", "admin"), "/admin");
     assert.equal(dashboardRoleRedirect("/profile", "student"), null);
     assert.equal(dashboardRoleRedirect("/counselor", "student"), null);

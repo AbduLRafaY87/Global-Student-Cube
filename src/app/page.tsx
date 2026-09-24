@@ -1,158 +1,110 @@
-import { FeatureCard } from "@/components/FeatureCard";
-import { LandingHeader } from "@/components/LandingHeader";
-import { PlanPricingCard } from "@/components/PlanPricingCard";
-import { SUBSCRIPTION_PLANS } from "@/types";
+import { PublicChrome } from "@/components/public/PublicChrome";
+import { fetchCoverage, fetchPublishedScholarships } from "@/server/modules/catalog/public";
+import { ArrowRight, GraduationCap, Sparkles } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Global Student Cube",
+  title: "Your pathway to global education",
   description:
-    "Plan applications, compare universities, and manage admissions in one workspace.",
+    "Your Pathway to global education, where dreams meet directions. Published university coverage, a 30-minute counseling introduction, and guest tools that never create a private profile.",
 };
 
-const FEATURES = [
-  {
-    title: "University directory",
-    description:
-      "Search schools by country, tuition, and GPA, then save the ones that fit.",
-  },
-  {
-    title: "Application tracker",
-    description:
-      "Log deadlines, essays, documents, and recommendations in one checklist.",
-  },
-  {
-    title: "Scholarships and aid",
-    description:
-      "Filter awards and compare offer tuition against financial aid.",
-  },
-  {
-    title: "Counselor support",
-    description:
-      "Message your assigned counselor and keep parents in the loop.",
-  },
-  {
-    title: "Visa and housing",
-    description:
-      "Track immigration documents and browse housing for saved universities.",
-  },
-] as const;
+export default async function PublicHomePage() {
+  const coverage = await fetchCoverage();
+  const scholarships = await fetchPublishedScholarships();
 
-export default function Home() {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <LandingHeader />
-
-      <main className="flex flex-1 flex-col">
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-16 sm:py-24">
-          <p className="text-sm font-medium tracking-wide text-zinc-500 uppercase">
-            Global Student Cube
-          </p>
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl dark:text-zinc-50">
-            Your admissions workspace, from first search to deposit.
+    <PublicChrome>
+      <section className="grid gap-6 min-[900px]:grid-cols-[2fr_1fr]">
+        <div>
+          <h1 className="text-3xl font-semibold text-text min-[900px]:text-4xl">
+            Your pathway to global education
           </h1>
-          <p className="max-w-2xl text-base text-zinc-600 sm:text-lg dark:text-zinc-400">
-            Students, parents, and counselors plan applications, compare
-            universities, and stay on top of essays, aid, and visas in one
-            place.
+          <p className="mt-3 text-base leading-6 text-text-muted">
+            Your Pathway to global education, where dreams meet directions
           </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/signup"
-              className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              Get started
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-white dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
-            >
-              Sign in
-            </Link>
-          </div>
-        </section>
-
-        <section
-          id="features"
-          className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-16"
-        >
-          <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Features
-          </h2>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((feature) => (
-              <li key={feature.title}>
-                <FeatureCard
-                  title={feature.title}
-                  description={feature.description}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="border-y border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-16 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-xl">
-              <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                University directory
-              </h2>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Preview published universities by country and city after you
-                create an account. Missing facts stay Not provided.
-              </p>
-            </div>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-            >
-              Browse universities
-            </Link>
-          </div>
-        </section>
-
-        <section
-          id="pricing"
-          className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-16"
-        >
-          <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Pricing
-          </h2>
-          <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-            Start on Free, or choose Premium or Counselor Pro when you need a
-            higher tier.
-          </p>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {SUBSCRIPTION_PLANS.map((plan) => (
-              <li key={plan}>
-                <PlanPricingCard
-                  plan={plan}
-                  isCurrent={false}
-                  status={null}
-                  periodEnd={null}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mx-auto flex w-full max-w-6xl flex-col items-start gap-4 px-4 pb-24">
-          <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Ready to plan your next application?
-          </h2>
-          <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-            Create a free account to save universities, track deadlines, and
-            work with your counselor.
-          </p>
+        </div>
+        <div className="flex flex-col gap-3">
           <Link
-            href="/signup"
-            className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            href="/register"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-control)] bg-primary px-4 font-medium text-surface"
           >
-            Sign up
+            <ArrowRight className="size-5" aria-hidden />
+            Start my journey
           </Link>
-        </section>
-      </main>
-    </div>
+          <Link
+            href="/quick-match"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-control-border bg-surface px-4 font-medium text-text"
+          >
+            <Sparkles className="size-5" aria-hidden />
+            Try a 60-second match
+          </Link>
+          <Link
+            href="/tour"
+            className="inline-flex h-12 items-center justify-center px-4 font-medium text-text underline-offset-2 hover:underline"
+          >
+            Take the tour
+          </Link>
+        </div>
+      </section>
+
+      <section className="rounded-[var(--radius-card)] border border-border bg-surface p-6">
+        <h2 className="text-lg font-semibold text-text">Published coverage</h2>
+        <p className="mt-2 text-sm text-text-muted">
+          {coverage.universityCount === 0
+            ? "Coverage updating. Zero published universities are listed, and no example rows are invented."
+            : `${coverage.universityCount} published universities across ${coverage.countryCount} countries.`}
+        </p>
+        <p className="mt-3 text-sm text-text">
+          The first counseling session is a 30-minute virtual meeting. Choosing a
+          teaser never creates a private profile.
+        </p>
+      </section>
+
+      <section aria-labelledby="public-features">
+        <h2 id="public-features" className="text-lg font-semibold text-text">
+          Explore
+        </h2>
+        <ul className="mt-3 grid gap-3 min-[768px]:grid-cols-2">
+          {[
+            { href: "/quick-match", title: "Match", body: "Country and subject only. No name or contact." },
+            { href: "/explore/universities", title: "Universities", body: "Public catalog with sourced fees when published." },
+            {
+              href: "/preview/scholarships",
+              title: "Scholarships",
+              body: `${scholarships.length} preview rows. Applications stay on provider websites.`,
+              icon: true,
+            },
+            { href: "/tour?audience=counselor", title: "Counselors", body: "Invited counselor accounts. MFA required." },
+            { href: "/preview/mentors/unavailable", title: "Alumni/Parent Mentors", body: "Published teasers only. None are listed yet." },
+            { href: "/tour?audience=student", title: "Roadmap", body: "Application steps after counseling and a chosen target." },
+            { href: "/tour?audience=mentor", title: "Rewards", body: "Verified activity later. Not a live marketing claim." },
+          ].map((item) => (
+            <li key={item.title}>
+              <Link
+                href={item.href}
+                className="block rounded-[var(--radius-card)] border border-border bg-surface p-4"
+              >
+                <p className="flex items-center gap-2 font-medium text-text">
+                  {item.icon ? <GraduationCap className="size-5" aria-hidden /> : null}
+                  {item.title}
+                </p>
+                <p className="mt-2 text-sm text-text-muted">{item.body}</p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold text-text">Preparation checklist</h2>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-text">
+          <li>Gather academic evidence you already hold.</li>
+          <li>Decide whether a parent will be invited later.</li>
+          <li>Optional finances stay optional until you save a program.</li>
+        </ol>
+      </section>
+    </PublicChrome>
   );
 }

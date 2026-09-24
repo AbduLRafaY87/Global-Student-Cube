@@ -89,7 +89,7 @@ function InviteAcceptFlow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          kind === "parent" ? { token, kind: "adult_authorized" } : { token },
+          kind === "parent" ? { token } : { token },
         ),
       });
       const payload = (await response.json()) as Envelope<{ homeRole?: string }>;
@@ -101,9 +101,13 @@ function InviteAcceptFlow() {
         );
         return;
       }
-      router.push(payload.data?.homeRole === "counselor" || payload.data?.homeRole === "admin"
-        ? "/mfa"
-        : "/profile");
+      const home =
+        kind === "parent"
+          ? "/parent/home"
+          : payload.data?.homeRole === "counselor" || payload.data?.homeRole === "admin"
+            ? "/mfa"
+            : "/home";
+      router.push(home);
       router.refresh();
     } catch {
       setError("You’re offline. Reconnect to continue.");

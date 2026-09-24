@@ -76,6 +76,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, redirectTo: "/verify-email" });
   }
 
-  const next = safeInternalPath(body.next) ?? "/profile";
+  const next = safeInternalPath(body.next) ?? "/home";
   return NextResponse.json({ ok: true, redirectTo: next });
 }

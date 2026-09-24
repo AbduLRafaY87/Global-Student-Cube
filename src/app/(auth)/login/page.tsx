@@ -45,7 +45,7 @@ function LoginForm() {
         return;
       }
 
-      router.push(payload.redirectTo ?? "/profile");
+      router.push(payload.redirectTo ?? "/home");
       router.refresh();
     } catch {
       setError("Unable to sign in. Please try again.");

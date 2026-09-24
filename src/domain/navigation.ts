@@ -52,8 +52,10 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       id: "discover",
       label: "Discover",
       items: [
-        { href: "/universities", label: "Universities", icon: "graduationCap" },
-        { href: "/scholarships", label: "Scholarships", icon: "award" },
+        { href: "/home", label: "Home", icon: "home" },
+        { href: "/explore/universities", label: "Universities", icon: "graduationCap" },
+        { href: "/shortlist", label: "Shortlist", icon: "clipboardCheck" },
+        { href: "/explore/scholarships", label: "Scholarships", icon: "award" },
       ],
     },
     {
@@ -61,16 +63,15 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       label: "Apply",
       items: [
         { href: "/profile", label: "Profile", icon: "user" },
+        { href: "/family-links", label: "Family access", icon: "heartHandshake" },
         { href: "/applications", label: "Applications", icon: "fileText" },
-        { href: "/documents", label: "Documents", icon: "folderOpen" },
+        { href: "/costs", label: "Costs", icon: "clipboardCheck" },
       ],
     },
     {
       id: "prepare",
       label: "Prepare",
       items: [
-        { href: "/test-prep", label: "Tests", icon: "clipboardCheck" },
-        { href: "/activities", label: "Activities", icon: "trophy" },
         { href: "/tasks", label: "Tasks", icon: "checkSquare" },
       ],
     },
@@ -98,16 +99,18 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       id: "family",
       label: "Family",
       items: [
-        { href: "/parent-portal", label: "Family overview", icon: "heartHandshake" },
-        { href: "/profile", label: "Profile", icon: "user" },
+        { href: "/parent/home", label: "Family overview", icon: "heartHandshake" },
+        { href: "/parent/cases", label: "Student cases", icon: "users" },
+        { href: "/family-links", label: "Family access", icon: "heartHandshake" },
       ],
     },
     {
       id: "discover",
       label: "Discover",
       items: [
-        { href: "/universities", label: "Universities", icon: "graduationCap" },
-        { href: "/scholarships", label: "Scholarships", icon: "award" },
+        { href: "/explore/universities", label: "Universities", icon: "graduationCap" },
+        { href: "/shortlist", label: "Shortlist", icon: "clipboardCheck" },
+        { href: "/explore/scholarships", label: "Scholarships", icon: "award" },
       ],
     },
     {
@@ -124,7 +127,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       id: "work",
       label: "Caseload",
       items: [
-        { href: "/counselor", label: "Students", icon: "users" },
+        { href: "/counselor/home", label: "Home", icon: "home" },
+        { href: "/counselor/students", label: "Students", icon: "users" },
         { href: "/tasks", label: "Tasks", icon: "checkSquare" },
         { href: "/profile", label: "Profile", icon: "user" },
       ],
@@ -150,8 +154,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
         { href: "/admin/support", label: "Support", icon: "settings" },
         { href: "/admin/catalog", label: "Catalog", icon: "graduationCap" },
         { href: "/admin/ingestion/new", label: "Ingestion", icon: "folderOpen" },
-        { href: "/universities", label: "Universities", icon: "graduationCap" },
-        { href: "/scholarships", label: "Scholarships", icon: "award" },
+        { href: "/explore/universities", label: "Universities", icon: "graduationCap" },
+        { href: "/explore/scholarships", label: "Scholarships", icon: "award" },
         { href: "/profile", label: "Profile", icon: "user" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
       ],
@@ -161,34 +165,40 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
 
 export const BOTTOM_NAV: Record<UserRole, BottomNavEntry[]> = {
   student: [
-    { kind: "link", href: "/profile", label: "Profile", icon: "user" },
-    { kind: "link", href: "/universities", label: "Explore", icon: "graduationCap" },
+    { kind: "link", href: "/home", label: "Home", icon: "home" },
+    { kind: "link", href: "/explore/universities", label: "Explore", icon: "graduationCap" },
     { kind: "link", href: "/messages", label: "Messages", icon: "messageSquare" },
     { kind: "more", label: "More", icon: "moreHorizontal" },
   ],
   parent: [
-    { kind: "link", href: "/parent-portal", label: "Family", icon: "heartHandshake" },
-    { kind: "link", href: "/universities", label: "Explore", icon: "graduationCap" },
+    { kind: "link", href: "/parent/home", label: "Family", icon: "heartHandshake" },
+    { kind: "link", href: "/explore/universities", label: "Explore", icon: "graduationCap" },
     { kind: "link", href: "/messages", label: "Messages", icon: "messageSquare" },
     { kind: "more", label: "More", icon: "moreHorizontal" },
   ],
   counselor: [
-    { kind: "link", href: "/counselor", label: "Students", icon: "users" },
+    { kind: "link", href: "/counselor/home", label: "Home", icon: "home" },
+    { kind: "link", href: "/counselor/students", label: "Students", icon: "users" },
     { kind: "link", href: "/messages", label: "Messages", icon: "messageSquare" },
     { kind: "link", href: "/profile", label: "Profile", icon: "user" },
     { kind: "more", label: "More", icon: "moreHorizontal" },
   ],
   admin: [
     { kind: "link", href: "/admin", label: "Admin", icon: "shield" },
-    { kind: "link", href: "/universities", label: "Catalog", icon: "graduationCap" },
+    { kind: "link", href: "/admin/catalog", label: "Catalog", icon: "graduationCap" },
     { kind: "link", href: "/profile", label: "Profile", icon: "user" },
     { kind: "more", label: "More", icon: "moreHorizontal" },
   ],
 };
 
 const EXISTING_DASHBOARD_PREFIXES = [
+  "/home",
   "/profile",
-  "/universities",
+  "/cases",
+  "/shortlist",
+  "/costs",
+  "/explore/universities",
+  "/explore/scholarships",
   "/applications",
   "/documents",
   "/scholarships",
@@ -207,6 +217,8 @@ const EXISTING_DASHBOARD_PREFIXES = [
   "/billing",
   "/counselor",
   "/parent-portal",
+  "/parent",
+  "/family-links",
   "/admin",
   "/onboarding",
 ] as const;
@@ -214,13 +226,13 @@ const EXISTING_DASHBOARD_PREFIXES = [
 export function homePathForRole(role: UserRole): string {
   switch (role) {
     case "parent":
-      return "/parent-portal";
+      return "/parent/home";
     case "counselor":
-      return "/counselor";
+      return "/counselor/home";
     case "admin":
       return "/admin";
     default:
-      return "/profile";
+      return "/home";
   }
 }
 
@@ -254,6 +266,18 @@ export function isExistingDashboardPath(pathname: string): boolean {
 
 export function isPathAllowedForRole(pathname: string, role: UserRole): boolean {
   if (pathMatches(pathname, ONBOARDING_PATH)) {
+    return true;
+  }
+
+  if (
+    pathMatches(pathname, "/cases") &&
+    (role === "parent" ||
+      flattenNavItems(role).some((item) => item.href === "/profile"))
+  ) {
+    return true;
+  }
+
+  if (pathMatches(pathname, "/counselor") && role === "counselor") {
     return true;
   }
 

@@ -245,6 +245,24 @@ export interface ParentStudentLink {
   created_at: string;
 }
 
+export interface FinancialProfile {
+  id: string;
+  case_id: string;
+  occupation: string | null;
+  income: number | null;
+  income_currency: string | null;
+  income_declined: boolean;
+  savings: number | null;
+  savings_currency: string | null;
+  savings_declined: boolean;
+  housing: Record<string, string | null>;
+  sponsor_available: boolean | null;
+  income_proof_available: boolean | null;
+  completed_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface StudentActivity {
   id: string;
   student_id: string;

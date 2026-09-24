@@ -122,6 +122,6 @@ export async function PUT() {
     ok: true,
     verified: true,
     status,
-    redirectTo: "/profile",
+    redirectTo: "/home",
   });
 }

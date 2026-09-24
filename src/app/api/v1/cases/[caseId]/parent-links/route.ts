@@ -12,13 +12,15 @@ import {
 import { newRequestId } from "@/server/http/envelope";
 import { requireIdempotencyKey } from "@/server/http/headers";
 import { commandFailure, commandSuccess } from "@/server/http/respond";
-import { createParentInvitationSql } from "@/server/modules/identity/invitations";
+import { createParentInvitationByIdentifierCommand } from "@/server/modules/parent/commands";
 import { randomBytes } from "node:crypto";
 
-const ALLOWED_KEYS = ["email", "scopes"] as const;
+const ALLOWED_KEYS = ["email", "gscId", "identifier", "scopes"] as const;
 
 interface CreateParentLinkBody {
   email?: unknown;
+  gscId?: unknown;
+  identifier?: unknown;
   scopes?: unknown;
 }
 
@@ -36,7 +38,18 @@ export async function POST(request: Request, { params }: RouteParams) {
     const body = (await request.json()) as CreateParentLinkBody;
     rejectUnknownKeys(body as Record<string, unknown>, ALLOWED_KEYS);
 
-    if (typeof body.email !== "string" || validateLoginEmail(body.email)) {
+    const identifier =
+      typeof body.identifier === "string"
+        ? body.identifier.trim()
+        : typeof body.email === "string"
+          ? body.email.trim()
+          : typeof body.gscId === "string"
+            ? body.gscId.trim()
+            : "";
+    if (!identifier) {
+      throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
+    }
+    if (identifier.includes("@") && validateLoginEmail(identifier)) {
       throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
     }
 
@@ -49,32 +62,33 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const { caseId } = await params;
     const context = await resolveRequestContext(requestId);
-    const email = normalizeEmail(body.email);
     const token = randomBytes(32).toString("base64url");
-    const [emailHash, tokenHash] = await Promise.all([
-      sha256Hex(email),
-      sha256Hex(token),
-    ]);
-
-    const created = await createParentInvitationSql(context, {
+    const tokenHash = await sha256Hex(token);
+    const created = await createParentInvitationByIdentifierCommand(context, {
       caseId,
-      emailHash,
+      identifier: identifier.includes("@") ? normalizeEmail(identifier) : identifier,
       tokenHash,
       scopes,
     });
 
     const origin = new URL(request.url).origin;
-    try {
-      await sendInvitationEmail({
-        to: email,
-        acceptUrl: `${origin}/invite/accept?token=${encodeURIComponent(token)}&kind=parent`,
-        role: "parent",
-      });
-    } catch {
-      // Outbox row remains.
+    if (created.notifyEmail) {
+      try {
+        await sendInvitationEmail({
+          to: created.notifyEmail,
+          acceptUrl: `${origin}/invite/accept?token=${encodeURIComponent(token)}&kind=parent`,
+          role: "parent",
+        });
+      } catch {
+        // Outbox row remains. The client never learns whether an account existed.
+      }
     }
 
-    return commandSuccess(created, requestId, { status: 201 });
+    return commandSuccess(
+      { id: created.id, caseId: created.caseId },
+      requestId,
+      { status: 201 },
+    );
   } catch (error) {
     return commandFailure(error, requestId);
   }

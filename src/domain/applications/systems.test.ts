@@ -23,6 +23,8 @@ describe("application group backfill", () => {
   it("extends files.purpose with apply-specific values", () => {
     assert.equal(isFilePurpose("transcript"), true);
     assert.equal(isFilePurpose("apply_vpd"), true);
+    assert.equal(isFilePurpose("test_result"), true);
+    assert.equal(isFilePurpose("award_evidence"), true);
     assert.equal(isFilePurpose("made_up"), false);
   });
 });

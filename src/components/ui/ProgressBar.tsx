@@ -27,19 +27,20 @@ const WIDTH_CLASS: Record<number, string> = {
 interface ProgressBarProps {
   value: number;
   label: string;
+  displayText?: string;
 }
 
-export function ProgressBar({ value, label }: ProgressBarProps) {
+export function ProgressBar({ value, label, displayText }: ProgressBarProps) {
   const width = capProgressPercent(value);
   const bucket = Math.round(width / 5) * 5;
   const fillClass = WIDTH_CLASS[bucket] ?? "w-full";
-  const display = Number.isFinite(value) ? Math.round(value) : 0;
+  const display = displayText ?? (Number.isFinite(value) ? `${Math.round(value)}%` : "0%");
 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-sm font-medium text-text">{label}</p>
-        <p className="text-sm text-text-muted">{display}%</p>
+        <p className="text-sm text-text-muted">{display}</p>
       </div>
       <div
         className="mt-2 h-3 overflow-hidden rounded-full bg-neutral-200"
@@ -47,7 +48,7 @@ export function ProgressBar({ value, label }: ProgressBarProps) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={width}
-        aria-valuetext={`${display} percent`}
+        aria-valuetext={display}
         aria-label={label}
       >
         <div className={`h-full rounded-full bg-primary ${fillClass}`} />

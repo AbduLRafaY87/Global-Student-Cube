@@ -49,7 +49,7 @@ export default function MfaPage() {
     }>(response);
     const verified = payload.data?.factors?.find((factor) => factor.status === "verified");
     if (payload.data?.currentLevel === "aal2") {
-      router.replace("/profile");
+      router.replace("/home");
       return;
     }
     if (verified) {
@@ -123,7 +123,7 @@ export default function MfaPage() {
         setMode("codes");
         return;
       }
-      router.push("/profile");
+      router.push("/home");
       router.refresh();
     } catch {
       setError("You’re offline. Reconnect to continue.");
@@ -268,7 +268,7 @@ export default function MfaPage() {
           </ul>
           <Button
             onClick={() => {
-              router.push("/profile");
+              router.push("/home");
               router.refresh();
             }}
           >

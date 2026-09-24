@@ -42,8 +42,10 @@ export const FILE_PURPOSES = [
   "apply_reference",
   "apply_certified_transcript",
   "apply_vpd",
-  "apply_school_report",
-  "apply_system_certification",
+    "apply_school_report",
+    "apply_system_certification",
+    "test_result",
+    "award_evidence",
 ] as const;
 
 export type FilePurpose = (typeof FILE_PURPOSES)[number];

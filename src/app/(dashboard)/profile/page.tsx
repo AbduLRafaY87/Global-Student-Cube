@@ -1,79 +1,50 @@
-import { StudentProfileForm } from "@/components/forms/StudentProfileForm";
+import { EmptyState } from "@/components/ui/States";
+import { profileStepHref } from "@/domain/profile/completion";
 import { createClient } from "@/lib/supabase/server";
-import type { StudentProfile } from "@/types";
+import { loadProfile, resolveAccessibleCase } from "@/server/modules/profile/load";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { profileMetrics } from "../cases/[caseId]/profile/_lib";
 
 export const metadata: Metadata = {
   title: "Student profile",
 };
 
-function toNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-  }
-
-  return null;
-}
-
-function toTestScores(value: unknown): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return {};
-  }
-
-  const scores: Record<string, unknown> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    scores[key] = entry;
-  }
-
-  return scores;
-}
-
-export default async function ProfilePage() {
+export default async function ProfileRedirectPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  let profile: Pick<
-    StudentProfile,
-    "target_major" | "target_country" | "graduation_year" | "gpa" | "test_scores"
-  > | null = null;
-
-  if (user) {
-    const { data } = await supabase
-      .from("student_profiles")
-      .select("target_major, target_country, graduation_year, gpa, test_scores")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (data) {
-      const graduationYear = toNumber(data.graduation_year);
-      const gpa = toNumber(data.gpa);
-
-      profile = {
-        target_major:
-          typeof data.target_major === "string" ? data.target_major : "",
-        target_country:
-          typeof data.target_country === "string" ? data.target_country : "",
-        graduation_year: graduationYear ?? 0,
-        gpa: gpa ?? 0,
-        test_scores: toTestScores(data.test_scores),
-      };
-    }
+  if (!user) {
+    redirect("/login");
   }
 
-  return (
-    <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black">
-      <div className="w-full max-w-md">
-        <StudentProfileForm profile={profile} />
+  const caseRow = await resolveAccessibleCase(user.id);
+  if (!caseRow) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-8">
+        <EmptyState
+          title="No student case yet"
+          message="Leftover profile rows are kept. A case is created at registration and is required for the academic profile."
+        />
       </div>
-    </div>
-  );
+    );
+  }
+
+  const profile = await loadProfile(caseRow.id, user.id);
+  if (!profile) {
+    redirect(`/cases/${caseRow.id}/profile`);
+  }
+  const { data: published } = await supabase
+    .from("universities")
+    .select("country")
+    .eq("publication_state", "published");
+  const supportedCountryCount = new Set(
+    (published ?? []).map((row) => (typeof row.country === "string" ? row.country : "")),
+  ).size;
+  const metrics = profileMetrics(profile, supportedCountryCount, null);
+  if (profile.caseRow.module2CompletedAt) {
+    redirect(`/cases/${caseRow.id}/profile`);
+  }
+  redirect(profileStepHref(caseRow.id, metrics.report.firstIncompleteStep));
 }
