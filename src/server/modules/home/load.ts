@@ -24,7 +24,16 @@ import {
 import { loadFinance } from "@/server/modules/finance/load";
 import { loadProfile, resolveAccessibleCase } from "@/server/modules/profile/load";
 import { loadUnansweredCounselorMessages } from "@/server/modules/messaging/load";
+import {
+  getCaseRoadmapCommand,
+  listJourneyMilestonesCommand,
+} from "@/server/modules/journey/commands";
 import { loadSaveContext } from "@/server/modules/shortlist/load";
+import {
+  MILESTONE_KINDS,
+  MILESTONE_LABELS,
+  type MilestoneKind,
+} from "@/domain/journey/milestones";
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -128,6 +137,56 @@ export async function loadStudentHome(userId: string): Promise<StudentHomeModel>
     }));
 
   const cards = await loadNamedShortlist(saveContext?.pairs ?? []);
+  let roadmapTasks: Array<{ id: string; title: string; status: string }> = [];
+  let journeyItems: Array<{ id: string; label: string; when: string }> = [];
+  try {
+    const context = await resolveRequestContext();
+    const [roadmap, journey] = await Promise.all([
+      getCaseRoadmapCommand(context, caseRow.id),
+      listJourneyMilestonesCommand(context, caseRow.id),
+    ]);
+    const taskRows = Array.isArray(roadmap.tasks) ? roadmap.tasks : [];
+    roadmapTasks = taskRows.flatMap((item) => {
+      if (typeof item !== "object" || item === null) {
+        return [];
+      }
+      const row = item as Record<string, unknown>;
+      if (typeof row.id !== "string" || typeof row.title !== "string") {
+        return [];
+      }
+      return [
+        {
+          id: row.id,
+          title: row.title,
+          status: typeof row.status === "string" ? row.status : "open",
+        },
+      ];
+    });
+    const milestoneRows = Array.isArray(journey.items) ? journey.items : [];
+    journeyItems = milestoneRows.flatMap((item) => {
+      if (typeof item !== "object" || item === null) {
+        return [];
+      }
+      const row = item as Record<string, unknown>;
+      if (typeof row.id !== "string" || typeof row.kind !== "string") {
+        return [];
+      }
+      if (!MILESTONE_KINDS.includes(row.kind as MilestoneKind)) {
+        return [];
+      }
+      return [
+        {
+          id: row.id,
+          label: MILESTONE_LABELS[row.kind as MilestoneKind],
+          when: typeof row.occurredOn === "string" ? row.occurredOn : "Not provided",
+        },
+      ];
+    });
+  } catch {
+    roadmapTasks = [];
+    journeyItems = [];
+  }
+
   const unanswered = await loadUnansweredCounselorMessages();
   const unansweredCounselorMessages: HomeMessageItem[] = [];
   if (unanswered.ok && Array.isArray(unanswered.data.items)) {
@@ -162,6 +221,8 @@ export async function loadStudentHome(userId: string): Promise<StudentHomeModel>
     deadlines,
     incompleteDocuments,
     unansweredCounselorMessages,
+    roadmapTasks,
+    journeyItems,
     readiness:
       !finance || finance.savingsDeclined === null
         ? null

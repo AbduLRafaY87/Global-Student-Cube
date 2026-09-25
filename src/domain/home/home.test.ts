@@ -41,6 +41,9 @@ describe("student home widgets", () => {
     assert.equal(home.readiness.displayPercent, null);
     assert.equal(home.news.empty, true);
     assert.equal(home.journey.empty, true);
+    assert.equal(home.journey.href, "/journey");
+    assert.equal(home.tasks.count, 0);
+    assert.equal(home.tasks.href, "/tasks");
     assert.ok(home.nextActions.some((action) => action.href === "/profile"));
     assert.equal(home.messages.emptyMessage.includes("unanswered counselor"), true);
   });
@@ -108,6 +111,28 @@ describe("student home widgets", () => {
     assert.equal(home.messages.empty, false);
     assert.equal(home.messages.items[0]?.preview, "Please reply when you can");
     assert.equal(home.news.empty, true);
+    assert.ok(home.nextActions.some((action) => action.href === "/journey"));
+  });
+
+  it("feeds derived roadmap tasks and private milestones into the home widgets", () => {
+    const caseId = "11111111-1111-4111-8111-111111111111";
+    const home = buildStudentHome(
+      emptyInput({
+        caseId,
+        roadmapTasks: [
+          { id: "t1", title: "UCAS personal statement", status: "open" },
+        ],
+        journeyItems: [
+          { id: "m1", label: "University start", when: "2026-09-01" },
+        ],
+      }),
+    );
+    assert.equal(home.tasks.empty, false);
+    assert.equal(home.tasks.count, 1);
+    assert.equal(home.tasks.href, `/cases/${caseId}/roadmap`);
+    assert.equal(home.journey.empty, false);
+    assert.equal(home.journey.items[0]?.label, "University start");
+    assert.equal(home.journey.href, "/journey");
   });
 
   it("never turns a declined savings disclosure into a readiness percentage", () => {

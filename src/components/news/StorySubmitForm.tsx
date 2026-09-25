@@ -5,11 +5,21 @@ import { TextField } from "@/components/ui/TextField";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function StorySubmitForm() {
+interface StoryMilestoneOption {
+  id: string;
+  label: string;
+}
+
+interface StorySubmitFormProps {
+  milestones?: StoryMilestoneOption[];
+}
+
+export function StorySubmitForm({ milestones = [] }: StorySubmitFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [country, setCountry] = useState("");
+  const [selectedMilestoneIds, setSelectedMilestoneIds] = useState<string[]>([]);
   const [publicationConsent, setPublicationConsent] = useState(false);
   const [nameConsent, setNameConsent] = useState(false);
   const [imageConsent, setImageConsent] = useState(false);
@@ -43,6 +53,7 @@ export function StorySubmitForm() {
           mentorConsent,
           parentNamed,
           parentConsent,
+          selectedMilestoneIds,
           submit,
         }),
       });
@@ -96,6 +107,33 @@ export function StorySubmitForm() {
         value={country}
         onChange={(event) => setCountry(event.target.value.toUpperCase())}
       />
+      {milestones.length > 0 ? (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-text">
+            Milestones that may appear if published
+          </legend>
+          <p className="text-sm text-text-muted">
+            Selection is independent of publication consent. Unselected
+            milestones stay private.
+          </p>
+          {milestones.map((milestone) => (
+            <label key={milestone.id} className="flex items-start gap-2 text-sm text-text">
+              <input
+                type="checkbox"
+                checked={selectedMilestoneIds.includes(milestone.id)}
+                onChange={(event) => {
+                  setSelectedMilestoneIds((current) =>
+                    event.target.checked
+                      ? [...current, milestone.id]
+                      : current.filter((id) => id !== milestone.id),
+                  );
+                }}
+              />
+              {milestone.label}
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium text-text">Independent consents</legend>
         <label className="flex items-start gap-2 text-sm text-text">

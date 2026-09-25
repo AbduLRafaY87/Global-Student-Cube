@@ -73,6 +73,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       label: "Prepare",
       items: [
         { href: "/tasks", label: "Tasks", icon: "checkSquare" },
+        { href: "/journey", label: "Journey", icon: "waypoints" },
         { href: "/learning", label: "Learning", icon: "graduationCap" },
         { href: "/news", label: "News", icon: "fileText" },
       ],
@@ -107,6 +108,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       items: [
         { href: "/parent/home", label: "Family overview", icon: "heartHandshake" },
         { href: "/parent/cases", label: "Student cases", icon: "users" },
+        { href: "/journey", label: "Journey", icon: "waypoints" },
         { href: "/family-links", label: "Family access", icon: "heartHandshake" },
       ],
     },
@@ -232,6 +234,7 @@ const EXISTING_DASHBOARD_PREFIXES = [
   "/test-prep",
   "/interviews",
   "/tasks",
+  "/journey",
   "/activities",
   "/visa",
   "/housing",

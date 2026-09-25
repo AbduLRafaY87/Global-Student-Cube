@@ -8,7 +8,8 @@ import {
 import { newRequestId } from "@/server/http/envelope";
 import { requireIdempotencyKey } from "@/server/http/headers";
 import { commandFailure, commandSuccess } from "@/server/http/respond";
-import { optionalUuid } from "@/server/modules/admin/http";
+import { isUuid, optionalUuid } from "@/server/modules/admin/http";
+import { attachStoryMilestonesCommand } from "@/server/modules/journey/commands";
 import { submitStorySql } from "@/server/modules/news/commands";
 
 const ALLOWED_KEYS = [
@@ -26,6 +27,7 @@ const ALLOWED_KEYS = [
   "parentNamed",
   "parentConsent",
   "submit",
+  "selectedMilestoneIds",
 ] as const;
 
 export async function POST(request: Request) {
@@ -40,25 +42,31 @@ export async function POST(request: Request) {
       throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
     }
     const context = await resolveRequestContext(requestId);
-    return commandSuccess(
-      await submitStorySql(context, {
-        id: optionalUuid(typeof body.id === "string" ? body.id : null),
-        title: body.title,
-        body: body.body,
-        country: typeof body.country === "string" ? body.country : "",
-        topic: typeof body.topic === "string" ? body.topic : "alumni_success",
-        publicationConsent: body.publicationConsent === true,
-        nameConsent: body.nameConsent === true,
-        imageConsent: body.imageConsent === true,
-        spotlightConsent: body.spotlightConsent === true,
-        mentorNamed: body.mentorNamed === true,
-        mentorConsent: body.mentorConsent === true,
-        parentNamed: body.parentNamed === true,
-        parentConsent: body.parentConsent === true,
-        submit: body.submit === true,
-      }),
-      requestId,
-    );
+    const story = await submitStorySql(context, {
+      id: optionalUuid(typeof body.id === "string" ? body.id : null),
+      title: body.title,
+      body: body.body,
+      country: typeof body.country === "string" ? body.country : "",
+      topic: typeof body.topic === "string" ? body.topic : "alumni_success",
+      publicationConsent: body.publicationConsent === true,
+      nameConsent: body.nameConsent === true,
+      imageConsent: body.imageConsent === true,
+      spotlightConsent: body.spotlightConsent === true,
+      mentorNamed: body.mentorNamed === true,
+      mentorConsent: body.mentorConsent === true,
+      parentNamed: body.parentNamed === true,
+      parentConsent: body.parentConsent === true,
+      submit: body.submit === true,
+    });
+    const selected = Array.isArray(body.selectedMilestoneIds)
+      ? body.selectedMilestoneIds.filter(
+          (value): value is string => typeof value === "string" && isUuid(value),
+        )
+      : [];
+    if (selected.length > 0 && typeof story.id === "string") {
+      await attachStoryMilestonesCommand(context, story.id, selected);
+    }
+    return commandSuccess(story, requestId);
   } catch (error) {
     return commandFailure(error, requestId);
   }

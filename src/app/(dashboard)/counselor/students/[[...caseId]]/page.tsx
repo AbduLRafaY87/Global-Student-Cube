@@ -87,6 +87,9 @@ export default async function CounselorStudentsPage({ params }: PageProps) {
             <Link className="text-primary underline-offset-2 hover:underline" href={`/cases/${selected}/tasks`}>
               Tasks
             </Link>
+            <Link className="text-primary underline-offset-2 hover:underline" href={`/cases/${selected}/roadmap`}>
+              Roadmap
+            </Link>
           </nav>
           <div>
             <h2 className="text-lg font-semibold">Sessions and reports</h2>

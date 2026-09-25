@@ -82,7 +82,7 @@ export default async function StudentHomePage() {
             </div>
             <div>
               <dt className="text-text-muted">Tasks</dt>
-              <dd>0</dd>
+              <dd>{home.tasks.count}</dd>
             </div>
           </dl>
           {home.recommendations.empty ? (
@@ -237,10 +237,25 @@ export default async function StudentHomePage() {
         </section>
         <section className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
           <h2 className="text-lg font-semibold text-text">Private journey</h2>
-          <EmptyState title="No roadmap" message={home.journey.emptyMessage} />
-          <Link className="mt-3 inline-flex text-sm text-primary underline-offset-2 hover:underline" href={home.journey.href}>
-            Applications
-          </Link>
+          {home.journey.empty ? (
+            <EmptyState title="No private milestones" message={home.journey.emptyMessage} />
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm text-text">
+              {home.journey.items.map((item) => (
+                <li key={item.id}>
+                  {item.label} · {item.when}
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link className="inline-flex text-sm text-primary underline-offset-2 hover:underline" href={home.journey.href}>
+              Private journey
+            </Link>
+            <Link className="inline-flex text-sm text-primary underline-offset-2 hover:underline" href={home.tasks.href}>
+              Application roadmap
+            </Link>
+          </div>
         </section>
       </div>
     </div>

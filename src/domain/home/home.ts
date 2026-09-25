@@ -19,6 +19,18 @@ export interface HomeShortlistItem {
   programName: string;
 }
 
+export interface HomeTaskItem {
+  id: string;
+  title: string;
+  status: string;
+}
+
+export interface HomeJourneyItem {
+  id: string;
+  label: string;
+  when: string;
+}
+
 export interface HomeNextAction {
   key: string;
   label: string;
@@ -48,7 +60,7 @@ export interface StudentHomeModel {
   documents: HomeWidget<{ id: string; label: string }>;
   messages: HomeWidget<HomeMessageItem>;
   session: HomeWidget<never>;
-  tasks: HomeWidget<never>;
+  tasks: HomeWidget<HomeTaskItem> & { count: number };
   scholarships: HomeWidget<never>;
   mentorship: HomeWidget<never>;
   readiness: {
@@ -59,7 +71,7 @@ export interface StudentHomeModel {
     message: string;
   };
   news: HomeWidget<never>;
-  journey: HomeWidget<never>;
+  journey: HomeWidget<HomeJourneyItem>;
   nextActions: HomeNextAction[];
 }
 
@@ -75,6 +87,8 @@ export interface StudentHomeInput {
   deadlines: HomeDeadlineItem[];
   incompleteDocuments: Array<{ id: string; label: string }>;
   unansweredCounselorMessages?: HomeMessageItem[];
+  roadmapTasks?: HomeTaskItem[];
+  journeyItems?: HomeJourneyItem[];
   readiness:
     | {
         displayPercent: string | null;
@@ -137,9 +151,25 @@ export function buildStudentHome(input: StudentHomeInput): StudentHomeModel {
   }
   if (deadlinesEmpty) {
     nextActions.push({
-      key: "applications",
-      label: "Open application groups",
-      href: "/applications",
+      key: caseId ? "roadmap" : "applications",
+      label: caseId ? "Open selected-target roadmap" : "Open application groups",
+      href: caseId ? `/cases/${caseId}/roadmap` : "/applications",
+    });
+  }
+  const roadmapTasks = input.roadmapTasks ?? [];
+  const journeyItems = input.journeyItems ?? [];
+  if (caseId && roadmapTasks.length === 0 && !deadlinesEmpty) {
+    nextActions.push({
+      key: "roadmap",
+      label: "Open selected-target roadmap",
+      href: `/cases/${caseId}/roadmap`,
+    });
+  }
+  if (caseId) {
+    nextActions.push({
+      key: "journey",
+      label: "Open private journey",
+      href: "/journey",
     });
   }
 
@@ -193,9 +223,10 @@ export function buildStudentHome(input: StudentHomeInput): StudentHomeModel {
       emptyMessage: "No upcoming session. Counseling booking is not available yet.",
     },
     tasks: {
-      empty: true,
-      href: "/tasks",
-      items: [],
+      empty: roadmapTasks.length === 0,
+      href: caseId ? `/cases/${caseId}/roadmap` : "/tasks",
+      items: roadmapTasks,
+      count: roadmapTasks.length,
       emptyMessage: "No roadmap tasks yet.",
     },
     scholarships: {
@@ -229,10 +260,10 @@ export function buildStudentHome(input: StudentHomeInput): StudentHomeModel {
       emptyMessage: "Reviewed news appears here when it is published.",
     },
     journey: {
-      empty: true,
-      href: "/applications",
-      items: [],
-      emptyMessage: "A selected-target roadmap is not available yet.",
+      empty: journeyItems.length === 0,
+      href: "/journey",
+      items: journeyItems,
+      emptyMessage: "A private journey timeline is not available yet.",
     },
     nextActions,
   };

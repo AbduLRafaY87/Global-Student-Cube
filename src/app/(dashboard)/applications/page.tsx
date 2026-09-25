@@ -8,7 +8,9 @@ import { ToneChip } from "@/components/ui/Status";
 import { resolveRequestContext } from "@/server/context";
 import { loadApplicationWorkspace } from "@/server/modules/applications/load";
 import { fetchPublishedUniversities } from "@/server/modules/catalog/public";
+import { resolveAccessibleCase } from "@/server/modules/profile/load";
 import type { Application, ApplicationStatus } from "@/types";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -17,9 +19,10 @@ export const metadata: Metadata = {
 
 export default async function ApplicationsPage() {
   const context = await resolveRequestContext();
-  const [groups, universities] = await Promise.all([
+  const [groups, universities, caseRow] = await Promise.all([
     loadApplicationWorkspace(context),
     fetchPublishedUniversities(),
+    resolveAccessibleCase(context.accountId),
   ]);
   const universityOptions = universities.map((row) => ({
     id: row.id,
@@ -35,8 +38,16 @@ export default async function ApplicationsPage() {
           An application is a choice inside a group. A group belongs to one
           platform. System deadlines are listed once. Shared certifications stay
           one item. Adding a row opens a direct institution-portal group, not a
-          named platform.
+          named platform. The selected-target roadmap is a separate screen.
         </p>
+        {caseRow ? (
+          <Link
+            className="mt-3 inline-flex text-sm text-primary underline-offset-2 hover:underline"
+            href={`/cases/${caseRow.id}/roadmap`}
+          >
+            Open selected-target roadmap
+          </Link>
+        ) : null}
       </header>
 
       <ApplicationForm universities={universityOptions} application={null} />

@@ -33,6 +33,7 @@ describe("role navigation and guards", () => {
     assert.ok(hrefs.includes("/rewards"));
     assert.ok(hrefs.includes("/learning"));
     assert.ok(hrefs.includes("/news"));
+    assert.ok(hrefs.includes("/journey"));
     assert.equal(hrefs.includes("/admin"), false);
     assert.equal(hrefs.includes("/parent-portal"), false);
     assert.equal(hrefs.includes("/essays"), false);
