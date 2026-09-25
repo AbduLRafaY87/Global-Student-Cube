@@ -77,6 +77,8 @@ export default async function PublicHomePage() {
               icon: true,
             },
             { href: "/tour?audience=counselor", title: "Counselors", body: "Invited counselor accounts. MFA required." },
+            { href: "/stories", title: "Success stories", body: "Reviewed stories shared with permission. Withdrawn items leave this wall." },
+            { href: "/news", title: "News", body: "Reviewed updates. Sign in to save, like, or follow topics." },
             { href: "/preview/mentors/unavailable", title: "Alumni/Parent Mentors", body: "Published teasers only. None are listed yet." },
             { href: "/tour?audience=student", title: "Roadmap", body: "Application steps after counseling and a chosen target." },
             { href: "/tour?audience=mentor", title: "Rewards", body: "Verified activity later. Not a live marketing claim." },

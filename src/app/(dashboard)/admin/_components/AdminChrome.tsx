@@ -68,6 +68,12 @@ export function AdminChrome({ title, description, children }: AdminChromeProps) 
           >
             Content
           </Link>
+          <Link
+            className="text-primary underline-offset-2 hover:underline"
+            href="/admin/moderation"
+          >
+            Moderation
+          </Link>
         </nav>
       </header>
       {children}

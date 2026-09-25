@@ -9,6 +9,7 @@ export const ERROR_STATUS = {
   PAYLOAD_TOO_LARGE: 413,
   UNSUPPORTED_MEDIA: 415,
   VALIDATION_FAILED: 422,
+  SUBJECT_CONSENT_REQUIRED: 422,
   PRECONDITION_REQUIRED: 428,
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
@@ -139,6 +140,8 @@ export function messageForCode(code: ErrorCode): string {
       return "Unsupported content type.";
     case "VALIDATION_FAILED":
       return "Check the highlighted fields.";
+    case "SUBJECT_CONSENT_REQUIRED":
+      return "Publication needs the subject’s independent consent."
     case "PRECONDITION_REQUIRED":
       return "This change needs a current version.";
     case "RATE_LIMITED":

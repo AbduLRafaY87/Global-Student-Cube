@@ -32,6 +32,9 @@ export function PublicChrome({ children }: PublicChromeProps) {
             >
               Scholarships
             </Link>
+            <Link className="text-primary underline-offset-2 hover:underline" href="/stories">
+              Stories
+            </Link>
             <Link className="text-primary underline-offset-2 hover:underline" href="/tour">
               Tour
             </Link>

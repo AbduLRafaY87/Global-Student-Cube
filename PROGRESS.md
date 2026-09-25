@@ -19,17 +19,17 @@ Screens and API routes stay **Written, unverified** unless a walkthrough ran. A 
 
 ## Remote verification (25 Sep 2026)
 
-Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0048` are on that project. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
+Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0053` are on that project. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
 
 | Check | Result | Date |
 |-------|--------|------|
-| `supabase db push --linked` | Applied `0000`–`0051` earlier; `0052_learning` this session (first attempt failed on non-hex seed UUIDs; retry succeeded after hex-only IDs) | 25 Sep 2026 |
+| `supabase db push --linked` | Applied `0000`–`0052` earlier; `0053_news` this session | 25 Sep 2026 |
 | `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
 | pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
 | `public.countries` | 234 rows | 25 Sep 2026 |
 | `scripts/bootstrap-admin.sql` | Ran against the oldest confirmed signup. `user_profiles.role=admin`, `accounts.status=approved`, 1 active admin role, 7 staff permissions | 25 Sep 2026 |
 | `.env.local` | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are real hosted values. `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL` are **absent** | 25 Sep 2026 |
-| `npm run build` | Passed (TypeScript finished, 128 static pages including `/learning` and `/admin/content`) | 25 Sep 2026 |
+| `npm run build` | Passed (TypeScript finished, 137 static pages including `/news`, `/stories`, `/admin/moderation`) | 25 Sep 2026 |
 | GitHub Actions `supabase-pgtap` | Not run | |
 | AUTH / P0 walkthrough | Not run | |
 | Resend / Daily / ExchangeRate-API / OAuth | Not proven | |
@@ -73,10 +73,10 @@ Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migr
 |-------|--------|------|
 | `npm run lint` | 0 errors, 2 pre-existing unused-var warnings | 25 Sep 2026 |
 | `npx tsc --noEmit` | Covered by `next build` (passed) | 25 Sep 2026 |
-| `npm run test:unit` | 212 pass / 2 skip (concurrent races without `COMMANDS_DATABASE_URL`) | 25 Sep 2026 |
-| `npm run build` | Passed — 128 static pages including LRN/ADM-15 routes | 25 Sep 2026 |
+| `npm run test:unit` | 219 pass / 2 skip (concurrent races without `COMMANDS_DATABASE_URL`) | 25 Sep 2026 |
+| `npm run build` | Passed — 137 static pages including NEW/PUB-06/ADM-11 routes | 25 Sep 2026 |
 | 360px shell | `/design` at 360×800; More opens Discover/Apply/Prepare/Decide/Support; `scrollWidth === 360` | 24 Sep 2026 |
-| `supabase db push --linked` | Applied through `0052_learning` | 25 Sep 2026 |
+| `supabase db push --linked` | Applied through `0053_news` | 25 Sep 2026 |
 | pgTAP | 8 pass / 4 fail via `db query --linked` | 25 Sep 2026 |
 
 UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `notFound()` when `NODE_ENV === "production"`. 360px shell was re-checked on 24 Sep 2026 (see table above).
@@ -144,6 +144,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | PUB-03 | Guest course and university match | `/quick-match` | Written, unverified | Country/subject only. At most 5 universities and 2 scholarships. |
 | PUB-04 | Scholarship preview | `/preview/scholarships` | Written, unverified | Banner: GSC does not submit applications. Honest empty, no blurred rows. |
 | PUB-05 | Mentor teaser | `/preview/mentors/:mentorId` | Written, unverified | Published opted-in projection only. No private contact or mentee identity. |
+| PUB-06 | Success stories wall | `/stories` | Written, unverified | Shared with permission. Independent publication/name/image/spotlight consents. Withdrawn items leave the wall. Stale `?story=` is a safe unavailable page. |
 | AUTH-01 | Role, purpose and eligibility | `/register` | Written, unverified | D2: no role picker. Eligibility Yes/No + stage. Domain unit file exists; no remote walkthrough |
 | AUTH-02 | Identity and age routing | `/register/identity` | Written, unverified | Name rules, DOB, nationality, residence, under-13 stop / 13–17 notice. Not proven remotely |
 | AUTH-03 | Contact and password | `/register/contact` | Written, unverified | Spec 12–128 password policy. WhatsApp optional. Not proven remotely |
@@ -211,6 +212,9 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | LRN-01 | Learning home and course discovery | `/learning` | Written, unverified | All 7 Module 11 categories. Role tutorials. SYNTHETIC catalog. No accredited-award claim. |
 | LRN-02 | Course overview and lesson player | `/learning/courses/:courseId/lessons/:lessonId?` | Written, unverified | 16:9 player, captions/transcript fallback, progress save, keyboard controls. |
 | LRN-03 | Resource library and downloads | `/learning/library/:resourceId?` | Written, unverified | SOP/resume/timeline/budget SYNTHETIC text. Save + download. Unpublished hidden. |
+| NEW-01 | News feed and followed topics | `/news` | Written, unverified | All/Following/Saved. Module 12 topics. Follow does not enable WhatsApp. Unpublished hidden from search. |
+| NEW-02 | News detail | `/news/:articleId` | Written, unverified | Source note, deadline disclaimer, save/like/follow/share. Stale/withdrawn links are safe unavailable. |
+| NEW-03 | Counselor news submission | `/news/submit/:draftId?` | Written, unverified | Draft/submit only. Counselor cannot set publication status. Factual updates need a source URL. |
 | MSG-01 | Inbox | `/messages` | Written, unverified | Case filter, search in permitted threads only, unread/all, load more. Counselor compose-from-inbox omitted (COU-05 only). Realtime after inbox channel authorize. |
 | MSG-02 | Thread | `/messages/:conversationId` | Written, unverified | Grant-scoped. 4000 chars, 30/min, delivery states, attachments via private storage, guardian invite-only. Leftover ChatWindow removed. |
 | MSG-03 | New conversation | — | Not started | Counselor opens a case thread from COU-05. No inbox compose. |
@@ -226,7 +230,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | ADM-08 | Entry requirement rules | `/admin/programs/:programId/requirements` | Written, unverified | Per-criterion draft + source. Publish versions rules. |
 | ADM-09 | Visa and destination guidance editor | — | Not started | |
 | ADM-10 | Rewards verification and fulfillment | `/admin/rewards/:itemId?` | Written, unverified | Approve activity / fulfill / publish. Staff cannot overwrite balances. GiftCard controls disabled. Analytics cards. |
-| ADM-11 | Moderation, quality and safety review | — | Not started | |
+| ADM-11 | Moderation, quality and safety review | `/admin/moderation/:reviewId?` | Written, unverified | News, stories, message reports, held feedback. Protected safety hidden without `safety`. Story/spotlight publish needs subject consent. |
 | ADM-12 | Operational and outcome analytics | — | Not started | |
 | ADM-13 | Jobs, delivery and integration operations | — | Not started | Ingestion creates a durable job row; ADM-13 runner is not built. |
 | ADM-14 | Scholarship URL and metadata editor | `/admin/scholarships/:scholarshipId` | Written, unverified | Official URL + minimal metadata. No in-app scholarship application schema. |
@@ -249,25 +253,25 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 23 |
+| Not started | 22 |
 | Partial (leftover prototype) | 7 |
-| Written, unverified | 52 |
+| Written, unverified | 57 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
 | Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
 | Removed | 1 (AUTH-07) |
-| **Total spec screens** | **106** |
+| **Total spec screens** | **110** |
 
 APP-01–05 were **not spec screen IDs** (absent from the spec and `docs/spec-index.md`). They were removed from this catalogue. The spec application-adjacent screen is **JRN-01** (selected-target application roadmap). Leftover `/applications` now reads `application_systems` → `application_groups` → `applications` (0032 backfill + 0042 workspace command). It is still not JRN-01. Previous totals (97 / 48 not started) included those five invented rows.
 
 AUTH Written, unverified (8): AUTH-01, 02, 03, 04, 05, 08, 09, 10.
-Admin Written, unverified (11): ADM-01, 02, 03, 04, 05, 06, 07, 08, 10, 14, 15. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are WP-15 routes, not extra spec screen IDs. LRN-01–03 were missing from this catalogue (103 → 106).
+Admin Written, unverified (12): ADM-01, 02, 03, 04, 05, 06, 07, 08, 10, 11, 14, 15. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are local WP-15 routes, not extra spec screen IDs. PUB-06 and NEW-01–03 were missing from this catalogue (106 → 110).
 
 Catalog authoring is **WP-07**. WP-05 is Intake and was not started. WP-06 is catalog read (PUB/CAT-01–03). CAT-04 cost comparison landed under WP-08. Real-country catalog data is an owner task, not an agent task.
 
 Partial leftovers (4): CAT-07, SES-01, JRN-02, SET-06. Leftover `/alumni` and `alumni_profiles` are folded into mentorship (`0050`).
 
-Public discovery Written, unverified (8): PUB-01–05, CAT-01–03. Save is enabled on CAT-01–03 after Module 3; the 0–3 cap is enforced inside `commands.save_program_pair`. Personalized CAT-01 recommendations unlock after `module2_completed_at`.
+Public discovery Written, unverified (9): PUB-01–06, CAT-01–03. Save is enabled on CAT-01–03 after Module 3; the 0–3 cap is enforced inside `commands.save_program_pair`. Personalized CAT-01 recommendations unlock after `module2_completed_at`.
 
 Parked leftover *pages* (`/essays`, `/offers`, `/interviews`, `/billing`) still exist on disk. Those modules are counted as Deferred (not Partial) so they are not treated as in-progress work.
 
@@ -300,6 +304,7 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 | leftover `POST /admin/catalog/ingestion`; `…/review`; `…/reject`; `…/import`; `…/publish`; university/program/scholarship/accommodation/source-facts upserts | Written, unverified | Command-layer catalog editorial. Not spec-named paths |
 | leftover `POST /cases/{caseId}/shortlist`; `DELETE …/shortlist/{savedId}`; `PATCH …/shortlist/{savedId}/flag`; `PUT …/assessment/{programId}` | Written, unverified | CAT-05/06 commands. Not spec-named paths |
 | leftover `POST /learning/progress`; `POST /learning/library/{id}/save`; `GET …/download`; `POST /admin/content`; `POST /admin/content/{id}/decision`; `POST /admin/content/lessons` | Written, unverified | LRN/ADM-15 commands. Not spec-named paths |
+| leftover `POST /news/engagement`; `POST /news/follow`; `POST /news/submit`; `POST /stories`; `POST /stories/{id}/withdraw`; `POST /admin/moderation/{id}/decision` | Written, unverified | NEW/PUB-06/ADM-11 commands. Spec also names GET /news and PUT engagement |
 
 ## Automated test catalogue (spec §24.7)
 
@@ -332,7 +337,8 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | `supabase/tests/parent_finance.test.sql` | Partial | `1..12`, 6 failed |
 | `supabase/tests/cost_fx.test.sql` | Checked | `1..2` PASS |
 | `src/server/errors.test.ts`, `src/server/http/headers.test.ts` | Written, unverified | Envelope / If-Match / unknown keys. No DB |
-| `src/domain/learning/learning.test.ts` | Written, unverified | Unpublished hidden; progress persist/reset; video 90%/transcript vs reading mark-only; keyboard + captions; accredited copy rejected. Included in 212-pass unit run |
+| `src/domain/learning/learning.test.ts` | Written, unverified | Unpublished hidden; progress persist/reset; video 90%/transcript vs reading mark-only; keyboard + captions; accredited copy rejected. Included in 219-pass unit run |
+| `src/domain/news/news.test.ts` | Written, unverified | Withdrawal hides from search; consent independence; counselor cannot publish; protected safety hidden; engagement uniqueness |
 
 CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
 
@@ -342,7 +348,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0052` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0053` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
@@ -355,7 +361,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-12 | Messaging + reports | Partial | Local tracker WP-12 is messaging. Spec team WP-12 Rewards is WP-23. `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
 | WP-13 | Mentorship | Written, unverified | Spec team WP-11. `0050_mentorship` folds leftover alumni. MEN-01–07 + isolation/contribution/request tests. No walkthrough. Mentoring credits append only after ADM-10 + rewards worker (`0051`). |
 | WP-14 | Journey CMS | Not started | Local tracker WP-14 is Journey CMS. Spec team WP-14 Learning is WP-24. |
-| WP-15 | Admin + cases + audit + flags | Written, unverified | ADM-01/02, people, audit viewer. Prompt 30 export/deletion are stubs (audit+outbox only). ADM-11/13 intros not built. Cases/flags remain. |
+| WP-15 | Admin + cases + audit + flags | Written, unverified | Local tracker WP-15 is admin ops. Spec team WP-15 News and stories is WP-25. ADM-01/02, people, audit, ADM-11 written. Prompt 30 stubs. ADM-13 not built. |
 | WP-16 | Parent access | Written, unverified | Schema applied. `parent_finance.test.sql` 6/12 fail. Screens not walked. |
 | WP-17 | Notifications + outbox worker | Not started | Outbox table may exist in migrations; worker is not built |
 | WP-18 | Billing | Deferred | Parked |
@@ -364,15 +370,17 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-21 | Observability + load + a11y audit | Not started | |
 | WP-22 | Production launch | Not started | Blocked on owner: remote projects, keys, legal |
 | WP-23 | Rewards | Written, unverified | Spec team WP-12. `0051_rewards` applied. REW-01–04 + ADM-10 written, unverified. Gift cards behind `GSC_FEATURE_GIFT_CARDS`. Unit tests 207 pass / 2 skip. Concurrent DB race skips without `COMMANDS_DATABASE_URL`. No walkthrough. |
-| WP-24 | Learning | Written, unverified | Spec team WP-14. `0052_learning` applied to linked dev after hex-only seed UUIDs. LRN-01–03 + ADM-15 written. SYNTHETIC editorial catalog only (7 categories + role tutorials). Unit 212 pass / 2 skip. Lint 0 errors. Build 128 pages. No accredited-award claims. Real launch media/rights not supplied. Screens not walked. |
+| WP-24 | Learning | Written, unverified | Spec team WP-14. `0052_learning` applied. LRN-01–03 + ADM-15 written. SYNTHETIC catalog. Screens not walked. |
+| WP-25 | News and stories | Written, unverified | Spec team WP-15. `0053_news` applied. NEW-01–03, PUB-06, ADM-11 written. SYNTHETIC editorial only. Withdrawal hides from feed/search/wall. Consent independence tested. JRN-03 milestone timeline not built (`/stories/submit` is consent + story text). No walkthrough. |
 
 ## Known gaps (do not mark these Done)
 
 - Linked **dev** exists. Dedicated **test** project and GitHub `supabase-pgtap` secrets do not.
 - `supabase test db` still wants Docker. Current pgTAP evidence is `db query --linked`, not `pg_prove`.
 - `.env.local` is missing `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL`. `gsc_api_executor` is still `NOLOGIN` until the owner sets a password.
-- `npm run build` passed 25 Sep 2026 (128 pages after LRN/ADM-15). Screens not walked.
+- `npm run build` passed 25 Sep 2026 (137 pages after NEW/PUB-06/ADM-11). Screens not walked.
 - Learning catalog is SYNTHETIC editorial text. Owner must supply reviewed launch content per Module 11 category and confirm video/music/font rights. No bundled media files.
+- News and success-story catalog is SYNTHETIC editorial text. JRN-03 private milestone timeline is not built; `/stories/submit` captures story text and independent consents only.
 - pgTAP not fully green: `rls_p0` 2 fail, `invitations_mfa` 1 fail, `parent_finance` 6 fail, `shortlist_assessment` 5 fail.
 - Leftover `student_profiles` / `test_scores_log` / `activities` / `documents` tables remain so rows are not dropped.
 - Public catalog is empty until editorial publish of real-country data. SYNTHETIC fixtures stay out of `supabase/seed.sql`.

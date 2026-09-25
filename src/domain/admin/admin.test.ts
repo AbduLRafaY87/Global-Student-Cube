@@ -71,6 +71,14 @@ describe("admin route scopes", () => {
       canAccessAdminRoute("admin", "aal2", ["catalog_editorial"], "content"),
       true,
     );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["catalog_editorial"], "moderation"),
+      true,
+    );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["safety"], "moderation"),
+      false,
+    );
   });
 });
 
@@ -82,7 +90,7 @@ describe("permission-aware overview", () => {
     });
     assert.deepEqual(
       queues.map((queue) => queue.id),
-      ["ingestion_review", "catalog_review_due"],
+      ["ingestion_review", "catalog_review_due", "moderation_review"],
     );
   });
 

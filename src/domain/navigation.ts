@@ -74,6 +74,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       items: [
         { href: "/tasks", label: "Tasks", icon: "checkSquare" },
         { href: "/learning", label: "Learning", icon: "graduationCap" },
+        { href: "/news", label: "News", icon: "fileText" },
       ],
     },
     {
@@ -128,6 +129,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
         { href: "/mentoring", label: "Mentoring", icon: "clipboardCheck" },
         { href: "/rewards", label: "Rewards", icon: "trophy" },
         { href: "/learning", label: "Learning", icon: "graduationCap" },
+        { href: "/news", label: "News", icon: "fileText" },
         { href: "/messages", label: "Messages", icon: "messageSquare" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
       ],
@@ -150,6 +152,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       label: "Support",
       items: [
         { href: "/learning", label: "Learning", icon: "graduationCap" },
+        { href: "/news", label: "News", icon: "fileText" },
+        { href: "/news/submit", label: "Submit news", icon: "fileText" },
         { href: "/admin/content", label: "Content", icon: "fileText" },
         { href: "/messages", label: "Messages", icon: "messageSquare" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
@@ -170,6 +174,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
         { href: "/admin/ingestion/new", label: "Ingestion", icon: "folderOpen" },
         { href: "/admin/rewards", label: "Rewards", icon: "trophy" },
         { href: "/admin/content", label: "Content", icon: "fileText" },
+        { href: "/admin/moderation", label: "Moderation", icon: "shield" },
+        { href: "/news", label: "News", icon: "fileText" },
         { href: "/learning", label: "Learning", icon: "graduationCap" },
         { href: "/explore/universities", label: "Universities", icon: "graduationCap" },
         { href: "/explore/scholarships", label: "Scholarships", icon: "award" },
@@ -235,6 +241,7 @@ const EXISTING_DASHBOARD_PREFIXES = [
   "/mentoring",
   "/rewards",
   "/learning",
+  "/news",
   "/offers",
   "/billing",
   "/counselor",

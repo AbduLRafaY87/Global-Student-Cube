@@ -8,7 +8,9 @@ export type AdminQueueId =
   | "recent_audit"
   | "ingestion_review"
   | "catalog_review_due"
-  | "rewards_review";
+  | "rewards_review"
+  | "moderation_review"
+  | "safety_review";
 
 export interface AdminQueueMetric {
   id: AdminQueueId;
@@ -69,6 +71,20 @@ const QUEUE_DEFS: readonly AdminQueueMetric[] = [
     count: 0,
     href: "/admin/rewards",
     permission: "rewards_approval",
+  },
+  {
+    id: "moderation_review",
+    label: "Moderation and publication review",
+    count: 0,
+    href: "/admin/moderation",
+    permission: "catalog_editorial",
+  },
+  {
+    id: "safety_review",
+    label: "Protected safety review",
+    count: 0,
+    href: "/admin/moderation?queue=safety",
+    permission: "safety",
   },
 ];
 

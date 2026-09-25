@@ -231,6 +231,9 @@ export default async function StudentHomePage() {
         <section className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
           <h2 className="text-lg font-semibold text-text">Learning and news</h2>
           <EmptyState title="No stories" message={home.news.emptyMessage} />
+          <Link className="mt-3 inline-flex text-sm text-primary underline-offset-2 hover:underline" href={home.news.href}>
+            News
+          </Link>
         </section>
         <section className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
           <h2 className="text-lg font-semibold text-text">Private journey</h2>

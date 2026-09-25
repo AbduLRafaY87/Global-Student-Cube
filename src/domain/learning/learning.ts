@@ -27,6 +27,7 @@ export const CONTENT_KINDS = [
   "announcement",
   "gold_plus_invitation",
   "spotlight",
+  "story",
 ] as const;
 export type ContentKind = (typeof CONTENT_KINDS)[number];
 
@@ -38,6 +39,9 @@ export const CONTENT_STATES = [
   "archived",
   "changes_requested",
   "rejected",
+  "withdrawn",
+  "consent_check",
+  "admin_review",
 ] as const;
 export type ContentState = (typeof CONTENT_STATES)[number];
 
