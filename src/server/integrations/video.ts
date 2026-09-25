@@ -1,7 +1,9 @@
 import type {
   CreateJoinTokenInput,
+  CreateRoomInput,
   VideoJoinToken,
   VideoProvider,
+  VideoRecordingHandle,
   VideoRoom,
 } from "@/domain/sessions/video";
 
@@ -9,11 +11,11 @@ class SandboxVideoProvider implements VideoProvider {
   readonly id = "sandbox" as const;
   readonly canEnforceRosterSafeRecording = false;
 
-  async createRoom(bookingId: string, generation: number): Promise<VideoRoom> {
+  async createRoom(input: CreateRoomInput): Promise<VideoRoom> {
     return {
-      roomName: `gsc-sandbox-${bookingId.slice(0, 8)}-${generation}`,
-      roomUrl: `https://sandbox.invalid/rooms/${bookingId}`,
-      generation,
+      roomName: `gsc-sandbox-${input.bookingId.slice(0, 8)}-${input.generation}`,
+      roomUrl: `https://sandbox.invalid/rooms/${input.bookingId}`,
+      generation: input.generation,
       recordingEnabled: false,
     };
   }
@@ -25,16 +27,28 @@ class SandboxVideoProvider implements VideoProvider {
       roomName: input.roomName,
     };
   }
+
+  async startRecording(): Promise<VideoRecordingHandle> {
+    throw new Error("SANDBOX_RECORDING_DISABLED");
+  }
+
+  async stopRecording(): Promise<void> {
+    return;
+  }
+
+  async deleteRecording(): Promise<void> {
+    return;
+  }
 }
 
 class DailyVideoProvider implements VideoProvider {
   readonly id = "daily" as const;
-  readonly canEnforceRosterSafeRecording = false;
+  readonly canEnforceRosterSafeRecording = true;
 
   constructor(private readonly apiKey: string) {}
 
-  async createRoom(bookingId: string, generation: number): Promise<VideoRoom> {
-    const roomName = `gsc-${bookingId.slice(0, 8)}-${generation}`;
+  async createRoom(input: CreateRoomInput): Promise<VideoRoom> {
+    const roomName = `gsc-${input.bookingId.slice(0, 8)}-${input.generation}`;
     const response = await fetch("https://api.daily.co/v1/rooms", {
       method: "POST",
       headers: {
@@ -45,7 +59,8 @@ class DailyVideoProvider implements VideoProvider {
         name: roomName,
         privacy: "private",
         properties: {
-          enable_recording: false,
+          enable_knocking: true,
+          enable_recording: input.recordingCapable ? "cloud" : false,
           start_video_off: false,
           exp: Math.floor(Date.now() / 1000) + 60 * 60 * 6,
           eject_at_room_exp: true,
@@ -59,7 +74,7 @@ class DailyVideoProvider implements VideoProvider {
     return {
       roomName: body.name ?? roomName,
       roomUrl: body.url ?? `https://api.daily.co/${roomName}`,
-      generation,
+      generation: input.generation,
       recordingEnabled: false,
     };
   }
@@ -95,6 +110,45 @@ class DailyVideoProvider implements VideoProvider {
       expiresAt: input.expiresAt,
       roomName: input.roomName,
     };
+  }
+
+  async startRecording(roomName: string): Promise<VideoRecordingHandle> {
+    const response = await this.daily("POST", `/rooms/${roomName}/recordings/start`, {});
+    const body = (await response.json()) as { recordingId?: string; id?: string };
+    const recordingId = body.recordingId ?? body.id;
+    if (!recordingId) {
+      throw new Error("DAILY_RECORDING_START_FAILED");
+    }
+    return { recordingId };
+  }
+
+  async stopRecording(recordingId: string): Promise<void> {
+    const response = await this.daily("POST", `/recordings/${recordingId}/stop`, {});
+    if (!response.ok) {
+      throw new Error("DAILY_RECORDING_STOP_FAILED");
+    }
+  }
+
+  async deleteRecording(recordingId: string): Promise<void> {
+    const response = await this.daily("DELETE", `/recordings/${recordingId}`);
+    if (!response.ok && response.status !== 404) {
+      throw new Error("DAILY_RECORDING_DELETE_FAILED");
+    }
+  }
+
+  private async daily(
+    method: string,
+    path: string,
+    body?: Record<string, unknown>,
+  ): Promise<Response> {
+    return fetch(`https://api.daily.co/v1${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 }
 

@@ -42,6 +42,12 @@ export interface SessionWorkspace {
     roomUrl: string | null;
   } | null;
   participants: SessionParticipantView[];
+  currentRecording?: {
+    id: string;
+    providerRecordingId: string | null;
+    state: string;
+    deleteAfter: string | null;
+  } | null;
 }
 
 export async function sessionWorkspaceSql(
@@ -143,6 +149,32 @@ export async function reconcileSessionSql(
     context,
     `SELECT commands.reconcile_session_attendance($1::uuid) AS payload`,
     [bookingId],
+  );
+  return row.payload;
+}
+
+export async function startSessionRecordingSql(
+  context: RequestContext,
+  bookingId: string,
+  providerRecordingId: string,
+): Promise<SessionWorkspace> {
+  const row = await queryCommand<PayloadRow<SessionWorkspace>>(
+    context,
+    `SELECT commands.start_session_recording($1::uuid, $2) AS payload`,
+    [bookingId, providerRecordingId],
+  );
+  return row.payload;
+}
+
+export async function stopSessionRecordingSql(
+  context: RequestContext,
+  bookingId: string,
+  enqueueTranscript: boolean,
+): Promise<SessionWorkspace> {
+  const row = await queryCommand<PayloadRow<SessionWorkspace>>(
+    context,
+    `SELECT commands.stop_session_recording($1::uuid, $2) AS payload`,
+    [bookingId, enqueueTranscript],
   );
   return row.payload;
 }

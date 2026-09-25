@@ -129,6 +129,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       items: [
         { href: "/counselor/home", label: "Home", icon: "home" },
         { href: "/counselor/students", label: "Students", icon: "users" },
+        { href: "/counselor/coaching", label: "Coaching", icon: "clipboardCheck" },
         { href: "/tasks", label: "Tasks", icon: "checkSquare" },
         { href: "/profile", label: "Profile", icon: "user" },
       ],

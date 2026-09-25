@@ -8,9 +8,11 @@ import { commandFailure, commandSuccess } from "@/server/http/respond";
 import { videoProviderFromConfig } from "@/server/integrations/video";
 import { requireUuid } from "@/server/modules/admin/http";
 import {
+  bumpSessionRosterSql,
   recordSessionEventSql,
   saveMeetingRoomSql,
   sessionWorkspaceSql,
+  stopSessionRecordingSql,
   transitionSessionSql,
 } from "@/server/modules/sessions/commands";
 
@@ -46,9 +48,29 @@ export async function POST(request: Request, { params }: RouteParams) {
     let roomUrl = session.room?.state === "ready" ? session.room.roomUrl : null;
     let roomName = session.room?.roomUrl?.split("/").pop() ?? "";
 
+    const actor = session.participants.find((row) => row.accountId === context.accountId);
+    if (actor?.consent === "pending" && session.recordingState === "recording") {
+      const recordingId = session.currentRecording?.providerRecordingId;
+      if (recordingId) {
+        try {
+          await provider.stopRecording(recordingId);
+        } catch {
+          // Consent withdrawal still stops our recording state below.
+        }
+      }
+      await stopSessionRecordingSql(context, sessionId, false);
+      await bumpSessionRosterSql(context, sessionId);
+    }
+
     if (session.room?.state !== "ready" || !roomUrl) {
       try {
-        const created = await provider.createRoom(sessionId, generation);
+        const created = await provider.createRoom({
+          bookingId: sessionId,
+          generation,
+          recordingCapable:
+            isRecordingFeatureEnabled(process.env.GSC_FEATURE_RECORDING_AI) &&
+            provider.canEnforceRosterSafeRecording,
+        });
         await saveMeetingRoomSql(context, {
           bookingId: sessionId,
           provider: provider.id,

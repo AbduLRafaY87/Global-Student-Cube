@@ -1,6 +1,10 @@
 import { resolveRequestContext } from "@/server/context";
 import { CommandError } from "@/server/errors";
 import {
+  counselorQaListSql,
+  counselorQaSql,
+} from "@/server/modules/ai/commands";
+import {
   caseTasksSql,
   counselorAdvisorySql,
   counselorCaseloadSql,
@@ -54,6 +58,20 @@ export async function loadStudentAdvisory(bookingId: string) {
   return wrap(async () => {
     const context = await resolveRequestContext();
     return studentAdvisorySql(context, bookingId);
+  });
+}
+
+export async function loadCounselorQa(bookingId: string) {
+  return wrap(async () => {
+    const context = await resolveRequestContext();
+    return counselorQaSql(context, bookingId);
+  });
+}
+
+export async function loadCounselorQaList() {
+  return wrap(async () => {
+    const context = await resolveRequestContext();
+    return counselorQaListSql(context);
   });
 }
 

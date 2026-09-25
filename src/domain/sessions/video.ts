@@ -20,11 +20,24 @@ export interface CreateJoinTokenInput {
   expiresAt: string;
 }
 
+export interface CreateRoomInput {
+  bookingId: string;
+  generation: number;
+  recordingCapable: boolean;
+}
+
+export interface VideoRecordingHandle {
+  recordingId: string;
+}
+
 export interface VideoProvider {
   readonly id: "sandbox" | "daily";
   readonly canEnforceRosterSafeRecording: boolean;
-  createRoom(bookingId: string, generation: number): Promise<VideoRoom>;
+  createRoom(input: CreateRoomInput): Promise<VideoRoom>;
   createJoinToken(input: CreateJoinTokenInput): Promise<VideoJoinToken>;
+  startRecording(roomName: string): Promise<VideoRecordingHandle>;
+  stopRecording(recordingId: string): Promise<void>;
+  deleteRecording(recordingId: string): Promise<void>;
 }
 
 export function tokenWindow(startsAt: string, endsAt: string): {

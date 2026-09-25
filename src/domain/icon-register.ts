@@ -32,4 +32,5 @@ export const ICON_REGISTER: IconRegisterEntry[] = [
   { name: "Send", size: "standard", label: "Send message" },
   { name: "MoreHorizontal", size: "standard", label: "More actions" },
   { name: "Settings", size: "standard", label: "Settings" },
+  { name: "Lightbulb", size: "meta", label: "Suggested improvement" },
 ];

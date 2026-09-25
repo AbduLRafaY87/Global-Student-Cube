@@ -92,7 +92,8 @@ export default async function CounselorHomePage() {
         </ul>
       </section>
       <p className="text-sm text-text-muted">
-        Private AI coaching is off. Manual summaries stay available.
+        Private AI coaching is a staff-only screen. Manual summaries stay
+        available when recording and AI are off.
       </p>
       <nav className="flex flex-col gap-3 min-[600px]:flex-row">
         <Link
@@ -100,6 +101,12 @@ export default async function CounselorHomePage() {
           href="/counselor/students"
         >
           Manage students
+        </Link>
+        <Link
+          className="inline-flex h-12 items-center justify-center rounded-[var(--radius-control)] border border-control-border px-4"
+          href="/counselor/coaching"
+        >
+          Private coaching
         </Link>
         <Link
           className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-control-border px-4"

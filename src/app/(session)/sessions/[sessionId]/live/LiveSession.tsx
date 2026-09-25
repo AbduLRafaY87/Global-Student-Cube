@@ -26,9 +26,10 @@ export function LiveSession({
   sessionId,
   title,
   startsAt,
-  recordingState,
+  recordingState: initialRecordingState,
   isHost,
 }: LiveSessionProps) {
+  const [recordingState, setRecordingState] = useState(initialRecordingState);
   const router = useRouter();
   const [micOn, setMicOn] = useState(true);
   const [cameraOn, setCameraOn] = useState(true);
@@ -70,6 +71,25 @@ export function LiveSession({
     setBusy(true);
     await fetch(`/api/v1/sessions/${sessionId}/leave`, { method: "POST" });
     router.push(`/sessions/${sessionId}`);
+  }
+
+  async function toggleRecording(path: "start" | "stop") {
+    setBusy(true);
+    const response = await fetch(`/api/v1/sessions/${sessionId}/recording/${path}`, {
+      method: "POST",
+    });
+    const body = (await response.json()) as {
+      data?: { recordingState?: RecordingState };
+      error?: { message?: string };
+    };
+    setBusy(false);
+    if (!response.ok) {
+      setMessage(body.error?.message ?? "Recording stayed off.");
+      return;
+    }
+    if (body.data?.recordingState) {
+      setRecordingState(body.data.recordingState);
+    }
   }
 
   async function endForEveryone() {
@@ -176,7 +196,25 @@ export function LiveSession({
             Recording request
           </Button>
           {isHost ? (
-            <div className="mt-3">
+            <div className="mt-3 space-y-3">
+              {recordingState === "consented" ? (
+                <Button
+                  variant="secondary"
+                  loading={busy}
+                  onClick={() => void toggleRecording("start")}
+                >
+                  Start recording
+                </Button>
+              ) : null}
+              {recordingState === "recording" ? (
+                <Button
+                  variant="secondary"
+                  loading={busy}
+                  onClick={() => void toggleRecording("stop")}
+                >
+                  Stop recording
+                </Button>
+              ) : null}
               <Button
                 variant="destructive"
                 loading={busy}

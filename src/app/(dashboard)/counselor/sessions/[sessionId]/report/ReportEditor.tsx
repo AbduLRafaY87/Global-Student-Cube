@@ -12,6 +12,7 @@ interface ReportEditorProps {
   initialGuidance: string;
   initialNotes: string;
   dueLabel: string;
+  aiEnabled: boolean;
 }
 
 export function ReportEditor({
@@ -20,6 +21,7 @@ export function ReportEditor({
   initialGuidance,
   initialNotes,
   dueLabel,
+  aiEnabled,
 }: ReportEditorProps) {
   const router = useRouter();
   const [guidance, setGuidance] = useState(initialGuidance);
@@ -67,8 +69,9 @@ export function ReportEditor({
     <div className="space-y-6">
       <p className="text-sm text-text-muted">Report due {dueLabel}. Status: {status}.</p>
       <p className="text-sm text-text">
-        Recording and AI are off. Write the summary yourself. Fit scores are not
-        an admission probability.
+        {aiEnabled
+          ? "An AI draft can fill empty guidance. It never delivers itself. Fit scores are not an admission probability."
+          : "Recording and AI are off. Write the summary yourself. Fit scores are not an admission probability."}
       </p>
       <label className="flex flex-col text-sm">
         Shareable guidance
@@ -119,6 +122,11 @@ export function ReportEditor({
       </label>
       {message ? <p className="text-sm text-text">{message}</p> : null}
       <div className="flex flex-col gap-3">
+        {aiEnabled ? (
+          <Button variant="secondary" loading={busy} onClick={() => void send("regenerate")}>
+            Regenerate draft
+          </Button>
+        ) : null}
         <Button loading={busy} onClick={() => void send("save")}>
           Save draft
         </Button>

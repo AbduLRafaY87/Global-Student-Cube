@@ -23,13 +23,13 @@ Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migr
 
 | Check | Result | Date |
 |-------|--------|------|
-| `supabase db push --linked` | Applied `0000`–`0045` (owner), then `0046`, `0047`, `0048` this session | 25 Sep 2026 |
+| `supabase db push --linked` | Applied `0000`–`0048` earlier; `0049_media_ai` this session | 25 Sep 2026 |
 | `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
 | pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
 | `public.countries` | 234 rows | 25 Sep 2026 |
 | `scripts/bootstrap-admin.sql` | Ran against the oldest confirmed signup. `user_profiles.role=admin`, `accounts.status=approved`, 1 active admin role, 7 staff permissions | 25 Sep 2026 |
 | `.env.local` | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are real hosted values. `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL` are **absent** | 25 Sep 2026 |
-| `npm run build` | Failed TypeScript (7 errors). Compiled JS, then `tsc` stopped | 25 Sep 2026 |
+| `npm run build` | Passed (TypeScript finished, 100 static pages) | 25 Sep 2026 |
 | GitHub Actions `supabase-pgtap` | Not run | |
 | AUTH / P0 walkthrough | Not run | |
 | Resend / Daily / ExchangeRate-API / OAuth | Not proven | |
@@ -185,15 +185,16 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | SES-04 | Appointment detail | `/sessions/:sessionId` | Written, unverified | Thin status page so lobby/live have a back target. Booking confirm/checklist from SES-04 still incomplete |
 | SES-05 | Cancel appointment | — | Not started | |
 | SES-06 | Session lobby and equipment check | `/sessions/:sessionId/lobby` | Written, unverified | Join from T-10m. Device check is not consent. Token only after authorize |
-| SES-07 | Live video session | `/sessions/:sessionId/live` | Written, unverified | Dedicated shell, no bottom nav. Daily adapter + sandbox. Room/token server-issued. Recording stays off |
-| SES-08 | Per-session recording consent | `/sessions/:sessionId/consent` | Written, unverified | Default off. Minor needs guardian. Late join new roster. Withdrawal stops. Prompt 23 records/AI |
-| SES-09 | Approved advisory report | `/sessions/:sessionId/report` | Written, unverified | Shareable body only. Private notes/AI omitted. Indicative disclaimer. Draft shows Counselor reviewing |
+| SES-07 | Live video session | `/sessions/:sessionId/live` | Written, unverified | Daily start/stop only after consented + `GSC_FEATURE_RECORDING_AI` + roster-safe adapter. Late join stops recording before a new token. Sandbox cannot record. |
+| SES-08 | Per-session recording consent | `/sessions/:sessionId/consent` | Written, unverified | Default off. Minor needs guardian. Late join new roster. Withdrawal stops. Feature switch off keeps the meeting + manual summary. |
+| SES-09 | Approved advisory report | `/sessions/:sessionId/report` | Written, unverified | Shareable body only. Private notes/AI coaching omitted. Draft stays Counselor reviewing until approve. Email/WhatsApp notices are link-only. |
 | SES-10 | Counseling feedback | `/sessions/:sessionId/feedback` | Written, unverified | Student five fields; counselor variant private. One per attended completed session |
 | SES-11 | Counselor change and handoff | `/cases/:caseId/change-counselor` | Written, unverified | Categories + 2–2000. Safety isolated. Duplicate pending reopened. Mid-session blocked |
 | SES-12 | Follow-up tasks and evidence | `/cases/:caseId/tasks/:taskId?` | Written, unverified | Folds leftover `/tasks`. Awaiting date. Extension history. Complete cancels reminders |
 | COU-01 | Counselor dashboard | `/counselor/home` | Written, unverified | Assigned caseload only. Leftover `/counselor` redirects here. MFA via `/counselor` prefix |
 | COU-05 | Caseload and student case workbench | `/counselor/students/:caseId?` | Written, unverified | Grant-gated. Timeline of sessions/reports/tasks. No grant → nothing |
-| COU-06 | Session report editor and approval | `/counselor/sessions/:sessionId/report` | Written, unverified | Manual authoring. Private notes 4000. Fit 1–5 not an admission probability. New version supersedes |
+| COU-06 | Session report editor and approval | `/counselor/sessions/:sessionId/report` | Written, unverified | Manual authoring always works. Regenerate queues an AI draft only when the feature is on; AI cannot auto-deliver. |
+| COU-07 | Private AI coaching and improvement | `/counselor/coaching/:sessionId?` | Written, unverified | Staff-only. No student/parent access. Expired transcript drops quotes. Acknowledge / flag inaccurate. Never in the student PDF. |
 | ESS-01–07 | Essays | `/essays` leftover page | Deferred | Parked; page exists, omitted from nav, must not be extended |
 | OFF-01–04 | Offers | `/offers` leftover page | Deferred | Parked; same rule |
 | MEN-01 | Mentor directory | `/alumni` | Partial | Folded leftover |
@@ -329,7 +330,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0048` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0049` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
@@ -337,8 +338,8 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-07 | Catalog authoring | Written, unverified | Schema applied. `catalog` 13/13 and `catalog_editorial` 9/9. Screens not walked. No real-country data. |
 | WP-08 | Recommendations + shortlist + compare | Partial | `0040` applied. `shortlist_assessment.test.sql` 7/12. Concurrent unit test still skips without `COMMANDS_DATABASE_URL`. Screens not walked. |
 | WP-09 | Deadlines + applications + groups | Written, unverified | Applications workspace. User counseling-loop prompt said WP-09; tracker WP-09 is applications and was not reopened. Spec team “WP-09 Counseling case loop” is WP-11. |
-| WP-10 | Scholarships | Written, unverified | Spec `scholarships` + public projection in `0034`. Leftover page still uses `leftover_scholarships`. |
-| WP-11 | Sessions + availability + bookings | Partial | `0043`–`0044` applied. SES-06–12 + COU-01/05/06 written, unverified. SES-01–05 and COU-02–04 not built. |
+| WP-10 | Scholarships | Written, unverified | Tracker WP-10 is scholarships. Spec team “WP-10 Media and AI” is implemented on WP-11 (`0049`) + WP-19 session AIProvider. |
+| WP-11 | Sessions + availability + bookings | Partial | `0043`–`0044` + `0049_media_ai` on linked dev. SES-06–12 + COU-01/05/06/07 written, unverified. Recording/AI gated by `GSC_FEATURE_RECORDING_AI`. SES-01–05 and COU-02–04 not built. |
 | WP-12 | Messaging + reports | Partial | `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
 | WP-13 | Mentorship | Not started | |
 | WP-14 | Journey CMS | Not started | |
@@ -346,7 +347,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-16 | Parent access | Written, unverified | Schema applied. `parent_finance.test.sql` 6/12 fail. Screens not walked. |
 | WP-17 | Notifications + outbox worker | Not started | Outbox table may exist in migrations; worker is not built |
 | WP-18 | Billing | Deferred | Parked |
-| WP-19 | AI provider + essays | Deferred | Parked |
+| WP-19 | AI provider + essays | Partial | Session `AIProvider` (OpenAI adapter, sandbox fallback), safety wrap, retention worker written. Essays remain parked. |
 | WP-20 | Offers + interviews + rec letters | Deferred | Parked |
 | WP-21 | Observability + load + a11y audit | Not started | |
 | WP-22 | Production launch | Not started | Blocked on owner: remote projects, keys, legal |
@@ -356,7 +357,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 - Linked **dev** exists. Dedicated **test** project and GitHub `supabase-pgtap` secrets do not.
 - `supabase test db` still wants Docker. Current pgTAP evidence is `db query --linked`, not `pg_prove`.
 - `.env.local` is missing `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL`. `gsc_api_executor` is still `NOLOGIN` until the owner sets a password.
-- `npm run build` failed this session (7 TypeScript errors).
+- `npm run build` passed 25 Sep 2026 after the MFA/union fixes and WP-10 media/AI compile. Screens not walked.
 - pgTAP not fully green: `rls_p0` 2 fail, `invitations_mfa` 1 fail, `parent_finance` 6 fail, `shortlist_assessment` 5 fail.
 - Leftover `student_profiles` / `test_scores_log` / `activities` / `documents` tables remain so rows are not dropped.
 - Public catalog is empty until editorial publish of real-country data. SYNTHETIC fixtures stay out of `supabase/seed.sql`.

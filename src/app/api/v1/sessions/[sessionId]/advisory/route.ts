@@ -1,3 +1,4 @@
+import { mediaAiActionsAllowed } from "@/domain/ai/jobs";
 import { resolveRequestContext } from "@/server/context";
 import { CommandError } from "@/server/errors";
 import {
@@ -8,6 +9,7 @@ import {
 import { newRequestId } from "@/server/http/envelope";
 import { commandFailure, commandSuccess } from "@/server/http/respond";
 import { requireUuid } from "@/server/modules/admin/http";
+import { enqueueAiJobSql } from "@/server/modules/ai/commands";
 import {
   saveAdvisoryDraftSql,
   studentAdvisorySql,
@@ -63,6 +65,19 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
     if (event === "supersede") {
       return commandSuccess(await supersedeAdvisorySql(context, sessionId), requestId);
+    }
+    if (event === "regenerate") {
+      if (!mediaAiActionsAllowed(process.env.GSC_FEATURE_RECORDING_AI).draft) {
+        throw new CommandError(
+          "VALIDATION_FAILED",
+          "AI drafts are off. Write the summary yourself.",
+        );
+      }
+      return commandSuccess(
+        await enqueueAiJobSql(context, sessionId, "advisory_draft"),
+        requestId,
+        { status: 202 },
+      );
     }
     if (!event) {
       throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");

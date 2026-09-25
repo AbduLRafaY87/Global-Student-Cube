@@ -1,5 +1,6 @@
 import { ReportEditor } from "@/app/(dashboard)/counselor/sessions/[sessionId]/report/ReportEditor";
 import { ErrorState, ForbiddenState } from "@/components/ui/States";
+import { isRecordingFeatureEnabled } from "@/domain/sessions/features";
 import { loadCounselorAdvisory } from "@/server/modules/counseling/load";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -39,7 +40,14 @@ export default async function CounselorReportPage({ params }: PageProps) {
             ? new Date(result.data.dueAt).toLocaleString()
             : "Not provided"
         }
+        aiEnabled={isRecordingFeatureEnabled(process.env.GSC_FEATURE_RECORDING_AI)}
       />
+      <Link
+        className="text-sm text-primary underline-offset-2 hover:underline"
+        href={`/counselor/coaching/${sessionId}`}
+      >
+        Private coaching
+      </Link>
       <Link
         className="text-sm text-primary underline-offset-2 hover:underline"
         href={`/sessions/${sessionId}/feedback`}
