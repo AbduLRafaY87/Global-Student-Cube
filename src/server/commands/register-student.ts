@@ -9,8 +9,10 @@ import {
 } from "@/lib/crypto/contact";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { actorContext } from "@/server/context";
+import { actorContext, guestContext } from "@/server/context";
 import { registerStudentAccountSql } from "@/server/modules/identity/sql-commands";
+import { attributeReferralSql } from "@/server/modules/rewards/commands";
+import { cookies } from "next/headers";
 
 export type RegisterCommandResult =
   | { ok: true; redirectTo: "/verify-email" }
@@ -109,6 +111,14 @@ async function persistIdentity(
     consentEmail: value.consent.emailNotices,
     consentWhatsapp: value.consent.whatsappNotices,
   });
+  const referralCode = (await cookies()).get("gsc_referral")?.value?.trim() ?? "";
+  if (referralCode) {
+    try {
+      await attributeReferralSql(guestContext(), referralCode, userId);
+    } catch {
+      // Attribution is optional; self/duplicate referrals stay ineligible.
+    }
+  }
 }
 
 async function rollbackAuthUser(userId: string): Promise<void> {

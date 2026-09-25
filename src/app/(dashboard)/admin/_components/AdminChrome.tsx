@@ -56,6 +56,12 @@ export function AdminChrome({ title, description, children }: AdminChromeProps) 
           >
             Ingestion
           </Link>
+          <Link
+            className="text-primary underline-offset-2 hover:underline"
+            href="/admin/rewards"
+          >
+            Rewards
+          </Link>
         </nav>
       </header>
       {children}

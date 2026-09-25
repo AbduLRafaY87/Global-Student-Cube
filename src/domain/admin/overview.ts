@@ -7,7 +7,8 @@ export type AdminQueueId =
   | "escalations"
   | "recent_audit"
   | "ingestion_review"
-  | "catalog_review_due";
+  | "catalog_review_due"
+  | "rewards_review";
 
 export interface AdminQueueMetric {
   id: AdminQueueId;
@@ -61,6 +62,13 @@ const QUEUE_DEFS: readonly AdminQueueMetric[] = [
     count: 0,
     href: "/admin/catalog?reviewDue=1",
     permission: "catalog_editorial",
+  },
+  {
+    id: "rewards_review",
+    label: "Rewards verification",
+    count: 0,
+    href: "/admin/rewards",
+    permission: "rewards_approval",
   },
 ];
 

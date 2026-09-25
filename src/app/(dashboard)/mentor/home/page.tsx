@@ -103,6 +103,9 @@ export default async function MentorHomePage() {
         Spendable points {asCount(contributions.spendablePoints)}. Pending approval points{" "}
         {asCount(contributions.pendingPoints)}.
       </p>
+      <Link className="text-primary underline-offset-2 hover:underline" href="/rewards">
+        Open points ledger
+      </Link>
       <section>
         <h2 className="text-lg font-semibold text-text">Feedback to submit</h2>
         {due.length === 0 ? (

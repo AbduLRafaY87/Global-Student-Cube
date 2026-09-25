@@ -59,6 +59,14 @@ describe("admin route scopes", () => {
       canAccessAdminRoute("admin", "aal2", ["operations"], "catalog"),
       false,
     );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["rewards_approval"], "rewards"),
+      true,
+    );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["operations"], "rewards"),
+      false,
+    );
   });
 });
 

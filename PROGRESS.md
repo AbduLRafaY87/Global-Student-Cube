@@ -23,13 +23,13 @@ Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migr
 
 | Check | Result | Date |
 |-------|--------|------|
-| `supabase db push --linked` | Applied `0000`–`0049` earlier; `0050_mentorship` this session | 25 Sep 2026 |
+| `supabase db push --linked` | Applied `0000`–`0050` earlier; `0051_rewards` this session | 25 Sep 2026 |
 | `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
 | pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
 | `public.countries` | 234 rows | 25 Sep 2026 |
 | `scripts/bootstrap-admin.sql` | Ran against the oldest confirmed signup. `user_profiles.role=admin`, `accounts.status=approved`, 1 active admin role, 7 staff permissions | 25 Sep 2026 |
 | `.env.local` | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are real hosted values. `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL` are **absent** | 25 Sep 2026 |
-| `npm run build` | Passed (TypeScript finished, 111 static/dynamic routes) | 25 Sep 2026 |
+| `npm run build` | Passed (TypeScript finished, 121 static pages including REW/ADM-10 routes) | 25 Sep 2026 |
 | GitHub Actions `supabase-pgtap` | Not run | |
 | AUTH / P0 walkthrough | Not run | |
 | Resend / Daily / ExchangeRate-API / OAuth | Not proven | |
@@ -204,6 +204,10 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | MEN-05 | Mentor dashboard | `/mentor/home` | Written, unverified | Unique mentees once. Pending points separate. |
 | MEN-06 | Mentoring requests and connections | `/mentoring/requests/:requestId?` | Written, unverified | Accept/decline/withdraw. Scoped MSG-02 + mentoring booking. |
 | MEN-07 | Mentor session summary and mutual feedback | `/mentoring/sessions/:sessionId/summary` | Written, unverified | Mutual questionnaires. 25 pts after logged+rated+admin-approved. |
+| REW-01 | Points, tiers and activity ledger | `/rewards` | Written, unverified | Immutable ledger. Tiers from unique mentees 5/10/15/25. Ineligible members see rules-only. |
+| REW-02 | Referral sharing and status | `/rewards/referrals` | Written, unverified | URL, Copy/WhatsApp/Email/SMS, 192 QR, status without profile details. `/r/:code` sets cookie. |
+| REW-03 | Reward catalog and redemption | `/rewards/redeem/:redemptionId?` | Written, unverified | 500-pt recognition pack. Concurrent reserve. Gift cards stay disabled until funded. |
+| REW-04 | Certificates and appreciation letters | `/rewards/certificates/:certificateId?` | Written, unverified | On-the-fly PDF from actual minutes. 90 min → 1.5 hours. |
 | MSG-01 | Inbox | `/messages` | Written, unverified | Case filter, search in permitted threads only, unread/all, load more. Counselor compose-from-inbox omitted (COU-05 only). Realtime after inbox channel authorize. |
 | MSG-02 | Thread | `/messages/:conversationId` | Written, unverified | Grant-scoped. 4000 chars, 30/min, delivery states, attachments via private storage, guardian invite-only. Leftover ChatWindow removed. |
 | MSG-03 | New conversation | — | Not started | Counselor opens a case thread from COU-05. No inbox compose. |
@@ -218,7 +222,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | ADM-07 | Program and pricing editor | `/admin/programs/:programId` | Written, unverified | Annual vs full-program fees. Gated application URL excluded from public payloads. |
 | ADM-08 | Entry requirement rules | `/admin/programs/:programId/requirements` | Written, unverified | Per-criterion draft + source. Publish versions rules. |
 | ADM-09 | Visa and destination guidance editor | — | Not started | |
-| ADM-10 | Rewards verification and fulfillment | — | Not started | |
+| ADM-10 | Rewards verification and fulfillment | `/admin/rewards/:itemId?` | Written, unverified | Approve activity / fulfill / publish. Staff cannot overwrite balances. GiftCard controls disabled. Analytics cards. |
 | ADM-11 | Moderation, quality and safety review | — | Not started | |
 | ADM-12 | Operational and outcome analytics | — | Not started | |
 | ADM-13 | Jobs, delivery and integration operations | — | Not started | Ingestion creates a durable job row; ADM-13 runner is not built. |
@@ -242,19 +246,19 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 25 |
+| Not started | 24 |
 | Partial (leftover prototype) | 7 |
-| Written, unverified | 43 |
+| Written, unverified | 48 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
 | Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
 | Removed | 1 (AUTH-07) |
-| **Total spec screens** | **99** |
+| **Total spec screens** | **103** |
 
 APP-01–05 were **not spec screen IDs** (absent from the spec and `docs/spec-index.md`). They were removed from this catalogue. The spec application-adjacent screen is **JRN-01** (selected-target application roadmap). Leftover `/applications` now reads `application_systems` → `application_groups` → `applications` (0032 backfill + 0042 workspace command). It is still not JRN-01. Previous totals (97 / 48 not started) included those five invented rows.
 
 AUTH Written, unverified (8): AUTH-01, 02, 03, 04, 05, 08, 09, 10.
-Admin Written, unverified (9): ADM-01, 02, 03, 04, 05, 06, 07, 08, 14. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are WP-15 routes, not extra spec screen IDs. Spec ADM-10 is rewards. Previous invented ADM-03–11 titles (role requests, Catalog CMS, Taxonomy, …) were replaced by spec IDs; that correction adds four screens (92 → 96).
+Admin Written, unverified (10): ADM-01, 02, 03, 04, 05, 06, 07, 08, 10, 14. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are WP-15 routes, not extra spec screen IDs. REW-01–04 were missing from this catalogue and are now listed (99 → 103). Previous invented ADM-03–11 titles (role requests, Catalog CMS, Taxonomy, …) were replaced by spec IDs; that correction adds four screens (92 → 96).
 
 Catalog authoring is **WP-07**. WP-05 is Intake and was not started. WP-06 is catalog read (PUB/CAT-01–03). CAT-04 cost comparison landed under WP-08. Real-country catalog data is an owner task, not an agent task.
 
@@ -333,7 +337,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0050` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0051` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
@@ -343,8 +347,8 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-09 | Deadlines + applications + groups | Written, unverified | Applications workspace. User counseling-loop prompt said WP-09; tracker WP-09 is applications and was not reopened. Spec team “WP-09 Counseling case loop” is WP-11. |
 | WP-10 | Scholarships | Written, unverified | Tracker WP-10 is scholarships. Spec team “WP-10 Media and AI” is implemented on WP-11 (`0049`) + WP-19 session AIProvider. |
 | WP-11 | Sessions + availability + bookings | Partial | Tracker WP-11 is sessions. Spec team “WP-11 Mentorship” is implemented on WP-13 (`0050`). SES-06–12 + COU-01/05/06/07 written, unverified. Recording/AI gated by `GSC_FEATURE_RECORDING_AI`. SES-01–05 and COU-02–04 not built. |
-| WP-12 | Messaging + reports | Partial | `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
-| WP-13 | Mentorship | Written, unverified | Spec team WP-11. `0050_mentorship` folds leftover alumni. MEN-01–07 + isolation/contribution/request tests. No walkthrough. Rewards mint (ADM-10) not built; logs queue at submitted. |
+| WP-12 | Messaging + reports | Partial | Local tracker WP-12 is messaging. Spec team WP-12 Rewards is WP-23. `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
+| WP-13 | Mentorship | Written, unverified | Spec team WP-11. `0050_mentorship` folds leftover alumni. MEN-01–07 + isolation/contribution/request tests. No walkthrough. Mentoring credits append only after ADM-10 + rewards worker (`0051`). |
 | WP-14 | Journey CMS | Not started | |
 | WP-15 | Admin + cases + audit + flags | Written, unverified | ADM-01/02, people, audit viewer. Prompt 30 export/deletion are stubs (audit+outbox only). ADM-11/13 intros not built. Cases/flags remain. |
 | WP-16 | Parent access | Written, unverified | Schema applied. `parent_finance.test.sql` 6/12 fail. Screens not walked. |
@@ -354,6 +358,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-20 | Offers + interviews + rec letters | Deferred | Parked |
 | WP-21 | Observability + load + a11y audit | Not started | |
 | WP-22 | Production launch | Not started | Blocked on owner: remote projects, keys, legal |
+| WP-23 | Rewards | Written, unverified | Spec team WP-12. `0051_rewards` applied. REW-01–04 + ADM-10 written, unverified. Gift cards behind `GSC_FEATURE_GIFT_CARDS`. Unit tests 207 pass / 2 skip. Concurrent DB race skips without `COMMANDS_DATABASE_URL`. No walkthrough. |
 
 ## Known gaps (do not mark these Done)
 
