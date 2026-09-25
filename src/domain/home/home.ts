@@ -224,9 +224,9 @@ export function buildStudentHome(input: StudentHomeInput): StudentHomeModel {
     },
     news: {
       empty: true,
-      href: "/home",
+      href: "/learning",
       items: [],
-      emptyMessage: "Learning and news are not published yet.",
+      emptyMessage: "Learning is available. News is not published yet.",
     },
     journey: {
       empty: true,

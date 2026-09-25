@@ -73,6 +73,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       label: "Prepare",
       items: [
         { href: "/tasks", label: "Tasks", icon: "checkSquare" },
+        { href: "/learning", label: "Learning", icon: "graduationCap" },
       ],
     },
     {
@@ -126,6 +127,7 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
         { href: "/mentor/parent-profile", label: "Parent mentor profile", icon: "users" },
         { href: "/mentoring", label: "Mentoring", icon: "clipboardCheck" },
         { href: "/rewards", label: "Rewards", icon: "trophy" },
+        { href: "/learning", label: "Learning", icon: "graduationCap" },
         { href: "/messages", label: "Messages", icon: "messageSquare" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
       ],
@@ -147,6 +149,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       id: "support",
       label: "Support",
       items: [
+        { href: "/learning", label: "Learning", icon: "graduationCap" },
+        { href: "/admin/content", label: "Content", icon: "fileText" },
         { href: "/messages", label: "Messages", icon: "messageSquare" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
       ],
@@ -165,6 +169,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
         { href: "/admin/catalog", label: "Catalog", icon: "graduationCap" },
         { href: "/admin/ingestion/new", label: "Ingestion", icon: "folderOpen" },
         { href: "/admin/rewards", label: "Rewards", icon: "trophy" },
+        { href: "/admin/content", label: "Content", icon: "fileText" },
+        { href: "/learning", label: "Learning", icon: "graduationCap" },
         { href: "/explore/universities", label: "Universities", icon: "graduationCap" },
         { href: "/explore/scholarships", label: "Scholarships", icon: "award" },
         { href: "/profile", label: "Profile", icon: "user" },
@@ -228,6 +234,7 @@ const EXISTING_DASHBOARD_PREFIXES = [
   "/mentor",
   "/mentoring",
   "/rewards",
+  "/learning",
   "/offers",
   "/billing",
   "/counselor",

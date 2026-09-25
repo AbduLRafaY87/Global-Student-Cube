@@ -67,6 +67,10 @@ describe("admin route scopes", () => {
       canAccessAdminRoute("admin", "aal2", ["operations"], "rewards"),
       false,
     );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["catalog_editorial"], "content"),
+      true,
+    );
   });
 });
 

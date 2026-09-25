@@ -62,6 +62,12 @@ export function AdminChrome({ title, description, children }: AdminChromeProps) 
           >
             Rewards
           </Link>
+          <Link
+            className="text-primary underline-offset-2 hover:underline"
+            href="/admin/content"
+          >
+            Content
+          </Link>
         </nav>
       </header>
       {children}
