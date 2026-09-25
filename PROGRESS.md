@@ -1,8 +1,6 @@
 # Implementation progress
 
-Last recomputed: 24 Sep 2026, by inspecting the current tree only.
-
-No live Supabase project is linked. Nothing in this file was proven against a remote database. Historical local-Docker `supabase db reset` / `supabase test db` results (19 Sep 2026: 84/84) are **not** current evidence.
+Last recomputed: 25 Sep 2026, from a linked remote **dev** project plus this session's command output. Historical local-Docker `supabase db reset` / `supabase test db` results (19 Sep 2026: 84/84) are **not** current evidence.
 
 Status vocabulary (use only these):
 
@@ -12,48 +10,74 @@ Status vocabulary (use only these):
 | **Partial** | Leftover prototype or incomplete code exists; not spec-complete and not proven |
 | **Written, unverified** | Spec-aligned code or SQL is in the tree; not proven on a linked Supabase project |
 | **Checked (no DB)** | Proven locally without a database: file inspection, or a recorded lint / `tsc` / `npm run test:unit` / `npm run build` run |
-| **Done** | Every acceptance line has current evidence. Unused until a linked project + CI + walkthrough exist |
+| **Checked** | Proven on the linked remote project this session (push, pgTAP via `db query --linked`, or a counted SQL query). Not a full screen walkthrough |
+| **Done** | Every acceptance line has current evidence including a walkthrough or CI job |
 | **Deferred** | Owner decision: later phase |
 | **Removed** | Owner decision: do not build |
 
-Done is unused on purpose. Do not treat Written, unverified as Done.
+Screens and API routes stay **Written, unverified** unless a walkthrough ran. A clean `db push` is not Done.
 
-## Verification that is blocked until a Supabase project is linked
+## Remote verification (25 Sep 2026)
 
-These cannot be marked Done, and must not be cited as current evidence, until a remote project exists, the CLI is linked, and (for CI) GitHub secrets are set.
-
-1. `supabase link --project-ref <ref>` against a real project (dev and a separate test project).
-2. `supabase db push --linked` applying migrations `0000`–`0030` (including `0026`, `0027`, `0029_command_architecture.sql`, and `0030_invitations_roles_mfa.sql`) to that project.
-3. Confirm `public.handle_new_user()` on the remote project always inserts `role = 'student'` (stop-ship).
-4. Confirm the role-change trigger / `users_role_immutable` equivalent is live on the remote project (stop-ship).
-5. `supabase test db --db-url "$SUPABASE_DB_URL"` for `rls_p0`, `auth_identity`, `command_layer`, and `invitations_mfa`.
-6. GitHub Actions `ci.yml` job `supabase-pgtap` (link test project, `db push --linked`, `test db --db-url`).
-7. `npm run build` against a real `.env.local` with remote `NEXT_PUBLIC_SUPABASE_*` (build itself does not need the DB, but a production-shaped env has never been used on a linked project).
-8. AUTH-01–05 / 08 / 09 walkthrough in `docs/qa/auth-walkthrough.md` against the remote project (register, email verify, login throttle, password reset single-use, under-13 / 13–17 / adult, suspended sign-out).
-9. P0 procedure in `docs/security/p0-verification.md` against the remote project (role-change SQL rejection, student RLS isolation, privilege-path audit+outbox same transaction).
-10. `scripts/bootstrap-admin.sql` executed on the remote project (admin is never created by public signup).
-11. Confirm `0028_countries_seed.sql` (234 ISO countries) is actually present in `public.countries` on the remote project.
-12. Confirm `commands.*` are executable only by `gsc_api_executor` (public service-role wrappers dropped in `0029`). Direct `authenticated` INSERT/UPDATE/DELETE on `user_profiles` and `applications` is denied.
-13. Confirm contact-encryption env (`GSC_CONTACT_ENCRYPTION_KEY`) works end-to-end on register (ciphertext in DB, not plaintext phone).
-14. Confirm Resend (or whatever outbound mail is configured) delivers verification and reset mail from the remote project.
-15. Confirm Site URL and redirect allow-list on the remote Auth settings match `docs/database-workflow.md`.
-16. `ALTER ROLE gsc_api_executor LOGIN PASSWORD '…'` and set `COMMANDS_DATABASE_URL`. Prove `PATCH /api/v1/me` and leftover application writes go through the executor (audit + outbox in the same transaction).
-17. Re-run identity register/login/reset against the executor path (no `service_role` RPC).
-
-Owner still owes: create remote projects (EU Frankfurt if available), Site URL / redirects, Resend, `supabase link`, `ALTER ROLE gsc_api_executor LOGIN`, GitHub secrets including `COMMANDS_DATABASE_URL`.
-
-## What was actually checked (no live database)
-
-Command-layer implementation pass (24 Sep 2026). No linked Supabase project. No `db push`. No pgTAP.
+Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0048` are on that project. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
 
 | Check | Result | Date |
 |-------|--------|------|
-| `npm run lint` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
-| `npx tsc --noEmit` | 0 errors | 24 Sep 2026 (WP-01 pass) |
-| `npm run test:unit` | 101/101 via `scripts/run-unit-tests.mjs` | 24 Sep 2026 (CAT-04 costs) |
-| `npm run build` | 0 errors | 24 Sep 2026 (AUTH gap-fill) |
+| `supabase db push --linked` | Applied `0000`–`0045` (owner), then `0046`, `0047`, `0048` this session | 25 Sep 2026 |
+| `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
+| pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
+| `public.countries` | 234 rows | 25 Sep 2026 |
+| `scripts/bootstrap-admin.sql` | Ran against the oldest confirmed signup. `user_profiles.role=admin`, `accounts.status=approved`, 1 active admin role, 7 staff permissions | 25 Sep 2026 |
+| `.env.local` | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are real hosted values. `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL` are **absent** | 25 Sep 2026 |
+| `npm run build` | Failed TypeScript (7 errors). Compiled JS, then `tsc` stopped | 25 Sep 2026 |
+| GitHub Actions `supabase-pgtap` | Not run | |
+| AUTH / P0 walkthrough | Not run | |
+| Resend / Daily / ExchangeRate-API / OAuth | Not proven | |
+
+### pgTAP (linked dev, `db query --linked`)
+
+| File | Result |
+|------|--------|
+| `auth_identity.test.sql` | **PASS** `1..14` |
+| `command_layer.test.sql` | **PASS** `1..22` |
+| `admin_operations.test.sql` | **PASS** `1..20` |
+| `application_systems.test.sql` | **PASS** `1..10` |
+| `catalog.test.sql` | **PASS** `1..13` |
+| `catalog_editorial.test.sql` | **PASS** `1..9` |
+| `student_profile.test.sql` | **PASS** `1..7` |
+| `cost_fx.test.sql` | **PASS** `1..2` |
+| `rls_p0.test.sql` | **FAIL** `1..74`, 2 failed (anon leftover catalog grants / RLS after leftover rename) |
+| `invitations_mfa.test.sql` | **FAIL** `1..18`, 1 failed (assertion name not returned by `db query`) |
+| `parent_finance.test.sql` | **FAIL** `1..12`, 6 failed after `scope` rename |
+| `shortlist_assessment.test.sql` | **FAIL** `1..12`, 5 failed |
+
+`auth_identity` includes: signup trigger stays `student`; `consume_reset_token` after `register_student_account`; role-change path is covered in `command_layer` / `invitations_mfa`. That is not a substitute for the AUTH walkthrough.
+
+## Still open (do not treat as Done)
+
+1. Dedicated **test** project + GitHub secrets + `ci.yml` `supabase-pgtap`.
+2. `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL` in `.env.local` (`ALTER ROLE gsc_api_executor LOGIN`).
+3. `npm run build` TypeScript errors (dashboard MFA assurance, invitations preview `GuestContext`, profile route string unions, implicit `any` in profile load).
+4. Remaining pgTAP failures: `rls_p0`, `invitations_mfa`, `parent_finance`, `shortlist_assessment`.
+5. AUTH-01–05 / 08 / 09 walkthrough (`docs/qa/auth-walkthrough.md`).
+6. Manual P0 procedure (`docs/security/p0-verification.md`) as a student JWT, not postgres.
+7. Contact-encryption end-to-end (`GSC_CONTACT_ENCRYPTION_KEY`).
+8. Resend verification/reset mail.
+9. Site URL / redirect allow-list on Auth settings.
+10. Executor path from the Next.js app (`PATCH /api/v1/me`) — no `COMMANDS_DATABASE_URL`.
+11. Real-country catalog data, Daily, ExchangeRate-API.
+
+## What was actually checked
+
+| Check | Result | Date |
+|-------|--------|------|
+| `npm run lint` | 0 errors (historical) | 24 Sep 2026 (AUTH gap-fill) |
+| `npx tsc --noEmit` | Historical pass; **this session `next build` TypeScript failed** | 25 Sep 2026 |
+| `npm run test:unit` | 116/117 historical (1 skip: concurrent cap) | 24 Sep 2026 |
+| `npm run build` | **Failed** — 7 TS errors after compile | 25 Sep 2026 |
 | 360px shell | `/design` at 360×800; More opens Discover/Apply/Prepare/Decide/Support; `scrollWidth === 360` | 24 Sep 2026 |
-| `supabase db push --linked` / `supabase test db` | Not run. No project linked. | |
+| `supabase db push --linked` | Applied through `0048` | 25 Sep 2026 |
+| pgTAP | 8 pass / 4 fail via `db query --linked` | 25 Sep 2026 |
 
 UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `notFound()` when `NODE_ENV === "production"`. 360px shell was re-checked on 24 Sep 2026 (see table above).
 
@@ -76,25 +100,21 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 
 | Item | Status | Evidence |
 |------|--------|----------|
-| `supabase/migrations/0000`–`0025` (schema + RLS + seed) | Written, unverified | Files in tree; never pushed to a linked project |
-| `0033`–`0035` catalog + ingestion | Written, unverified | Reference data, programs, publication, ingestion/import/review-due. Not applied remotely |
-| `0037_student_profile.sql` | Written, unverified | files, case_grants, academic_profiles, education_records, test_results, student_activities, student_awards, country_preferences, relative_connections; leftover copy; command writes. Not applied remotely |
-| `0038_parent_finance.sql` | Written, unverified | financial_profiles, can_see_case/can_read_finance, derived case_grants, accept/revoke/module3 commands. Not applied remotely |
-| `supabase/tests/parent_finance.test.sql` | Written, unverified | No-link empty; revoke immediate; scope boundary; two-child isolation. Not run remotely |
-| `0039_cost_fx_snapshots.sql` | Written, unverified | fx_snapshots, budget_assumptions, cost_snapshots. Not applied remotely |
-| `supabase/tests/cost_fx.test.sql` | Written, unverified | Rejects a zero FX rate. Not run remotely |
-| `0013_reserved.sql` | Written, unverified | No-op placeholder; `users` table does not exist |
-| `0026_role_change_guard.sql` | Written, unverified | File in tree; stop-ship. Not applied remotely |
-| `0027_identity_command_layer.sql` | Written, unverified | `accounts`, `identities`, `cases`, `consent_events`, GSC counter, `commands.*`, `handle_new_user` always `'student'`. Not applied remotely |
-| `0028_countries_seed.sql` | Written, unverified | 234 ISO countries in the file. Not applied remotely |
-| `0029_command_architecture.sql` | Written, unverified | `gsc_api_executor`, version columns, idempotency_records, profile/application commands, revoke mutations, drop public wrappers. Not applied remotely |
-| `0030_invitations_roles_mfa.sql` | Written, unverified | invitations, parent_invitations, parent_links, staff_permissions, mfa_recovery_codes, grant/accept commands, set_user_role wrapper. Not applied remotely |
-| `supabase/tests/invitations_mfa.test.sql` | Written, unverified | Public signup stays student; expired/reused invite; counselor without aal2; no self-grant; set_user_role only. Not run remotely |
-| `supabase/tests/rls_p0.test.sql` | Written, unverified | File exists. Not run against a linked project |
-| `supabase/tests/auth_identity.test.sql` | Written, unverified | File exists. Not run against a linked project |
-| `supabase/tests/command_layer.test.sql` | Written, unverified | Direct writes denied; executor path; atomic failure. Not run against a linked project |
-| `scripts/bootstrap-admin.sql` | Written, unverified | File exists. Not executed remotely |
-| `supabase/seed.sql` | Written, unverified | File exists. Not applied remotely |
+| `supabase/migrations/0000`–`0048` | Checked | `db push --linked` applied through `0048` (0046 pgTAP + grant-scope; 0047 catalog outbox; 0048 parent grant-scope) |
+| `0033` leftover prototype universities | Checked | First linked push: leftover rows with invalid country deleted before the ISO-2 guard. Traceability: leftover prototype seed |
+| `0033`–`0035` catalog + ingestion | Checked | Applied. `catalog.test.sql` 13/13 and `catalog_editorial.test.sql` 9/9 via `db query --linked` |
+| `0037_student_profile.sql` | Checked | Applied. `student_profile.test.sql` 7/7 |
+| `0038_parent_finance.sql` | Partial | Applied. `sync_parent_case_grants` renamed `scope` in 0048. `parent_finance.test.sql` still 6/12 fail |
+| `0039_cost_fx_snapshots.sql` | Checked | Applied. `cost_fx.test.sql` 2/2 (zero FX rate rejected) |
+| `0013_reserved.sql` | Checked | Applied with the rest of `0000`–`0048` |
+| `0026_role_change_guard.sql` | Checked | Applied. Trigger exercised by `invitations_mfa` / `rls_p0` (those files are not fully green) |
+| `0027_identity_command_layer.sql` | Checked | Applied. `auth_identity.test.sql` 14/14: trigger stays student; register + reset-token consume |
+| `0028_countries_seed.sql` | Checked | `SELECT count(*) FROM public.countries` = 234 |
+| `0029_command_architecture.sql` | Checked | Applied. `command_layer.test.sql` 22/22 (executor `SET ROLE` after `GRANT` + `extensions` usage) |
+| `0030_invitations_roles_mfa.sql` | Partial | Applied. `invitations_mfa.test.sql` 17/18 |
+| `0040`–`0045` | Checked | Applied on the linked project. Shortlist pgTAP still 7/12 |
+| `scripts/bootstrap-admin.sql` | Checked | Executed on the linked project; first admin + `ensure_account` + 7 staff permissions |
+| `supabase/seed.sql` | Written, unverified | File exists. Not applied as `db seed` |
 
 ## Domain / app code (no live database required to exist; not proven end-to-end)
 
@@ -180,10 +200,10 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | MEN-02 | Mentor profile | — | Not started | |
 | MEN-03 | Request mentorship | — | Not started | |
 | MEN-04 | Mentorship thread | — | Not started | |
-| MSG-01 | Inbox | `/messages` | Partial | Leftover |
-| MSG-02 | Thread | `/messages` ChatWindow | Partial | Leftover |
-| MSG-03 | New conversation | — | Not started | |
-| MSG-04 | Report / block | — | Not started | |
+| MSG-01 | Inbox | `/messages` | Written, unverified | Case filter, search in permitted threads only, unread/all, load more. Counselor compose-from-inbox omitted (COU-05 only). Realtime after inbox channel authorize. |
+| MSG-02 | Thread | `/messages/:conversationId` | Written, unverified | Grant-scoped. 4000 chars, 30/min, delivery states, attachments via private storage, guardian invite-only. Leftover ChatWindow removed. |
+| MSG-03 | New conversation | — | Not started | Counselor opens a case thread from COU-05. No inbox compose. |
+| MSG-04 | Report / block | MSG-02 More | Partial | Report + block actions on the thread. No standalone MSG-04 screens. |
 | REC-01–03 | Recommendation letters | — | Deferred | Parked; no leftover page |
 | ADM-01 | Admin overview | `/admin` | Written, unverified | Real queue counts; unpermitted metrics omitted. No applicant evidence. |
 | ADM-02 | Professional / guardian review | `/admin/approvals` | Written, unverified | No student approval queue (D2). Guardian-link for minors only. |
@@ -234,7 +254,7 @@ Admin Written, unverified (9): ADM-01, 02, 03, 04, 05, 06, 07, 08, 14. People (`
 
 Catalog authoring is **WP-07**. WP-05 is Intake and was not started. WP-06 is catalog read (PUB/CAT-01–03). CAT-04 cost comparison landed under WP-08. Real-country catalog data is an owner task, not an agent task.
 
-Partial leftovers (7): CAT-07, SES-01, MEN-01, MSG-01, MSG-02, JRN-02, SET-06.
+Partial leftovers (5): CAT-07, SES-01, MEN-01, JRN-02, SET-06.
 
 Public discovery Written, unverified (8): PUB-01–05, CAT-01–03. Save is enabled on CAT-01–03 after Module 3; the 0–3 cap is enforced inside `commands.save_program_pair`. Personalized CAT-01 recommendations unlock after `module2_completed_at`.
 
@@ -282,20 +302,23 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | `src/domain/assessment/assessment.test.ts` | Written, unverified | 85/60 boundaries; hard unmet override; unknown mandatory provisional; unlike TOEFL scales stay Unknown |
 | `src/domain/shortlist/shortlist.test.ts` | Written, unverified | Cap 3; flags only on saved rows; recommendations are not slots |
 | `src/domain/shortlist/shortlist.concurrent.test.ts` | Written, unverified | Real two-connection race. Skips without COMMANDS_DATABASE_URL / SUPABASE_DB_URL |
-| `supabase/tests/shortlist_assessment.test.sql` | Written, unverified | Fourth save rejected; unsaved flag rejected; remove clears flag; slot 4 check. Not run on a linked project |
+| `supabase/tests/shortlist_assessment.test.sql` | Partial | Ran remotely: `1..12`, 5 failed |
 | `src/domain/profile/profile.test.ts` | Written, unverified | GPA not converted; unlike TOEFL scales; 3/2/4 countries; 201-word goal; sixth activity; completion gating |
-| `supabase/tests/student_profile.test.sql` | Written, unverified | Incomplete complete_module2 denied; cross-student write/read denied; unlike-scale “manual review”. Not run on a linked project |
+| `supabase/tests/student_profile.test.sql` | Checked | `1..7` PASS via `db query --linked` |
 | `src/domain/catalog/display.test.ts` | Written, unverified | Month-only deadline; mixed-currency comparison unknown |
-| `supabase/tests/catalog.test.sql` | Written, unverified | Draft hidden; provenance required to publish; duration/ratio/amount-currency checks. Not run on a linked project |
-| `supabase/tests/catalog_editorial.test.sql` | Written, unverified | Cannot publish without provenance; import rejects unsourced rows; withdraw hides from public views; audit written. SYNTHETIC only. Not run on a linked project |
+| `supabase/tests/catalog.test.sql` | Checked | `1..13` PASS |
+| `supabase/tests/catalog_editorial.test.sql` | Checked | `1..9` PASS |
 | `src/domain/applications/systems.test.ts` | Written, unverified | Leftover group-state mapping; apply file purposes |
-| `supabase/tests/application_systems.test.sql` | Written, unverified | No country inference; no invented fees; catalog_editorial required. Not run on a linked project |
+| `supabase/tests/application_systems.test.sql` | Checked | `1..10` PASS |
 | `src/domain/admin/admin.test.ts` | Written, unverified | Unauthorized variants, omitted queues, suspend availability |
 | `src/domain/navigation.test.ts` | Written, unverified | Not a spec T-ID |
-| `supabase/tests/admin_operations.test.sql` | Written, unverified | Scope denials, audit on decide/suspend/role, escalation outbox. Not run on a linked project |
-| `supabase/tests/rls_p0.test.sql` | Written, unverified | Overlaps T001 / T002 / T004 / T007 themes. Not run on a linked project |
-| `supabase/tests/auth_identity.test.sql` | Written, unverified | Overlaps T003 / T005 / T008 / T009 themes. Not run on a linked project |
-| `supabase/tests/command_layer.test.sql` | Written, unverified | Direct-write deny, executor path, atomic rollback. Not run on a linked project |
+| `supabase/tests/admin_operations.test.sql` | Checked | `1..20` PASS |
+| `supabase/tests/rls_p0.test.sql` | Partial | `1..74`, 2 failed |
+| `supabase/tests/auth_identity.test.sql` | Checked | `1..14` PASS |
+| `supabase/tests/command_layer.test.sql` | Checked | `1..22` PASS |
+| `supabase/tests/invitations_mfa.test.sql` | Partial | `1..18`, 1 failed |
+| `supabase/tests/parent_finance.test.sql` | Partial | `1..12`, 6 failed |
+| `supabase/tests/cost_fx.test.sql` | Checked | `1..2` PASS |
 | `src/server/errors.test.ts`, `src/server/http/headers.test.ts` | Written, unverified | Envelope / If-Match / unknown keys. No DB |
 
 CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
@@ -304,23 +327,23 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 
 | WP | Title | Status | Notes |
 |----|-------|--------|-------|
-| WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Written, unverified | Command layer (`gsc_api_executor`, audit + outbox, `/api/v1` envelope) is in the tree. Not proven on a linked project. Not WP-01. |
+| WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Written, unverified | Migrations through 0036. Never pushed to a linked project |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0048` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
 | WP-06 | Catalog read + search | Written, unverified | PUB-01–05 and CAT-01–03 public routes. Deterministic recommendation engine + unit tests. Sitemap/robots. Save now wired from WP-08 / CAT-06. No real catalog data. Not pushed. User STU-01/applications prompt said WP-06; this package was not reopened. |
-| WP-07 | Catalog authoring | Written, unverified | `0033`–`0035` tables, ingestion/import/review-due commands, ADM-03–08 and ADM-14 screens. SYNTHETIC fixtures test-only. No real-country data entered. Not pushed to a linked project. |
-| WP-08 | Recommendations + shortlist + compare | Partial | CAT-04 plus CAT-05/06 written, unverified. Domain assessment + shortlist tests. `0040` lock+slot cap. Concurrent DB test skips without a linked URL. User prompt said WP-06; that package is catalog read. |
+| WP-07 | Catalog authoring | Written, unverified | Schema applied. `catalog` 13/13 and `catalog_editorial` 9/9. Screens not walked. No real-country data. |
+| WP-08 | Recommendations + shortlist + compare | Partial | `0040` applied. `shortlist_assessment.test.sql` 7/12. Concurrent unit test still skips without `COMMANDS_DATABASE_URL`. Screens not walked. |
 | WP-09 | Deadlines + applications + groups | Written, unverified | Applications workspace. User counseling-loop prompt said WP-09; tracker WP-09 is applications and was not reopened. Spec team “WP-09 Counseling case loop” is WP-11. |
 | WP-10 | Scholarships | Written, unverified | Spec `scholarships` + public projection in `0034`. Leftover page still uses `leftover_scholarships`. |
-| WP-11 | Sessions + availability + bookings | Partial | SES-06–12 + COU-01/05/06. Domain advisory/feedback/handoff/task tests. `0043`–`0044`. Manual advisory works with AI off. Booking/matching SES-01–05 and COU-02–04 still not built. User prompt said WP-09. |
-| WP-12 | Messaging + reports | Not started | |
+| WP-11 | Sessions + availability + bookings | Partial | `0043`–`0044` applied. SES-06–12 + COU-01/05/06 written, unverified. SES-01–05 and COU-02–04 not built. |
+| WP-12 | Messaging + reports | Partial | `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
 | WP-13 | Mentorship | Not started | |
 | WP-14 | Journey CMS | Not started | |
 | WP-15 | Admin + cases + audit + flags | Written, unverified | ADM-01/02, people, audit viewer. Prompt 30 export/deletion are stubs (audit+outbox only). ADM-11/13 intros not built. Cases/flags remain. |
-| WP-16 | Parent access | Written, unverified | STU-06 + PAR-01–03. Derived `case_grants`. Leftover Parent Portal replaced. User prompt said WP-05; that package is Intake and was not started. |
+| WP-16 | Parent access | Written, unverified | Schema applied. `parent_finance.test.sql` 6/12 fail. Screens not walked. |
 | WP-17 | Notifications + outbox worker | Not started | Outbox table may exist in migrations; worker is not built |
 | WP-18 | Billing | Deferred | Parked |
 | WP-19 | AI provider + essays | Deferred | Parked |
@@ -330,16 +353,18 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 
 ## Known gaps (do not mark these Done)
 
-- No linked Supabase project. All SQL, RLS, command RPCs, and pgTAP are unproven on the only database this repo is allowed to use.
-- Leftover `student_profiles` / `test_scores_log` / `activities` / `documents` tables remain so rows are not dropped. Authenticated writes on them are revoked; new writes go through Module 2 commands.
-- Catalog schema (`0033`–`0035`) is written but not pushed to a linked project. Public catalog is empty until editorial publish. SYNTHETIC fixtures are excluded from `supabase/seed.sql`.
-- Login lockout 5 failures / 15 minutes is an invented analog (spec silent). NEEDS OWNER to confirm or replace.
-- Community-eligibility “Yes” is a client gate only; not a persisted column.
-- GSC ID is allocated at signup (D2 removed approval). Status stays `email_pending` until verify. Spec said allocate on approval.
-- Three auth API paths do not match spec §17.6 names (`password-update`, `email-verification`, `me/email-change`).
+- Linked **dev** exists. Dedicated **test** project and GitHub `supabase-pgtap` secrets do not.
+- `supabase test db` still wants Docker. Current pgTAP evidence is `db query --linked`, not `pg_prove`.
+- `.env.local` is missing `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL`. `gsc_api_executor` is still `NOLOGIN` until the owner sets a password.
+- `npm run build` failed this session (7 TypeScript errors).
+- pgTAP not fully green: `rls_p0` 2 fail, `invitations_mfa` 1 fail, `parent_finance` 6 fail, `shortlist_assessment` 5 fail.
+- Leftover `student_profiles` / `test_scores_log` / `activities` / `documents` tables remain so rows are not dropped.
+- Public catalog is empty until editorial publish of real-country data. SYNTHETIC fixtures stay out of `supabase/seed.sql`.
+- Login lockout 5 failures / 15 minutes is an invented analog (spec silent).
+- Community-eligibility “Yes” is a client gate only.
+- GSC ID is allocated at signup (D2). Spec said allocate on approval.
+- Three auth API paths do not match spec §17.6 names.
 - Parked leftover pages still routable; hidden from nav only.
-- `npm run lint` exit 0 (2 pre-existing warnings) and `test:unit` 116/117 on 24 Sep 2026 (1 skipped: concurrent cap needs a linked DB). App `tsc` still fails on pre-existing dashboard MFA, invitations preview, and stale `.next` page types. pgTAP and `supabase db push --linked` still unverified. No real-country catalog data was entered. ExchangeRate-API key is an owner task.
-- Prompt 30: `POST /admin/support/export` and `POST /admin/support/deletion` only write audit + outbox (`completed_by=prompt_30`). No export package, no 30-day deletion workflow.
-- Admin people/safety belongs to WP-15, not WP-03 (AUTH).
-- SES-06/07/08: sandbox Daily adapter is the default. Owner must create a Daily account, set `DAILY_API_KEY`, and test a real room on two devices. Recording/AI stay off (`GSC_FEATURE_RECORDING_AI=0`) until Prompt 23. `0043`/`0044` are not pushed to a linked project. SES-01–05 booking/matching are still not built.
-- Counseling loop: leftover `/tasks` and `/counselor` redirect. Previous-counselor limited history is enforced by revoked grants + student_advisory omitting private notes. Admin reassignment UI is command-only (`commands.reassign_counselor`).
+- Prompt 30 export/deletion only write audit + outbox.
+- SES-06/07/08: sandbox Daily is the default. Owner must set `DAILY_API_KEY`. Recording/AI stay off. SES-01–05 booking/matching are not built.
+- AUTH walkthrough, Resend mail, Site URL allow-list, and contact-encryption e2e are not proven.

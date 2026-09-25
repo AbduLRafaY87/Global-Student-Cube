@@ -65,6 +65,19 @@ DECLARE
   uni uuid := 'eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3';
   program uuid := 'eeeeeee4-eeee-4eee-8eee-eeeeeeeeeee4';
 BEGIN
+  DELETE FROM public.outbox_events
+  WHERE aggregate_id IN (
+    'eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3',
+    'eeeeeee4-eeee-4eee-8eee-eeeeeeeeeee4'
+  );
+  DELETE FROM public.source_facts
+  WHERE entity_id IN (
+    'eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3',
+    'eeeeeee4-eeee-4eee-8eee-eeeeeeeeeee4'
+  );
+  DELETE FROM public.programs WHERE id = 'eeeeeee4-eeee-4eee-8eee-eeeeeeeeeee4';
+  DELETE FROM public.universities WHERE id = 'eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3';
+
   PERFORM gsc_tests.create_auth_user(editor, 'catalog-editor@example.invalid');
   PERFORM gsc_tests.create_auth_user(student, 'catalog-student@example.invalid');
 
@@ -114,18 +127,21 @@ END
 $$;
 
 SELECT is_empty(
-  $$SELECT id FROM public.catalog_universities_public$$,
+  $$SELECT id FROM public.catalog_universities_public
+    WHERE id = 'eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3'$$,
   'draft universities are invisible on the public projection'
 );
 
 SELECT is_empty(
-  $$SELECT id FROM public.catalog_programs_public$$,
+  $$SELECT id FROM public.catalog_programs_public
+    WHERE id = 'eeeeeee4-eeee-4eee-8eee-eeeeeeeeeee4'$$,
   'draft programs are invisible on the public projection'
 );
 
 SET ROLE authenticated;
 SELECT is_empty(
-  $$SELECT id FROM public.catalog_universities_public$$,
+  $$SELECT id FROM public.catalog_universities_public
+    WHERE id = 'eeeeeee3-eeee-4eee-8eee-eeeeeeeeeee3'$$,
   'authenticated users do not see draft universities via the public view'
 );
 SELECT throws_ok(

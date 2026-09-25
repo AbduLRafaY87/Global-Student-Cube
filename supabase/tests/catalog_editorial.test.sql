@@ -66,6 +66,12 @@ DECLARE
   editor uuid := 'ffffff01-ffff-4fff-8fff-ffffffffffff';
   uni uuid := 'ffffff02-ffff-4fff-8fff-ffffffffffff';
 BEGIN
+  DELETE FROM public.outbox_events
+  WHERE aggregate_id = 'ffffff02-ffff-4fff-8fff-ffffffffffff';
+  DELETE FROM public.source_facts
+  WHERE entity_id = 'ffffff02-ffff-4fff-8fff-ffffffffffff';
+  DELETE FROM public.universities WHERE id = 'ffffff02-ffff-4fff-8fff-ffffffffffff';
+
   PERFORM gsc_tests.create_auth_user(editor, 'catalog-ed@example.invalid');
   INSERT INTO public.accounts (id, auth_user_id, email_normalized, status)
   VALUES (editor, editor, 'catalog-ed@example.invalid', 'approved');

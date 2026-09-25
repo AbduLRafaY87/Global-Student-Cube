@@ -1,4 +1,5 @@
 import { EmptyState, ErrorState, ForbiddenState } from "@/components/ui/States";
+import { OpenCounselorConversation } from "@/app/(dashboard)/messages/_components/OpenCounselorConversation";
 import { loadCounselorCaseload } from "@/server/modules/counseling/load";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -73,6 +74,7 @@ export default async function CounselorStudentsPage({ params }: PageProps) {
             enter a shareable advisory automatically.
           </p>
           <nav className="flex flex-wrap gap-3 text-sm">
+            <OpenCounselorConversation caseId={selected} />
             <Link className="text-primary underline-offset-2 hover:underline" href={`/cases/${selected}/profile`}>
               Academic
             </Link>

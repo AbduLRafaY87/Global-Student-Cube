@@ -110,6 +110,41 @@ CREATE TABLE IF NOT EXISTS public.private_notes (
   body_cipher bytea NOT NULL
 );
 
+-- Leftover Tasks module (0014) already created public.tasks with student_id /
+-- due_date / is_completed / priority — not case_id. CREATE TABLE IF NOT EXISTS
+-- was a no-op, so the SES-12 index below failed. Keep leftover rows.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'tasks'
+      AND column_name = 'student_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'tasks'
+      AND column_name = 'case_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'leftover_tasks'
+  ) THEN
+    ALTER TABLE public.tasks RENAME TO leftover_tasks;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.leftover_tasks') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS tasks_select_own ON public.leftover_tasks';
+    EXECUTE 'DROP POLICY IF EXISTS tasks_insert_own ON public.leftover_tasks';
+    EXECUTE 'DROP POLICY IF EXISTS tasks_update_own ON public.leftover_tasks';
+    EXECUTE 'DROP POLICY IF EXISTS tasks_delete_own ON public.leftover_tasks';
+    EXECUTE 'DROP POLICY IF EXISTS tasks_select_linked_parent ON public.leftover_tasks';
+    REVOKE ALL ON TABLE public.leftover_tasks FROM PUBLIC, anon, authenticated, service_role;
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS public.tasks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),

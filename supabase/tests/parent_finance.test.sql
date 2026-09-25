@@ -32,7 +32,6 @@ BEGIN
     '',
     '',
     '',
-    '',
     ''
   );
 END;
@@ -42,12 +41,12 @@ DO $$
 DECLARE
   student_a uuid := 'aa000001-0001-4000-8000-0000000000a1';
   student_b uuid := 'aa000001-0001-4000-8000-0000000000b1';
-  parent_p uuid := 'aa000001-0001-4000-8000-0000000000p1';
-  parent_q uuid := 'aa000001-0001-4000-8000-0000000000q1';
+  parent_p uuid := 'aa000001-0001-4000-8000-0000000000d1';
+  parent_q uuid := 'aa000001-0001-4000-8000-0000000000e1';
   case_a uuid := 'aa000001-0001-4000-8000-0000000000c1';
   case_b uuid := 'aa000001-0001-4000-8000-0000000000c2';
-  link_a uuid := 'aa000001-0001-4000-8000-0000000000l1';
-  link_b uuid := 'aa000001-0001-4000-8000-0000000000l2';
+  link_a uuid := 'aa000001-0001-4000-8000-0000000000f1';
+  link_b uuid := 'aa000001-0001-4000-8000-0000000000f2';
 BEGIN
   PERFORM gsc_tests.create_auth_user(student_a, 'finance-a@example.invalid');
   PERFORM gsc_tests.create_auth_user(student_b, 'finance-b@example.invalid');
@@ -130,7 +129,7 @@ SELECT lives_ok(
 SELECT set_config(
   'request.jwt.claims',
   json_build_object(
-    'sub', 'aa000001-0001-4000-8000-0000000000q1',
+    'sub', 'aa000001-0001-4000-8000-0000000000e1',
     'role', 'authenticated',
     'requestId', 'req_fin_q'
   )::text,
@@ -152,7 +151,7 @@ SELECT is(
 SELECT set_config(
   'request.jwt.claims',
   json_build_object(
-    'sub', 'aa000001-0001-4000-8000-0000000000p1',
+    'sub', 'aa000001-0001-4000-8000-0000000000d1',
     'role', 'authenticated',
     'requestId', 'req_fin_p'
   )::text,
@@ -194,14 +193,14 @@ SELECT set_config(
 );
 
 SELECT lives_ok(
-  $$SELECT commands.revoke_parent_link('aa000001-0001-4000-8000-0000000000l1')$$,
+  $$SELECT commands.revoke_parent_link('aa000001-0001-4000-8000-0000000000f1')$$,
   'student can revoke an active parent link'
 );
 
 SELECT set_config(
   'request.jwt.claims',
   json_build_object(
-    'sub', 'aa000001-0001-4000-8000-0000000000p1',
+    'sub', 'aa000001-0001-4000-8000-0000000000d1',
     'role', 'authenticated',
     'requestId', 'req_fin_revoked'
   )::text,

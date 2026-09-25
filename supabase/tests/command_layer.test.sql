@@ -1,6 +1,9 @@
 -- Command-layer privileges, happy path, and atomic audit/outbox.
 BEGIN;
 
+GRANT gsc_api_executor TO CURRENT_USER;
+GRANT USAGE ON SCHEMA extensions TO gsc_api_executor;
+
 SELECT no_plan();
 
 CREATE SCHEMA IF NOT EXISTS gsc_tests;
@@ -163,6 +166,7 @@ SELECT throws_ok(
 RESET ROLE;
 
 SET ROLE gsc_api_executor;
+SET search_path TO public, extensions, commands;
 
 SELECT ok(
   (
@@ -243,6 +247,7 @@ SELECT is(
 );
 
 SET ROLE gsc_api_executor;
+SET search_path TO public, extensions, commands;
 
 SELECT is(
   (

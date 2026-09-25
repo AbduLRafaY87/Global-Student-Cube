@@ -3,6 +3,7 @@ import { nextUrgentDeadlines } from "@/domain/applications/groups";
 import {
   buildStudentHome,
   type HomeDeadlineItem,
+  type HomeMessageItem,
   type StudentHomeModel,
 } from "@/domain/home/home";
 import {
@@ -22,6 +23,7 @@ import {
 } from "@/server/modules/catalog/public";
 import { loadFinance } from "@/server/modules/finance/load";
 import { loadProfile, resolveAccessibleCase } from "@/server/modules/profile/load";
+import { loadUnansweredCounselorMessages } from "@/server/modules/messaging/load";
 import { loadSaveContext } from "@/server/modules/shortlist/load";
 
 function asString(value: unknown): string {
@@ -126,6 +128,27 @@ export async function loadStudentHome(userId: string): Promise<StudentHomeModel>
     }));
 
   const cards = await loadNamedShortlist(saveContext?.pairs ?? []);
+  const unanswered = await loadUnansweredCounselorMessages();
+  const unansweredCounselorMessages: HomeMessageItem[] = [];
+  if (unanswered.ok && Array.isArray(unanswered.data.items)) {
+    for (const row of unanswered.data.items) {
+      if (typeof row !== "object" || row === null) {
+        continue;
+      }
+      const item = row as Record<string, unknown>;
+      if (
+        typeof item.conversationId === "string" &&
+        typeof item.preview === "string" &&
+        typeof item.href === "string"
+      ) {
+        unansweredCounselorMessages.push({
+          conversationId: item.conversationId,
+          preview: item.preview,
+          href: item.href,
+        });
+      }
+    }
+  }
 
   return buildStudentHome({
     studentName: displayName || caseRow.studentName,
@@ -138,6 +161,7 @@ export async function loadStudentHome(userId: string): Promise<StudentHomeModel>
     shortlist: cards,
     deadlines,
     incompleteDocuments,
+    unansweredCounselorMessages,
     readiness:
       !finance || finance.savingsDeclined === null
         ? null

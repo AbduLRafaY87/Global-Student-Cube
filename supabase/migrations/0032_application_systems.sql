@@ -512,13 +512,13 @@ ON CONFLICT (code) DO NOTHING;
 INSERT INTO public.application_essay_requirements (
   system_id, kind, prompt_key, word_limit, required
 )
-SELECT id, 'one_statement', 'ucas.personal_statement', NULL, true
+SELECT id, 'one_statement', 'ucas.personal_statement', NULL::integer, true
 FROM public.application_systems WHERE code = 'ucas'
 UNION ALL
-SELECT id, 'shared_core', 'common_app.personal_essay', NULL, true
+SELECT id, 'shared_core', 'common_app.personal_essay', NULL::integer, true
 FROM public.application_systems WHERE code = 'common_app'
 UNION ALL
-SELECT id, 'shared_core', 'coalition.essay', NULL, true
+SELECT id, 'shared_core', 'coalition.essay', NULL::integer, true
 FROM public.application_systems WHERE code = 'coalition';
 
 INSERT INTO public.application_document_requirements (

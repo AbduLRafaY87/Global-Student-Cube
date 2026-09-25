@@ -1,6 +1,9 @@
+import { unansweredCounselorPreview, type HomeMessageItem } from "../messaging/messaging";
 import { profileStepHref, type CompletionReport } from "../profile/completion";
 import { NOT_PROVIDED } from "../catalog/display";
 import type { SemanticTone } from "../status";
+
+export type { HomeMessageItem };
 
 export interface HomeDeadlineItem {
   key: string;
@@ -43,7 +46,7 @@ export interface StudentHomeModel {
   shortlist: HomeWidget<HomeShortlistItem> & { savedCount: number };
   deadlines: HomeWidget<HomeDeadlineItem>;
   documents: HomeWidget<{ id: string; label: string }>;
-  messages: HomeWidget<never>;
+  messages: HomeWidget<HomeMessageItem>;
   session: HomeWidget<never>;
   tasks: HomeWidget<never>;
   scholarships: HomeWidget<never>;
@@ -71,6 +74,7 @@ export interface StudentHomeInput {
   shortlist: HomeShortlistItem[];
   deadlines: HomeDeadlineItem[];
   incompleteDocuments: Array<{ id: string; label: string }>;
+  unansweredCounselorMessages?: HomeMessageItem[];
   readiness:
     | {
         displayPercent: string | null;
@@ -179,10 +183,8 @@ export function buildStudentHome(input: StudentHomeInput): StudentHomeModel {
       emptyMessage: "No incomplete document requirements are listed.",
     },
     messages: {
-      empty: true,
-      href: "/messages",
-      items: [],
-      emptyMessage: "Counselor messaging is not available yet.",
+      ...unansweredCounselorPreview(input.unansweredCounselorMessages ?? []),
+      href: input.unansweredCounselorMessages?.[0]?.href ?? "/messages",
     },
     session: {
       empty: true,

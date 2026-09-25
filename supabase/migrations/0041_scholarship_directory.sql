@@ -21,6 +21,7 @@ SELECT
   s.deadline_date,
   s.deadline_month,
   s.deadline_precision,
+  s.publication_state,
   NULLIF(btrim(s.extended_details ->> 'eligibility_criteria'), '') AS eligibility_excerpt,
   NULLIF(btrim(s.extended_details ->> 'age_citizenship_restrictions'), '') AS age_citizenship,
   CASE
@@ -61,8 +62,7 @@ SELECT
     ''
   ) AS contact,
   NULLIF(btrim(s.extended_details ->> 'result_announcement_date'), '') AS result_date,
-  sf.verified_at,
-  s.publication_state
+  sf.verified_at
 FROM public.scholarships s
 LEFT JOIN public.source_facts sf ON sf.id = s.source_fact_id
 WHERE s.publication_state = 'published';

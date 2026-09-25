@@ -32,7 +32,6 @@ BEGIN
     '',
     '',
     '',
-    '',
     ''
   );
 END;
@@ -118,7 +117,8 @@ $$;
 SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
 
 SELECT lives_ok(
-  $$SELECT commands.save_program_pair(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.save_program_pair(
     'bbbb0001-0001-4000-8000-0000000000c1',
     'bbbb1000-0001-4000-8000-000000000001',
     'bbbb2000-0001-4000-8000-000000000001'
@@ -127,7 +127,8 @@ SELECT lives_ok(
 );
 
 SELECT lives_ok(
-  $$SELECT commands.save_program_pair(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.save_program_pair(
     'bbbb0001-0001-4000-8000-0000000000c1',
     'bbbb1000-0001-4000-8000-000000000002',
     'bbbb2000-0001-4000-8000-000000000002'
@@ -136,7 +137,8 @@ SELECT lives_ok(
 );
 
 SELECT lives_ok(
-  $$SELECT commands.save_program_pair(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.save_program_pair(
     'bbbb0001-0001-4000-8000-0000000000c1',
     'bbbb1000-0001-4000-8000-000000000003',
     'bbbb2000-0001-4000-8000-000000000003'
@@ -152,7 +154,8 @@ SELECT is(
 );
 
 SELECT lives_ok(
-  $$SELECT commands.save_program_pair(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.save_program_pair(
     'bbbb0001-0001-4000-8000-0000000000c1',
     'bbbb1000-0001-4000-8000-000000000001',
     'bbbb2000-0001-4000-8000-000000000001'
@@ -161,7 +164,8 @@ SELECT lives_ok(
 );
 
 SELECT throws_ok(
-  $$SELECT commands.save_program_pair(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.save_program_pair(
     'bbbb0001-0001-4000-8000-0000000000c1',
     'bbbb1000-0001-4000-8000-000000000004',
     'bbbb2000-0001-4000-8000-000000000004'
@@ -171,7 +175,8 @@ SELECT throws_ok(
 );
 
 SELECT throws_ok(
-  $$SELECT commands.set_review_flag(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.set_review_flag(
     'bbbb0001-0001-4000-8000-0000000000c1',
     'bbbb0001-0001-4000-8000-0000000000ff',
     true
@@ -181,7 +186,8 @@ SELECT throws_ok(
 );
 
 SELECT lives_ok(
-  $$SELECT commands.set_review_flag(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.set_review_flag(
     'bbbb0001-0001-4000-8000-0000000000c1',
     (SELECT id FROM public.saved_program_pairs
       WHERE case_id = 'bbbb0001-0001-4000-8000-0000000000c1'
@@ -200,7 +206,8 @@ SELECT is(
 );
 
 SELECT lives_ok(
-  $$SELECT commands.remove_saved_program(
+  $$SELECT gsc_tests.set_claims('bbbb0001-0001-4000-8000-0000000000a1');
+    SELECT commands.remove_saved_program(
     'bbbb0001-0001-4000-8000-0000000000c1',
     (SELECT id FROM public.saved_program_pairs
       WHERE case_id = 'bbbb0001-0001-4000-8000-0000000000c1'

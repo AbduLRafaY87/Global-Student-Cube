@@ -295,6 +295,48 @@ INSERT INTO public.taxonomy_terms (id, parent_id, kind, code, label) VALUES
   )
 ON CONFLICT (kind, code) DO NOTHING;
 
+-- Leftover prototype universities used full names or non-ISO codes
+-- (USA, Canada, Australia, UK). The ISO-2 guard below must not invent
+-- codes (including UK → GB). First linked push confirmed these rows were
+-- leftover seed only: Harvard/USA, Melbourne/Australia, Toronto/Canada,
+-- Oxford/UK; zero applications, cases, essays, interviews, housing,
+-- alumni, offers, or 0032 requirement rows referenced them.
+DELETE FROM public.application_deadlines d
+USING public.universities u
+WHERE d.university_id = u.id
+  AND (
+    length(btrim(u.country)) <> 2
+    OR NOT EXISTS (
+      SELECT 1 FROM public.countries c WHERE c.code = btrim(u.country)
+    )
+  );
+
+DELETE FROM public.application_essay_requirements er
+USING public.universities u
+WHERE er.university_id = u.id
+  AND (
+    length(btrim(u.country)) <> 2
+    OR NOT EXISTS (
+      SELECT 1 FROM public.countries c WHERE c.code = btrim(u.country)
+    )
+  );
+
+DELETE FROM public.application_document_requirements dr
+USING public.universities u
+WHERE dr.university_id = u.id
+  AND (
+    length(btrim(u.country)) <> 2
+    OR NOT EXISTS (
+      SELECT 1 FROM public.countries c WHERE c.code = btrim(u.country)
+    )
+  );
+
+DELETE FROM public.universities
+WHERE length(btrim(country)) <> 2
+   OR NOT EXISTS (
+     SELECT 1 FROM public.countries c WHERE c.code = btrim(universities.country)
+   );
+
 DO $$
 BEGIN
   IF EXISTS (

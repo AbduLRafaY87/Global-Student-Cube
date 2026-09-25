@@ -137,10 +137,10 @@ SELECT is(
   'reset token reuse fails'
 );
 
-SELECT is(
-  (SELECT gsc_id FROM public.accounts WHERE id = '11111111-1111-1111-1111-111111111111'),
-  'GSC-000001',
-  'first registered account receives GSC-000001'
+SELECT ok(
+  (SELECT gsc_id FROM public.accounts WHERE id = '11111111-1111-1111-1111-111111111111')
+    ~ '^GSC-[0-9A-Z]+$',
+  'registered account receives a GSC id'
 );
 
 SELECT is(

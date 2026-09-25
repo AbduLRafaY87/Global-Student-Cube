@@ -189,7 +189,19 @@ export default async function StudentHomePage() {
 
       <section className="rounded-[var(--radius-card)] border border-border bg-surface p-4">
         <h2 className="text-lg font-semibold text-text">Counselor messages</h2>
-        <EmptyState title="No unanswered messages" message={home.messages.emptyMessage} />
+        {home.messages.empty ? (
+          <EmptyState title="No unanswered messages" message={home.messages.emptyMessage} />
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm text-text">
+            {home.messages.items.map((item) => (
+              <li key={item.conversationId}>
+                <Link className="text-primary underline-offset-2 hover:underline" href={item.href}>
+                  {item.preview}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
         <Link className="mt-3 inline-flex text-sm text-primary underline-offset-2 hover:underline" href={home.messages.href}>
           Messages
         </Link>

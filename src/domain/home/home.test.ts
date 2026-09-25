@@ -42,7 +42,7 @@ describe("student home widgets", () => {
     assert.equal(home.news.empty, true);
     assert.equal(home.journey.empty, true);
     assert.ok(home.nextActions.some((action) => action.href === "/profile"));
-    assert.equal(home.messages.emptyMessage.includes("not available yet"), true);
+    assert.equal(home.messages.emptyMessage.includes("unanswered counselor"), true);
   });
 
   it("shows real shortlist, deadline and readiness values for a complete student without filling empty modules", () => {
@@ -76,6 +76,13 @@ describe("student home widgets", () => {
           },
         ],
         incompleteDocuments: [{ id: "f1", label: "Transcript in review" }],
+        unansweredCounselorMessages: [
+          {
+            conversationId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            preview: "Please reply when you can",
+            href: "/messages/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          },
+        ],
         readiness: {
           displayPercent: "120.0",
           barValue: 100,
@@ -98,7 +105,8 @@ describe("student home widgets", () => {
     assert.equal(home.readiness.displayPercent, "120.0");
     assert.equal(home.readiness.barValue, 100);
     assert.equal(home.session.empty, true);
-    assert.equal(home.messages.empty, true);
+    assert.equal(home.messages.empty, false);
+    assert.equal(home.messages.items[0]?.preview, "Please reply when you can");
     assert.equal(home.news.empty, true);
   });
 

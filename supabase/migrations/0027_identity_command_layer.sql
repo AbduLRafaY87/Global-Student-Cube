@@ -690,30 +690,35 @@ ALTER TABLE public.identities FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.cases FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.consent_events FORCE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS countries_select_authenticated ON public.countries;
 CREATE POLICY countries_select_authenticated
   ON public.countries
   FOR SELECT
   TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS accounts_select_own ON public.accounts;
 CREATE POLICY accounts_select_own
   ON public.accounts
   FOR SELECT
   TO authenticated
   USING (id = auth.uid());
 
+DROP POLICY IF EXISTS identities_select_own ON public.identities;
 CREATE POLICY identities_select_own
   ON public.identities
   FOR SELECT
   TO authenticated
   USING (account_id = auth.uid());
 
+DROP POLICY IF EXISTS cases_select_own ON public.cases;
 CREATE POLICY cases_select_own
   ON public.cases
   FOR SELECT
   TO authenticated
   USING (student_account_id = auth.uid());
 
+DROP POLICY IF EXISTS consent_events_select_own ON public.consent_events;
 CREATE POLICY consent_events_select_own
   ON public.consent_events
   FOR SELECT

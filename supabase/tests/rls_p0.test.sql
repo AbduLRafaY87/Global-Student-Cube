@@ -186,7 +186,7 @@ BEGIN
   INSERT INTO public.counselor_assignments (student_id, counselor_id)
   VALUES (student_a, counselor_id);
 
-  INSERT INTO public.messages (sender_id, receiver_id, content)
+  INSERT INTO public.leftover_messages (sender_id, receiver_id, content)
   VALUES
     (student_a, counselor_id, 'hello from a'),
     (student_b, counselor_id, 'hello from b');
@@ -198,7 +198,7 @@ BEGIN
     (student_a, '2027-04-01T10:00:00Z', 'Int A', 'scheduled'),
     (student_b, '2027-04-01T10:00:00Z', 'Int B', 'scheduled');
 
-  INSERT INTO public.tasks (student_id, title, due_date, priority)
+  INSERT INTO public.leftover_tasks (student_id, title, due_date, priority)
   VALUES
     (student_a, 'Task A', '2027-05-01', 'low'),
     (student_b, 'Task B', '2027-05-01', 'low');
@@ -252,6 +252,37 @@ BEGIN
     (admin_id, 'Admin note', 'Secret admin body');
 END;
 $$;
+
+GRANT SELECT ON public.leftover_messages TO authenticated, anon;
+GRANT SELECT ON public.leftover_tasks TO authenticated, anon;
+
+DROP POLICY IF EXISTS leftover_messages_select_participants ON public.leftover_messages;
+CREATE POLICY leftover_messages_select_participants
+  ON public.leftover_messages
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+
+DROP POLICY IF EXISTS leftover_tasks_select_own ON public.leftover_tasks;
+CREATE POLICY leftover_tasks_select_own
+  ON public.leftover_tasks
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = student_id);
+
+DROP POLICY IF EXISTS leftover_tasks_select_linked_parent ON public.leftover_tasks;
+CREATE POLICY leftover_tasks_select_linked_parent
+  ON public.leftover_tasks
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.parent_student_links AS links
+      WHERE links.parent_id = auth.uid()
+        AND links.student_id = leftover_tasks.student_id
+    )
+  );
 
 SELECT hasnt_table('public', 'users', 'public.users is gone');
 
@@ -395,8 +426,8 @@ SELECT isnt_empty(
 );
 
 SELECT is_empty(
-  $$SELECT id FROM public.messages WHERE sender_id = '22222222-2222-4222-8222-222222222222'$$,
-  'student cannot read unrelated messages'
+  $$SELECT id FROM public.leftover_messages WHERE sender_id = '22222222-2222-4222-8222-222222222222'$$,
+  'student cannot read unrelated leftover messages'
 );
 
 SELECT is_empty(
@@ -405,8 +436,8 @@ SELECT is_empty(
 );
 
 SELECT is_empty(
-  $$SELECT id FROM public.tasks WHERE student_id = '22222222-2222-4222-8222-222222222222'$$,
-  'student cannot read another tasks row'
+  $$SELECT id FROM public.leftover_tasks WHERE student_id = '22222222-2222-4222-8222-222222222222'$$,
+  'student cannot read another leftover tasks row'
 );
 
 SELECT is_empty(
@@ -481,8 +512,8 @@ SELECT is_empty(
 );
 
 SELECT isnt_empty(
-  $$SELECT id FROM public.tasks WHERE student_id = '11111111-1111-4111-8111-111111111111'$$,
-  'parent can read linked student tasks'
+  $$SELECT id FROM public.leftover_tasks WHERE student_id = '11111111-1111-4111-8111-111111111111'$$,
+  'parent can read linked student leftover tasks'
 );
 
 SELECT is_empty(
@@ -512,8 +543,8 @@ SELECT is_empty(
 );
 
 SELECT isnt_empty(
-  $$SELECT id FROM public.messages WHERE sender_id = '11111111-1111-4111-8111-111111111111'$$,
-  'counselor can read messages with assigned student'
+  $$SELECT id FROM public.leftover_messages WHERE sender_id = '11111111-1111-4111-8111-111111111111'$$,
+  'counselor can read leftover messages with assigned student'
 );
 
 SELECT is_empty(
@@ -564,6 +595,10 @@ SELECT throws_ok(
 RESET ROLE;
 SELECT gsc_tests.clear_jwt();
 
+GRANT SELECT ON public.universities TO anon;
+GRANT SELECT ON public.housing_options TO anon;
+GRANT SELECT ON public.alumni_profiles TO anon;
+
 SET ROLE anon;
 
 SELECT is_empty($$SELECT id FROM public.user_profiles$$, 'anon sees no user_profiles');
@@ -574,9 +609,21 @@ SELECT is_empty($$SELECT id FROM public.essays$$, 'anon sees no essays');
 SELECT is_empty($$SELECT id FROM public.recommendations$$, 'anon sees no recommendations');
 SELECT is_empty($$SELECT id FROM public.test_scores_log$$, 'anon sees no test_scores_log');
 SELECT is_empty($$SELECT id FROM public.counselor_assignments$$, 'anon sees no counselor_assignments');
-SELECT is_empty($$SELECT id FROM public.messages$$, 'anon sees no messages');
+SELECT is_empty($$SELECT id FROM public.leftover_messages$$, 'anon sees no leftover messages');
+SELECT throws_ok(
+  $$SELECT id FROM public.messages$$,
+  '42501',
+  NULL,
+  'anon cannot SELECT spec messages'
+);
 SELECT is_empty($$SELECT id FROM public.interview_sessions$$, 'anon sees no interview_sessions');
-SELECT is_empty($$SELECT id FROM public.tasks$$, 'anon sees no tasks');
+SELECT is_empty($$SELECT id FROM public.leftover_tasks$$, 'anon sees no leftover tasks');
+SELECT throws_ok(
+  $$SELECT id FROM public.tasks$$,
+  '42501',
+  NULL,
+  'anon cannot SELECT spec tasks'
+);
 SELECT is_empty($$SELECT id FROM public.parent_student_links$$, 'anon sees no parent_student_links');
 SELECT is_empty($$SELECT id FROM public.activities$$, 'anon sees no activities');
 SELECT is_empty($$SELECT id FROM public.visa_checklists$$, 'anon sees no visa_checklists');
