@@ -14,7 +14,7 @@ import { formatGscId } from "./gsc-id";
 import { isPasswordPolicyMet, validatePassword } from "./password";
 import { projectedHomeRole } from "./home-role";
 import { isInviteUsable } from "./invitations";
-import { privilegedMfaRedirect } from "./mfa";
+import { privilegedMfaRedirect, toAssuranceLevel } from "./mfa";
 import {
   consumeResetToken,
   isResetTokenReuseError,
@@ -250,6 +250,10 @@ describe("access and reset tokens", () => {
     assert.equal(privilegedMfaRedirect("/counselor", "counselor", "aal2"), null);
     assert.equal(privilegedMfaRedirect("/counselor", "student", "aal1"), null);
     assert.equal(privilegedMfaRedirect("/profile", "counselor", "aal1"), null);
+    assert.equal(toAssuranceLevel("aal1"), "aal1");
+    assert.equal(toAssuranceLevel("aal2"), "aal2");
+    assert.equal(toAssuranceLevel("aal3"), "none");
+    assert.equal(toAssuranceLevel(null), "none");
   });
 
   it("rejects expired or reused invites and consumed recovery codes", () => {

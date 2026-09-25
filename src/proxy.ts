@@ -5,10 +5,7 @@ import {
   verifiedAuthEntryRedirect,
 } from "@/domain/identity/access";
 import { isSuspended, type AccountStatus } from "@/domain/identity/account-status";
-import {
-  privilegedMfaRedirect,
-  type AssuranceLevel,
-} from "@/domain/identity/mfa";
+import { privilegedMfaRedirect, toAssuranceLevel } from "@/domain/identity/mfa";
 import {
   dashboardRoleRedirect,
   homePathForRole,
@@ -105,14 +102,11 @@ export async function proxy(request: NextRequest) {
   const role = resolveUserRole(profile?.role);
   const homePath = homePathForRole(role);
 
-  let assurance: AssuranceLevel = emailVerified ? "aal1" : "none";
+  const emailAssurance = emailVerified ? "aal1" : "none";
+  let assurance = toAssuranceLevel(emailAssurance);
   try {
     const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (data?.currentLevel === "aal2") {
-      assurance = "aal2";
-    } else if (data?.currentLevel === "aal1") {
-      assurance = "aal1";
-    }
+    assurance = toAssuranceLevel(data?.currentLevel ?? emailAssurance);
   } catch {
     // Email-derived assurance is enough to force enrollment.
   }

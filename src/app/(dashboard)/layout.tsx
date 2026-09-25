@@ -5,7 +5,7 @@ import {
   DASHBOARD_NAV,
   dashboardRoleRedirect,
 } from "@/domain/navigation";
-import { privilegedMfaRedirect } from "@/domain/identity/mfa";
+import { privilegedMfaRedirect, toAssuranceLevel } from "@/domain/identity/mfa";
 import { resolveUserRole } from "@/domain/roles";
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
@@ -45,14 +45,12 @@ export default async function DashboardRouteLayout({
   const role = resolveUserRole(profile?.role);
   const pathname = (await headers()).get("x-gsc-pathname") ?? "";
 
-  let assurance: "none" | "aal1" | "aal2" = "aal1";
+  let assurance = toAssuranceLevel("aal1");
   try {
     const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (data?.currentLevel === "aal2" || data?.currentLevel === "aal1") {
-      assurance = data.currentLevel;
-    }
+    assurance = toAssuranceLevel(data?.currentLevel ?? "aal1");
   } catch {
-    assurance = "aal1";
+    assurance = toAssuranceLevel("aal1");
   }
 
   const mfaPath = privilegedMfaRedirect(pathname, role, assurance);

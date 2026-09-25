@@ -46,3 +46,47 @@ export function canonicalHash(value: unknown): string {
 export function pathHash(path: string): string {
   return createHash("sha256").update(path, "utf8").digest("hex");
 }
+
+export function optionalLiteral<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  path: string,
+): T | "" {
+  if (value === undefined || value === null || value === "") {
+    return "";
+  }
+  return requiredLiteral(value, allowed, path);
+}
+
+export function requiredLiteral<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  path: string,
+): T {
+  if (typeof value === "string") {
+    for (const option of allowed) {
+      if (value === option) {
+        return option;
+      }
+    }
+  }
+  throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.", {
+    fields: [{ path, code: "INVALID" }],
+  });
+}
+
+export function asObjectRecord(
+  value: unknown,
+  path: string,
+): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.", {
+      fields: [{ path, code: "INVALID" }],
+    });
+  }
+  const record: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    record[key] = entry;
+  }
+  return record;
+}

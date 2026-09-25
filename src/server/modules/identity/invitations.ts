@@ -1,4 +1,4 @@
-import type { RequestContext } from "@/server/context";
+import type { GuestContext, RequestContext } from "@/server/context";
 import { queryCommand } from "@/server/executor";
 
 export async function createInvitationSql(
@@ -41,7 +41,7 @@ export async function revokeInvitationSql(
 }
 
 export async function previewInvitationSql(
-  context: RequestContext,
+  context: RequestContext | GuestContext,
   tokenHash: string,
 ): Promise<{ id: string; role: string; expiresAt: string }> {
   const row = await queryCommand<{

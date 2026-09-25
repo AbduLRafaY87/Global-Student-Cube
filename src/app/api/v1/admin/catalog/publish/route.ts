@@ -1,8 +1,6 @@
 import {
   CATALOG_ENTITY_TYPES,
   CATALOG_PUBLICATION_STATES,
-  type CatalogEntityType,
-  type CatalogPublicationState,
 } from "@/domain/catalog/catalog";
 import { resolveRequestContext } from "@/server/context";
 import { CommandError } from "@/server/errors";
@@ -10,6 +8,7 @@ import {
   assertBodySize,
   assertJsonContentType,
   rejectUnknownKeys,
+  requiredLiteral,
 } from "@/server/http/body";
 import { newRequestId } from "@/server/http/envelope";
 import { requireIdempotencyKey } from "@/server/http/headers";
@@ -39,18 +38,6 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Body;
     rejectUnknownKeys(body as Record<string, unknown>, ALLOWED_KEYS);
 
-    if (
-      typeof body.entityType !== "string" ||
-      !(CATALOG_ENTITY_TYPES as readonly string[]).includes(body.entityType)
-    ) {
-      throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
-    }
-    if (
-      typeof body.nextState !== "string" ||
-      !(CATALOG_PUBLICATION_STATES as readonly string[]).includes(body.nextState)
-    ) {
-      throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
-    }
     if (typeof body.entityId !== "string") {
       throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
     }
@@ -58,9 +45,13 @@ export async function POST(request: Request) {
     const context = await resolveRequestContext(requestId);
     requireAdminContext(context);
     const payload = await setCatalogPublicationStateCommand(context, {
-      entityType: body.entityType as CatalogEntityType,
+      entityType: requiredLiteral(body.entityType, CATALOG_ENTITY_TYPES, "entityType"),
       entityId: requireUuid(body.entityId, "entityId"),
-      nextState: body.nextState as CatalogPublicationState,
+      nextState: requiredLiteral(
+        body.nextState,
+        CATALOG_PUBLICATION_STATES,
+        "nextState",
+      ),
       reason: requiredReason(body.reason),
     });
     return commandSuccess(payload, requestId);

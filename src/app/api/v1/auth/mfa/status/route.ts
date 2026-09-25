@@ -1,3 +1,4 @@
+import { toAssuranceLevel } from "@/domain/identity/mfa";
 import { createClient } from "@/lib/supabase/server";
 import { CommandError } from "@/server/errors";
 import { newRequestId } from "@/server/http/envelope";
@@ -27,8 +28,8 @@ export async function GET() {
 
     return commandSuccess(
       {
-        currentLevel: aal?.currentLevel ?? "aal1",
-        nextLevel: aal?.nextLevel ?? "aal1",
+        currentLevel: toAssuranceLevel(aal?.currentLevel ?? "aal1"),
+        nextLevel: toAssuranceLevel(aal?.nextLevel ?? "aal1"),
         factors: totp,
       },
       requestId,

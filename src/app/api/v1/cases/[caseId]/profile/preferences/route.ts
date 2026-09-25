@@ -1,9 +1,16 @@
-import { validatePreferences } from "@/domain/profile/preferences";
+import {
+  ACCOMMODATION_PREFERENCES,
+  TARGET_LEVELS,
+  validatePreferences,
+  type CountryPreferenceInput,
+} from "@/domain/profile/preferences";
 import { resolveRequestContext } from "@/server/context";
 import { CommandError } from "@/server/errors";
 import {
+  asObjectRecord,
   assertBodySize,
   assertJsonContentType,
+  optionalLiteral,
   rejectUnknownKeys,
 } from "@/server/http/body";
 import { newRequestId } from "@/server/http/envelope";
@@ -29,6 +36,22 @@ interface RouteParams {
   params: Promise<{ caseId: string }>;
 }
 
+function parseCountries(raw: unknown): CountryPreferenceInput[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.map((item, index) => {
+    const row = asObjectRecord(item, `countries.${index}`);
+    return {
+      countryCode: typeof row.countryCode === "string" ? row.countryCode : "",
+      priority: typeof row.priority === "number" ? row.priority : 0,
+      cities: Array.isArray(row.cities)
+        ? row.cities.filter((city): city is string => typeof city === "string")
+        : [],
+    };
+  });
+}
+
 export async function PATCH(request: Request, { params }: RouteParams) {
   const requestId = newRequestId();
   try {
@@ -48,7 +71,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       {
         continuingField:
           typeof body.continuingField === "boolean" ? body.continuingField : null,
-        targetLevel: typeof body.targetLevel === "string" ? body.targetLevel : "",
+        targetLevel: optionalLiteral(body.targetLevel, TARGET_LEVELS, "targetLevel"),
         fieldIds: Array.isArray(body.fieldIds)
           ? body.fieldIds.filter((item): item is string => typeof item === "string")
           : [],
@@ -61,12 +84,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         specializationIds: Array.isArray(body.specializationIds)
           ? body.specializationIds.filter((item): item is string => typeof item === "string")
           : [],
-        countries: (Array.isArray(body.countries) ? body.countries : []) as never,
+        countries: parseCountries(body.countries),
         intakeMonth: typeof body.intakeMonth === "number" ? body.intakeMonth : null,
         intakeYear: typeof body.intakeYear === "number" ? body.intakeYear : null,
         intakeUndecided: Boolean(body.intakeUndecided),
-        accommodation:
-          typeof body.accommodation === "string" ? body.accommodation : "",
+        accommodation: optionalLiteral(
+          body.accommodation,
+          ACCOMMODATION_PREFERENCES,
+          "accommodation",
+        ),
       },
       count ?? 0,
       null,

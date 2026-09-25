@@ -7,6 +7,13 @@ export const PRIVILEGED_PATH_PREFIXES = ["/admin", "/counselor"] as const;
 
 export type AssuranceLevel = "none" | "aal1" | "aal2";
 
+export function toAssuranceLevel(value: string | null | undefined): AssuranceLevel {
+  if (value === "aal1" || value === "aal2") {
+    return value;
+  }
+  return "none";
+}
+
 export function isPrivilegedPath(pathname: string): boolean {
   return PRIVILEGED_PATH_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),

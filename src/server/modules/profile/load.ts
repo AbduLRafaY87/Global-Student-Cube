@@ -258,7 +258,7 @@ export async function loadProfile(caseId: string, userId: string): Promise<Loade
       return [];
     }
     const rawSubs = Array.isArray(row.subscores) ? row.subscores : [];
-    const subscores: TestSubscoreInput[] = rawSubs.flatMap((item) => {
+    const subscores: TestSubscoreInput[] = rawSubs.flatMap((item: unknown) => {
       if (typeof item !== "object" || item === null) {
         return [];
       }

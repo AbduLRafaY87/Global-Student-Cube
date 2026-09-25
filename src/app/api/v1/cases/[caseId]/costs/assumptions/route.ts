@@ -6,6 +6,7 @@ import {
   assertBodySize,
   assertJsonContentType,
   rejectUnknownKeys,
+  requiredLiteral,
 } from "@/server/http/body";
 import { newRequestId } from "@/server/http/envelope";
 import { parseIfMatchVersion } from "@/server/http/headers";
@@ -27,10 +28,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const expectedVersion = parseIfMatchVersion(request.headers.get("if-match"));
     const body = (await request.json()) as Record<string, unknown>;
     rejectUnknownKeys(body, ALLOWED_KEYS);
-    const horizon = typeof body.horizon === "string" ? body.horizon : "first_year";
-    if (!(COST_HORIZONS as readonly string[]).includes(horizon)) {
-      throw new CommandError("VALIDATION_FAILED", "Check the highlighted fields.");
-    }
+    const horizon =
+      body.horizon === undefined || body.horizon === null || body.horizon === ""
+        ? "first_year"
+        : requiredLiteral(body.horizon, COST_HORIZONS, "horizon");
     const nights =
       typeof body.nightsPerMonth === "number" ? body.nightsPerMonth : 30;
     if (!Number.isInteger(nights) || nights < 1 || nights > 31) {

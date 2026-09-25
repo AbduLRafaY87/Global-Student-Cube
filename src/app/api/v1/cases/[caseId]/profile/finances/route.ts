@@ -1,5 +1,10 @@
 import {
   canCompleteModule3,
+  HOUSING_CONSTRUCTIONS,
+  HOUSING_DISCLOSURES,
+  HOUSING_ROOMS,
+  HOUSING_STATUSES,
+  HOUSING_STRUCTURES,
   type FinancialInput,
   type HousingInput,
   type TriState,
@@ -9,8 +14,10 @@ import {
 import { resolveRequestContext } from "@/server/context";
 import { CommandError } from "@/server/errors";
 import {
+  asObjectRecord,
   assertBodySize,
   assertJsonContentType,
+  optionalLiteral,
   rejectUnknownKeys,
 } from "@/server/http/body";
 import { newRequestId } from "@/server/http/envelope";
@@ -35,10 +42,8 @@ interface RouteParams {
   params: Promise<{ caseId: string }>;
 }
 
-function asTri(value: unknown): TriState | "" {
-  return typeof value === "string" && (TRI_STATES as readonly string[]).includes(value)
-    ? (value as TriState)
-    : "";
+function asTri(value: unknown, path: string): TriState | "" {
+  return optionalLiteral(value, TRI_STATES, path);
 }
 
 function asMoney(value: unknown): number | null {
@@ -53,18 +58,30 @@ function asMoney(value: unknown): number | null {
 }
 
 function asHousing(value: unknown): HousingInput {
-  const record =
-    typeof value === "object" && value !== null && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : {};
+  if (value === undefined || value === null || value === "") {
+    return {
+      disclosure: "",
+      status: "",
+      structure: "",
+      structureOther: "",
+      construction: "",
+      rooms: "",
+    };
+  }
+  const record = asObjectRecord(value, "housing");
   return {
-    disclosure: typeof record.disclosure === "string" ? record.disclosure : "",
-    status: typeof record.status === "string" ? record.status : "",
-    structure: typeof record.structure === "string" ? record.structure : "",
-    structureOther: typeof record.structureOther === "string" ? record.structureOther : "",
-    construction: typeof record.construction === "string" ? record.construction : "",
-    rooms: typeof record.rooms === "string" ? record.rooms : "",
-  } as HousingInput;
+    disclosure: optionalLiteral(record.disclosure, HOUSING_DISCLOSURES, "housing.disclosure"),
+    status: optionalLiteral(record.status, HOUSING_STATUSES, "housing.status"),
+    structure: optionalLiteral(record.structure, HOUSING_STRUCTURES, "housing.structure"),
+    structureOther:
+      typeof record.structureOther === "string" ? record.structureOther : "",
+    construction: optionalLiteral(
+      record.construction,
+      HOUSING_CONSTRUCTIONS,
+      "housing.construction",
+    ),
+    rooms: optionalLiteral(record.rooms, HOUSING_ROOMS, "housing.rooms"),
+  };
 }
 
 export function financialInputFromBody(body: Record<string, unknown>): FinancialInput {
@@ -77,8 +94,8 @@ export function financialInputFromBody(body: Record<string, unknown>): Financial
     savingsCurrency: typeof body.savingsCurrency === "string" ? body.savingsCurrency : null,
     savingsDeclined: typeof body.savingsDeclined === "boolean" ? body.savingsDeclined : null,
     housing: asHousing(body.housing),
-    sponsorAvailable: asTri(body.sponsorAvailable),
-    incomeProofAvailable: asTri(body.incomeProofAvailable),
+    sponsorAvailable: asTri(body.sponsorAvailable, "sponsorAvailable"),
+    incomeProofAvailable: asTri(body.incomeProofAvailable, "incomeProofAvailable"),
   };
 }
 
