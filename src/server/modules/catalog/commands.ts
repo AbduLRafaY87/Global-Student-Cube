@@ -404,11 +404,17 @@ export async function upsertAccommodationCommand(
     currency: string | null;
     basis: string;
     reason: string;
+    mealIncluded?: boolean;
+    priceSourceType?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    address?: string | null;
+    includedCosts?: unknown;
   },
 ): Promise<{ id: string }> {
   const row = await queryCommand<PayloadRow<{ id: string }>>(
     context,
-    `SELECT commands.upsert_accommodation($1,$2,$3,$4,$5,$6,$7,$8) AS payload`,
+    `SELECT commands.upsert_accommodation($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb) AS payload`,
     [
       input.id,
       input.universityId,
@@ -418,6 +424,12 @@ export async function upsertAccommodationCommand(
       input.currency,
       input.basis,
       input.reason,
+      input.mealIncluded ?? false,
+      input.priceSourceType ?? null,
+      input.latitude ?? null,
+      input.longitude ?? null,
+      input.address ?? null,
+      JSON.stringify(input.includedCosts ?? []),
     ],
   );
   return row.payload;
@@ -564,4 +576,97 @@ export interface CatalogIngestionDetail {
     excerpt: string | null;
     decision: string;
   }>;
+}
+
+export async function upsertCountryGuidanceCommand(
+  context: RequestContext,
+  input: { id: string | null; payload: Record<string, unknown>; reason: string },
+): Promise<{ id: string }> {
+  const row = await queryCommand<PayloadRow<{ id: string }>>(
+    context,
+    `SELECT commands.upsert_country_guidance($1, $2::jsonb, $3) AS payload`,
+    [input.id, JSON.stringify(input.payload), input.reason],
+  );
+  return row.payload;
+}
+
+export async function getCountryGuidanceCommand(
+  context: RequestContext,
+  id: string,
+): Promise<Record<string, unknown>> {
+  const row = await queryCommand<PayloadRow<Record<string, unknown>>>(
+    context,
+    `SELECT commands.get_country_guidance($1) AS payload`,
+    [id],
+  );
+  return row.payload;
+}
+
+export async function getCaseVisaGuidanceCommand(
+  context: RequestContext,
+  caseId: string,
+): Promise<Record<string, unknown>> {
+  const row = await queryCommand<PayloadRow<Record<string, unknown>>>(
+    context,
+    `SELECT commands.get_case_visa_guidance($1::uuid) AS payload`,
+    [caseId],
+  );
+  return row.payload;
+}
+
+export async function setVisaRequirementProgressCommand(
+  context: RequestContext,
+  input: {
+    caseId: string;
+    country: string;
+    documentKey: string;
+    status: string;
+    notes: string | null;
+  },
+): Promise<{ id: string; status: string }> {
+  const row = await queryCommand<PayloadRow<{ id: string; status: string }>>(
+    context,
+    `SELECT commands.set_visa_requirement_progress($1::uuid, $2, $3, $4, $5) AS payload`,
+    [input.caseId, input.country, input.documentKey, input.status, input.notes],
+  );
+  return row.payload;
+}
+
+export async function addVisaRequirementToRoadmapCommand(
+  context: RequestContext,
+  caseId: string,
+  title: string,
+): Promise<{ id: string; duplicated: boolean }> {
+  const row = await queryCommand<PayloadRow<{ id: string; duplicated: boolean }>>(
+    context,
+    `SELECT commands.add_visa_requirement_to_roadmap($1::uuid, $2) AS payload`,
+    [caseId, title],
+  );
+  return row.payload;
+}
+
+export async function listQuarterlyReviewRemindersCommand(
+  context: RequestContext,
+  limit: number,
+  offset: number,
+): Promise<Record<string, unknown>> {
+  const row = await queryCommand<PayloadRow<Record<string, unknown>>>(
+    context,
+    `SELECT commands.list_quarterly_review_reminders($1, $2) AS payload`,
+    [limit, offset],
+  );
+  return row.payload;
+}
+
+export async function traceSourceRevisionCommand(
+  context: RequestContext,
+  entityType: string,
+  entityId: string,
+): Promise<Record<string, unknown>> {
+  const row = await queryCommand<PayloadRow<Record<string, unknown>>>(
+    context,
+    `SELECT commands.trace_source_revision($1, $2::uuid) AS payload`,
+    [entityType, entityId],
+  );
+  return row.payload;
 }

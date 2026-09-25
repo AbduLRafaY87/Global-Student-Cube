@@ -21,6 +21,7 @@ import {
   fetchPublishedSources,
   fetchPublishedUniversities,
 } from "@/server/modules/catalog/public";
+import { AccommodationCards } from "@/components/catalog/AccommodationCards";
 import { Calculator } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -193,9 +194,11 @@ export default async function ProgramDetailPage({ params }: PageProps) {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-text">Accommodation and scholarships</h2>
-        <p className="text-sm text-text">
-          Accommodation: {universityHousing.length === 0 ? NOT_PROVIDED : `${universityHousing.length} published rows`}
-        </p>
+        <AccommodationCards
+          rows={universityHousing}
+          city={university.city}
+          country={university.country}
+        />
         <p className="text-sm text-text">
           Scholarships: {relatedScholarships.length === 0 ? NOT_PROVIDED : `${relatedScholarships.length} published rows`}
         </p>

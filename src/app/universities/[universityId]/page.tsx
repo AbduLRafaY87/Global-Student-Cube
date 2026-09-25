@@ -14,6 +14,7 @@ import {
   fetchPublishedSources,
   fetchPublishedUniversities,
 } from "@/server/modules/catalog/public";
+import { AccommodationCards } from "@/components/catalog/AccommodationCards";
 import { ExternalLink, MapPin } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -146,17 +147,11 @@ export default async function UniversityDetailPage({ params }: PageProps) {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-text">Accommodation</h2>
-        {universityHousing.length === 0 ? (
-          <p className="text-sm text-text-muted">{NOT_PROVIDED}</p>
-        ) : (
-          <ul className="grid gap-3">
-            {universityHousing.map((row) => (
-              <li key={row.id} className="rounded-[var(--radius-card)] border border-border bg-surface p-4 text-sm text-text">
-                {row.name} · {row.type} · {row.basis} · {row.amount ?? NOT_PROVIDED} {row.currency ?? ""}
-              </li>
-            ))}
-          </ul>
-        )}
+        <AccommodationCards
+          rows={universityHousing}
+          city={university.city}
+          country={university.country}
+        />
       </section>
 
       <section className="space-y-3">

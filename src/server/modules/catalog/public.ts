@@ -81,6 +81,12 @@ export interface PublicAccommodation {
   amount: number | null;
   currency: string | null;
   basis: string;
+  meal_included_in_rent: boolean;
+  price_source_type: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  address: string | null;
+  included_costs: string[];
 }
 
 export interface PublicRanking {
@@ -284,7 +290,9 @@ export async function fetchPublishedAccommodations(): Promise<PublicAccommodatio
   const supabase = await createClient();
   const { data } = await supabase
     .from("catalog_accommodations_public")
-    .select("id, university_id, name, type, amount, currency, basis")
+    .select(
+      "id, university_id, name, type, amount, currency, basis, meal_included_in_rent, price_source_type, latitude, longitude, address, included_costs",
+    )
     .order("name");
   const rows: PublicAccommodation[] = [];
   for (const raw of data ?? []) {
@@ -297,6 +305,18 @@ export async function fetchPublishedAccommodations(): Promise<PublicAccommodatio
     if (!id || !universityId || !name || !type || !basis) {
       continue;
     }
+    const included = Array.isArray(row.included_costs)
+      ? row.included_costs.flatMap((item) => {
+          if (typeof item === "string") {
+            return [item];
+          }
+          if (item && typeof item === "object" && "name" in item) {
+            const nameValue = (item as { name?: unknown }).name;
+            return typeof nameValue === "string" ? [nameValue] : [];
+          }
+          return [];
+        })
+      : [];
     rows.push({
       id,
       university_id: universityId,
@@ -305,6 +325,12 @@ export async function fetchPublishedAccommodations(): Promise<PublicAccommodatio
       amount: asNumber(row.amount),
       currency: asString(row.currency),
       basis,
+      meal_included_in_rent: row.meal_included_in_rent === true,
+      price_source_type: asString(row.price_source_type),
+      latitude: asNumber(row.latitude),
+      longitude: asNumber(row.longitude),
+      address: asString(row.address),
+      included_costs: included,
     });
   }
   return rows;

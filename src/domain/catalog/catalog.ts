@@ -13,6 +13,7 @@ export const CATALOG_ENTITY_TYPES = [
   "program",
   "scholarship",
   "accommodation",
+  "country_guidance",
 ] as const;
 
 export type CatalogEntityType = (typeof CATALOG_ENTITY_TYPES)[number];

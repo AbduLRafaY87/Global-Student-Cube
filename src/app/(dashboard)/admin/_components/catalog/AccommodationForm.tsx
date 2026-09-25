@@ -18,6 +18,12 @@ export function AccommodationForm({ universityId }: AccommodationFormProps) {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("GBP");
   const [basis, setBasis] = useState("monthly");
+  const [mealIncluded, setMealIncluded] = useState(false);
+  const [priceSourceType, setPriceSourceType] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [address, setAddress] = useState("");
+  const [includedCosts, setIncludedCosts] = useState("");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -35,6 +41,16 @@ export function AccommodationForm({ universityId }: AccommodationFormProps) {
           amount: amount === "" ? undefined : Number(amount),
           currency: amount === "" ? undefined : currency,
           basis,
+          mealIncluded,
+          priceSourceType: priceSourceType || undefined,
+          latitude: latitude === "" ? undefined : Number(latitude),
+          longitude: longitude === "" ? undefined : Number(longitude),
+          address: address || undefined,
+          includedCosts: includedCosts
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+            .map((name) => ({ name, included: true })),
           reason,
         }).then((result) => {
           setBusy(false);
@@ -92,6 +108,55 @@ export function AccommodationForm({ universityId }: AccommodationFormProps) {
           { value: "nightly", label: "Nightly" },
           { value: "unknown", label: "Unknown" },
         ]}
+      />
+      <label className="flex items-center gap-2 text-sm text-text">
+        <input
+          type="checkbox"
+          checked={mealIncluded}
+          onChange={(event) => setMealIncluded(event.target.checked)}
+        />
+        Meals included in rent
+      </label>
+      <SelectField
+        id="acc-price-source"
+        label="Price source"
+        optional
+        value={priceSourceType}
+        onChange={(event) => setPriceSourceType(event.target.value)}
+        options={[
+          { value: "", label: "Not provided" },
+          { value: "residence_quote", label: "Residence quote" },
+          { value: "city_estimate", label: "City estimate" },
+        ]}
+      />
+      <TextField
+        id="acc-address"
+        label="Address"
+        optional
+        value={address}
+        onChange={(event) => setAddress(event.target.value)}
+      />
+      <TextField
+        id="acc-lat"
+        label="Latitude"
+        optional
+        value={latitude}
+        onChange={(event) => setLatitude(event.target.value)}
+      />
+      <TextField
+        id="acc-lng"
+        label="Longitude"
+        optional
+        value={longitude}
+        onChange={(event) => setLongitude(event.target.value)}
+      />
+      <TextField
+        id="acc-included"
+        label="Included costs"
+        optional
+        value={includedCosts}
+        onChange={(event) => setIncludedCosts(event.target.value)}
+        hint="Comma-separated items already in the listed rent. Do not add meal amounts when meals are included."
       />
       <TextField
         id="acc-reason"

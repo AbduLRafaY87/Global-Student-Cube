@@ -81,8 +81,8 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       id: "decide",
       label: "Decide",
       items: [
-        { href: "/housing", label: "Housing", icon: "home" },
-        { href: "/visa", label: "Visa", icon: "plane" },
+        { href: "/housing", label: "Accommodation", icon: "home" },
+        { href: "/visa", label: "Destination visa", icon: "plane" },
       ],
     },
     {

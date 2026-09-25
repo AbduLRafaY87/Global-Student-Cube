@@ -25,6 +25,12 @@ const ALLOWED_KEYS = [
   "currency",
   "basis",
   "reason",
+  "mealIncluded",
+  "priceSourceType",
+  "latitude",
+  "longitude",
+  "address",
+  "includedCosts",
 ] as const;
 
 interface Body {
@@ -36,6 +42,12 @@ interface Body {
   currency?: unknown;
   basis?: unknown;
   reason?: unknown;
+  mealIncluded?: unknown;
+  priceSourceType?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
+  address?: unknown;
+  includedCosts?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -65,6 +77,12 @@ export async function POST(request: Request) {
       currency: optionalText(body.currency),
       basis: body.basis,
       reason: requiredReason(body.reason),
+      mealIncluded: body.mealIncluded === true,
+      priceSourceType: optionalText(body.priceSourceType),
+      latitude: typeof body.latitude === "number" ? body.latitude : null,
+      longitude: typeof body.longitude === "number" ? body.longitude : null,
+      address: optionalText(body.address),
+      includedCosts: Array.isArray(body.includedCosts) ? body.includedCosts : [],
     });
     return commandSuccess(payload, requestId);
   } catch (error) {

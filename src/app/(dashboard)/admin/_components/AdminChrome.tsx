@@ -52,6 +52,12 @@ export function AdminChrome({ title, description, children }: AdminChromeProps) 
           </Link>
           <Link
             className="text-primary underline-offset-2 hover:underline"
+            href="/admin/visa"
+          >
+            Visa
+          </Link>
+          <Link
+            className="text-primary underline-offset-2 hover:underline"
             href="/admin/ingestion/new"
           >
             Ingestion

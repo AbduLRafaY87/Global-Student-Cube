@@ -90,6 +90,7 @@ export default async function AdminUniversityEditorPage({ params }: PageProps) {
                     <p className="mt-1 text-sm text-text-muted">
                       {asText(row.type)} · {asText(row.basis)} ·{" "}
                       {row.amount == null ? "Not provided" : `${asText(row.amount)} ${asText(row.currency)}`}
+                      {row.meal_included_in_rent === true ? " · meals included in rent" : ""}
                     </p>
                   </li>
                 ))}

@@ -134,7 +134,13 @@ export function reportImportRows(rows: CatalogImportRow[]): ImportRowReport[] {
 
     if (
       typeof row.entity_type !== "string" ||
-      !["university", "program", "scholarship", "accommodation"].includes(row.entity_type)
+      ![
+        "university",
+        "program",
+        "scholarship",
+        "accommodation",
+        "country_guidance",
+      ].includes(row.entity_type)
     ) {
       return {
         index,

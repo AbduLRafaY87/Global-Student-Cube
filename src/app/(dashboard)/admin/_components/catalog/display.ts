@@ -34,6 +34,8 @@ export function catalogEntityHref(type: string, id: string, parentId?: string | 
       return parentId
         ? `/admin/universities/${parentId}`
         : "/admin/catalog?kind=accommodation";
+    case "country_guidance":
+      return `/admin/visa/${id}`;
     case "ingestion":
       return `/admin/ingestion/${id}/review`;
     default:

@@ -32,6 +32,7 @@ const KINDS = [
   "program",
   "accommodation",
   "scholarship",
+  "country_guidance",
   "taxonomy",
   "ingestion",
 ] as const;
@@ -93,7 +94,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
   return (
     <AdminChrome
       title="Catalog management"
-      description="Draft, review and withdraw catalog rows. Unpublished taxonomy changes do not rewrite saved preferences. Visa guidance is ADM-09 and is not built in this slice."
+      description="Draft, review and withdraw catalog rows. Unpublished taxonomy changes do not rewrite saved preferences. Destination guidance is ADM-09. Imports never auto-publish."
     >
       <div className="flex flex-wrap gap-3">
         <Link
@@ -113,6 +114,12 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
           href="/admin/scholarships/new"
         >
           New scholarship
+        </Link>
+        <Link
+          className="text-primary underline-offset-2 hover:underline"
+          href="/admin/visa/new"
+        >
+          New destination guidance
         </Link>
         <Link
           className="text-primary underline-offset-2 hover:underline"
@@ -139,7 +146,6 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
                 {value}
               </option>
             ))}
-            <option value="visa">visa (ADM-09 not built)</option>
           </select>
         </label>
         <label className="flex flex-col text-sm text-text">
@@ -172,12 +178,7 @@ export default async function AdminCatalogPage({ searchParams }: PageProps) {
         </button>
       </form>
 
-      {kind === "visa" && !reviewDue ? (
-        <EmptyState
-          title="Visa editor is not in this slice"
-          message="ADM-09 destination guidance is a later work package."
-        />
-      ) : !result.ok ? (
+      {!result.ok ? (
         result.forbidden ? (
           <ForbiddenState />
         ) : (

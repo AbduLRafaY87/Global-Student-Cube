@@ -91,6 +91,7 @@ export function IngestionForm() {
           { value: "program", label: "Program" },
           { value: "scholarship", label: "Scholarship" },
           { value: "accommodation", label: "Accommodation" },
+          { value: "country_guidance", label: "Destination guidance" },
         ]}
       />
       <TextField
