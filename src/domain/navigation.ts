@@ -88,7 +88,10 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       label: "Support",
       items: [
         { href: "/counselor", label: "Counselor", icon: "users" },
-        { href: "/alumni", label: "Mentors", icon: "waypoints" },
+        { href: "/mentors", label: "Mentors", icon: "waypoints" },
+        { href: "/mentor/home", label: "Mentor home", icon: "waypoints" },
+        { href: "/mentor/profile", label: "Mentor profile", icon: "user" },
+        { href: "/mentoring", label: "Mentoring", icon: "clipboardCheck" },
         { href: "/messages", label: "Messages", icon: "messageSquare" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
       ],
@@ -117,6 +120,10 @@ export const DASHBOARD_NAV: Record<UserRole, DashboardNavSection[]> = {
       id: "support",
       label: "Support",
       items: [
+        { href: "/mentors", label: "Mentors", icon: "waypoints" },
+        { href: "/mentor/home", label: "Mentor home", icon: "waypoints" },
+        { href: "/mentor/parent-profile", label: "Parent mentor profile", icon: "users" },
+        { href: "/mentoring", label: "Mentoring", icon: "clipboardCheck" },
         { href: "/messages", label: "Messages", icon: "messageSquare" },
         { href: "/notifications", label: "Notifications", icon: "bell" },
       ],
@@ -214,6 +221,9 @@ const EXISTING_DASHBOARD_PREFIXES = [
   "/visa",
   "/housing",
   "/alumni",
+  "/mentors",
+  "/mentor",
+  "/mentoring",
   "/offers",
   "/billing",
   "/counselor",
@@ -279,6 +289,10 @@ export function isPathAllowedForRole(pathname: string, role: UserRole): boolean 
   }
 
   if (pathMatches(pathname, "/counselor") && role === "counselor") {
+    return true;
+  }
+
+  if (pathMatches(pathname, "/alumni") && (role === "student" || role === "parent")) {
     return true;
   }
 

@@ -206,7 +206,7 @@ export function buildStudentHome(input: StudentHomeInput): StudentHomeModel {
     },
     mentorship: {
       empty: true,
-      href: "/alumni",
+      href: "/mentors",
       items: [],
       emptyMessage: "Mentorship teasers are not published yet.",
     },

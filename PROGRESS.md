@@ -23,13 +23,13 @@ Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migr
 
 | Check | Result | Date |
 |-------|--------|------|
-| `supabase db push --linked` | Applied `0000`–`0048` earlier; `0049_media_ai` this session | 25 Sep 2026 |
+| `supabase db push --linked` | Applied `0000`–`0049` earlier; `0050_mentorship` this session | 25 Sep 2026 |
 | `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
 | pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
 | `public.countries` | 234 rows | 25 Sep 2026 |
 | `scripts/bootstrap-admin.sql` | Ran against the oldest confirmed signup. `user_profiles.role=admin`, `accounts.status=approved`, 1 active admin role, 7 staff permissions | 25 Sep 2026 |
 | `.env.local` | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are real hosted values. `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL` are **absent** | 25 Sep 2026 |
-| `npm run build` | Passed (TypeScript finished, 100 static pages) | 25 Sep 2026 |
+| `npm run build` | Passed (TypeScript finished, 111 static/dynamic routes) | 25 Sep 2026 |
 | GitHub Actions `supabase-pgtap` | Not run | |
 | AUTH / P0 walkthrough | Not run | |
 | Resend / Daily / ExchangeRate-API / OAuth | Not proven | |
@@ -143,7 +143,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | PUB-02 | Role-aware app tour | `/tour` | Written, unverified | Audience selector, text walkthrough, skip never completes onboarding. |
 | PUB-03 | Guest course and university match | `/quick-match` | Written, unverified | Country/subject only. At most 5 universities and 2 scholarships. |
 | PUB-04 | Scholarship preview | `/preview/scholarships` | Written, unverified | Banner: GSC does not submit applications. Honest empty, no blurred rows. |
-| PUB-05 | Mentor teaser | `/preview/mentors/:mentorId` | Written, unverified | Honest empty: no approved published mentor teasers. No private contact. |
+| PUB-05 | Mentor teaser | `/preview/mentors/:mentorId` | Written, unverified | Published opted-in projection only. No private contact or mentee identity. |
 | AUTH-01 | Role, purpose and eligibility | `/register` | Written, unverified | D2: no role picker. Eligibility Yes/No + stage. Domain unit file exists; no remote walkthrough |
 | AUTH-02 | Identity and age routing | `/register/identity` | Written, unverified | Name rules, DOB, nationality, residence, under-13 stop / 13–17 notice. Not proven remotely |
 | AUTH-03 | Contact and password | `/register/contact` | Written, unverified | Spec 12–128 password policy. WhatsApp optional. Not proven remotely |
@@ -197,10 +197,13 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | COU-07 | Private AI coaching and improvement | `/counselor/coaching/:sessionId?` | Written, unverified | Staff-only. No student/parent access. Expired transcript drops quotes. Acknowledge / flag inaccurate. Never in the student PDF. |
 | ESS-01–07 | Essays | `/essays` leftover page | Deferred | Parked; page exists, omitted from nav, must not be extended |
 | OFF-01–04 | Offers | `/offers` leftover page | Deferred | Parked; same rule |
-| MEN-01 | Mentor directory | `/alumni` | Partial | Folded leftover |
-| MEN-02 | Mentor profile | — | Not started | |
-| MEN-03 | Request mentorship | — | Not started | |
-| MEN-04 | Mentorship thread | — | Not started | |
+| MEN-01 | Mentor community and leaderboard | `/mentors` | Written, unverified | Verified contributions only. Leftover `/alumni` redirects here. |
+| MEN-02 | Mentor profile and connection request | `/mentors/:mentorId` | Written, unverified | Request grants no finance/transcript access. Guests stay PUB-05. |
+| MEN-03 | Alumni/current-student mentor profile | `/mentor/profile` | Written, unverified | Exactly 3 annex topics. Verification queued. Two hours ≠ verified badge. |
+| MEN-04 | Parent mentor profile | `/mentor/parent-profile` | Written, unverified | 1–3 parent topics. Isolated from child education/finances and unrelated cases. |
+| MEN-05 | Mentor dashboard | `/mentor/home` | Written, unverified | Unique mentees once. Pending points separate. |
+| MEN-06 | Mentoring requests and connections | `/mentoring/requests/:requestId?` | Written, unverified | Accept/decline/withdraw. Scoped MSG-02 + mentoring booking. |
+| MEN-07 | Mentor session summary and mutual feedback | `/mentoring/sessions/:sessionId/summary` | Written, unverified | Mutual questionnaires. 25 pts after logged+rated+admin-approved. |
 | MSG-01 | Inbox | `/messages` | Written, unverified | Case filter, search in permitted threads only, unread/all, load more. Counselor compose-from-inbox omitted (COU-05 only). Realtime after inbox channel authorize. |
 | MSG-02 | Thread | `/messages/:conversationId` | Written, unverified | Grant-scoped. 4000 chars, 30/min, delivery states, attachments via private storage, guardian invite-only. Leftover ChatWindow removed. |
 | MSG-03 | New conversation | — | Not started | Counselor opens a case thread from COU-05. No inbox compose. |
@@ -239,14 +242,14 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 28 |
-| Partial (leftover prototype) | 8 |
-| Written, unverified | 36 |
+| Not started | 25 |
+| Partial (leftover prototype) | 7 |
+| Written, unverified | 43 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
 | Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
 | Removed | 1 (AUTH-07) |
-| **Total spec screens** | **96** |
+| **Total spec screens** | **99** |
 
 APP-01–05 were **not spec screen IDs** (absent from the spec and `docs/spec-index.md`). They were removed from this catalogue. The spec application-adjacent screen is **JRN-01** (selected-target application roadmap). Leftover `/applications` now reads `application_systems` → `application_groups` → `applications` (0032 backfill + 0042 workspace command). It is still not JRN-01. Previous totals (97 / 48 not started) included those five invented rows.
 
@@ -255,7 +258,7 @@ Admin Written, unverified (9): ADM-01, 02, 03, 04, 05, 06, 07, 08, 14. People (`
 
 Catalog authoring is **WP-07**. WP-05 is Intake and was not started. WP-06 is catalog read (PUB/CAT-01–03). CAT-04 cost comparison landed under WP-08. Real-country catalog data is an owner task, not an agent task.
 
-Partial leftovers (5): CAT-07, SES-01, MEN-01, JRN-02, SET-06.
+Partial leftovers (4): CAT-07, SES-01, JRN-02, SET-06. Leftover `/alumni` and `alumni_profiles` are folded into mentorship (`0050`).
 
 Public discovery Written, unverified (8): PUB-01–05, CAT-01–03. Save is enabled on CAT-01–03 after Module 3; the 0–3 cap is enforced inside `commands.save_program_pair`. Personalized CAT-01 recommendations unlock after `module2_completed_at`.
 
@@ -330,7 +333,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0049` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0050` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
@@ -339,9 +342,9 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-08 | Recommendations + shortlist + compare | Partial | `0040` applied. `shortlist_assessment.test.sql` 7/12. Concurrent unit test still skips without `COMMANDS_DATABASE_URL`. Screens not walked. |
 | WP-09 | Deadlines + applications + groups | Written, unverified | Applications workspace. User counseling-loop prompt said WP-09; tracker WP-09 is applications and was not reopened. Spec team “WP-09 Counseling case loop” is WP-11. |
 | WP-10 | Scholarships | Written, unverified | Tracker WP-10 is scholarships. Spec team “WP-10 Media and AI” is implemented on WP-11 (`0049`) + WP-19 session AIProvider. |
-| WP-11 | Sessions + availability + bookings | Partial | `0043`–`0044` + `0049_media_ai` on linked dev. SES-06–12 + COU-01/05/06/07 written, unverified. Recording/AI gated by `GSC_FEATURE_RECORDING_AI`. SES-01–05 and COU-02–04 not built. |
+| WP-11 | Sessions + availability + bookings | Partial | Tracker WP-11 is sessions. Spec team “WP-11 Mentorship” is implemented on WP-13 (`0050`). SES-06–12 + COU-01/05/06/07 written, unverified. Recording/AI gated by `GSC_FEATURE_RECORDING_AI`. SES-01–05 and COU-02–04 not built. |
 | WP-12 | Messaging + reports | Partial | `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
-| WP-13 | Mentorship | Not started | |
+| WP-13 | Mentorship | Written, unverified | Spec team WP-11. `0050_mentorship` folds leftover alumni. MEN-01–07 + isolation/contribution/request tests. No walkthrough. Rewards mint (ADM-10) not built; logs queue at submitted. |
 | WP-14 | Journey CMS | Not started | |
 | WP-15 | Admin + cases + audit + flags | Written, unverified | ADM-01/02, people, audit viewer. Prompt 30 export/deletion are stubs (audit+outbox only). ADM-11/13 intros not built. Cases/flags remain. |
 | WP-16 | Parent access | Written, unverified | Schema applied. `parent_finance.test.sql` 6/12 fail. Screens not walked. |
