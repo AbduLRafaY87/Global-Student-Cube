@@ -222,8 +222,6 @@ export interface InterviewSession {
   created_at: string;
 }
 
-export type AdmissionOddsCategory = "Reach" | "Match" | "Safety";
-
 export const TASK_PRIORITIES = ["low", "medium", "high"] as const;
 
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];

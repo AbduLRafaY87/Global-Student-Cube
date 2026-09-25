@@ -1,4 +1,5 @@
 import { deleteEssay } from "@/app/(dashboard)/essays/actions";
+import { enforceParkedRoute } from "@/server/legacy/parked";
 import { EssayForm } from "@/components/forms/EssayForm";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -131,6 +132,7 @@ export default async function EssaysPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  enforceParkedRoute();
   const params = await searchParams;
   const editParam = params.edit;
   const editId = Array.isArray(editParam) ? editParam[0] : editParam;

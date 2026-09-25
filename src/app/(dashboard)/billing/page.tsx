@@ -1,4 +1,5 @@
 import { PlanPricingCard } from "@/components/PlanPricingCard";
+import { enforceParkedRoute } from "@/server/legacy/parked";
 import { createClient } from "@/lib/supabase/server";
 import {
   SUBSCRIPTION_PLANS,
@@ -105,6 +106,7 @@ function statusBadgeClass(status: SubscriptionStatus): string {
 }
 
 export default async function BillingPage() {
+  enforceParkedRoute();
   const supabase = await createClient();
   const {
     data: { user },

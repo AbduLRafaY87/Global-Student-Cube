@@ -1,4 +1,5 @@
 import { deleteOffer } from "@/app/(dashboard)/offers/actions";
+import { enforceParkedRoute } from "@/server/legacy/parked";
 import { OfferForm } from "@/components/forms/OfferForm";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -145,6 +146,7 @@ export default async function OffersPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  enforceParkedRoute();
   const params = await searchParams;
   const editParam = params.edit;
   const editId = Array.isArray(editParam) ? editParam[0] : editParam;

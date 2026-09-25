@@ -19,11 +19,11 @@ Screens and API routes stay **Written, unverified** unless a walkthrough ran. A 
 
 ## Remote verification (25 Sep 2026)
 
-Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0056` are on that project after this session’s push. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
+Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0058` are on that project after this session’s push. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
 
 | Check | Result | Date |
 |-------|--------|------|
-| `supabase db push --linked` | Applied `0000`–`0055` earlier; `0056_privacy_settings` this session | 25 Sep 2026 |
+| `supabase db push --linked` | Applied `0000`–`0056` earlier; `0057`/`0058` leftover write revoke this session | 25 Sep 2026 |
 | `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
 | pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
 | `public.countries` | 234 rows | 25 Sep 2026 |
@@ -344,6 +344,9 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | `src/domain/news/news.test.ts` | Written, unverified | Withdrawal hides from search; consent independence; counselor cannot publish; protected safety hidden; engagement uniqueness |
 | `src/domain/catalog/guidance.test.ts` | Written, unverified | Guidance locked before counseling/target; unlocks after both; source-traceability; quarterly reminder window; leftover housing/visa mapping |
 | `src/domain/privacy/privacy.test.ts` | Written, unverified | Export excludes others’ notes/safety; deletion order + holds + retained ledgers; OTP 5-attempt invalidate; protected safety hidden; small-cohort suppress / no conversion claim |
+| `src/domain/legacy/grants.test.ts` | Written, unverified | Allowlist empty. Live query skips without `SUPABASE_DB_URL` / `COMMANDS_DATABASE_URL`. |
+| `src/domain/legacy/parked.test.ts` | Written, unverified | Parked paths off every sidebar. Every sidebar href maps to a `page.tsx`. |
+| `supabase/tests/authenticated_grants.test.sql` | Checked | `1..1` via `db query --linked` after `0058` |
 
 CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
 
@@ -353,7 +356,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0056` on linked dev after this session’s push. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0058` on linked dev after this session’s push. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
 | WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–06, 08–10) | AUTH-06 `/verify-phone` written (Twilio Verify or honest unavailable). AUTH-07 Removed. Phone is optional and does not gate signup (D2). |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
@@ -379,25 +382,26 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-25 | News and stories | Written, unverified | Spec team WP-15. `0053_news` applied. NEW-01–03, PUB-06, ADM-11 written. SYNTHETIC editorial only. Withdrawal hides from feed/search/wall. Consent independence tested. JRN-03 milestone timeline is WP-27. No walkthrough. |
 | WP-26 | Catalog enrichment | Written, unverified | Spec team WP-13. `0054_catalog_enrichment` applied. ADM-09 + JRN-02 editorial visa/work guidance gated on counseling + saved target. Housing folded into sourced accommodations. Quarterly reminders + source-revision trace. Imports never auto-publish. No walkthrough. |
 | WP-27 | Journey and roadmap | Written, unverified | Spec team WP-16. `0055_journey_roadmap` applied. JRN-01/JRN-03 written. STU-01 feeds roadmap task count and private journey. UCAS vs Common App derivation, inconsistent-date flags, and consent independence tested. Screens not walked. |
-| WP-28 | Privacy, settings and phone | Written, unverified | Spec SET-01/03/04/05, AUTH-06, ADM-12. `0056_privacy_settings` applied. Export excludes others’ notes. Deletion 30-day + holds. Protected safety hidden. Phone OTP not MFA. SET-02 not started. Unit 234 pass / 2 skip. Screens not walked. |
+| WP-28 | Privacy, settings and phone | Written, unverified | Spec SET-01/03/04/05, AUTH-06, ADM-12. `0056_privacy_settings` applied. Export excludes others’ notes. Deletion 30-day + holds. Protected safety hidden. Phone OTP not MFA. SET-02 not started. Screens not walked. |
+| WP-29 | Legacy reconciliation | Written, unverified | `docs/legacy-reconciliation.md`. Parked modules behind `GSC_FEATURE_PARKED_MODULES`. Leftover write grants revoked in `0057`/`0058`. Notification mark-read/clear on commands. `authenticated_grants` allowlist empty. |
 
 ## Known gaps (do not mark these Done)
 
 - Linked **dev** exists. Dedicated **test** project and GitHub `supabase-pgtap` secrets do not.
 - `supabase test db` still wants Docker. Current pgTAP evidence is `db query --linked`, not `pg_prove`.
 - `.env.local` is missing `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL`. `gsc_api_executor` is still `NOLOGIN` until the owner sets a password.
-- `npm run build` passed 25 Sep 2026 (154 pages after SET-01/03/04/05, AUTH-06, ADM-12). Screens not walked.
+- `npm run build` passed 25 Sep 2026 (154 pages after leftover reconciliation). Screens not walked.
 - Learning catalog is SYNTHETIC editorial text. Owner must supply reviewed launch content per Module 11 category and confirm video/music/font rights. No bundled media files.
 - News and success-story catalog is SYNTHETIC editorial text. JRN-03 private milestone timeline is written on `/journey`; `/stories/submit` still captures story text and independent consents.
 - Destination visa/work guidance has no real official-source catalog. Owner must supply reviewed country content. Do not invent visa fees or processing times.
 - pgTAP not fully green: `rls_p0` 2 fail, `invitations_mfa` 1 fail, `parent_finance` 6 fail, `shortlist_assessment` 5 fail.
-- Leftover `student_profiles` / `test_scores_log` / `activities` / `documents` tables remain so rows are not dropped.
 - Public catalog is empty until editorial publish of real-country data. SYNTHETIC fixtures stay out of `supabase/seed.sql`.
 - Login lockout 5 failures / 15 minutes is an invented analog (spec silent).
 - Community-eligibility “Yes” is a client gate only.
 - GSC ID is allocated at signup (D2). Spec said allocate on approval.
 - Three auth API paths do not match spec §17.6 names.
-- Parked leftover pages still routable; hidden from nav only.
+- Parked leftover pages (`/essays`, `/recommendations`, `/interviews`, `/offers`, `/billing`) return not-found unless `GSC_FEATURE_PARKED_MODULES=1`. Tables kept. See `docs/legacy-reconciliation.md`.
+- Leftover folded tables (`student_profiles`, `test_scores_log`, `activities`, `documents`, `visa_checklists`, `housing_options`, `leftover_*`) remain so rows are not dropped. Direct authenticated writes revoked in `0057`.
 - Twilio Verify service SID and credentials are not configured. AUTH-06 start returns DEPENDENCY_UNAVAILABLE until the owner adds them.
 - Privacy notices, retention periods (30/90/365 and related proposals), and cross-border transfers (UAE PDPL / GDPR) still need legal review. Controller contact and subprocessors stay “Not provided”.
 - SES-06/07/08: sandbox Daily is the default. Owner must set `DAILY_API_KEY`. Recording/AI stay off. SES-01–05 booking/matching are not built.

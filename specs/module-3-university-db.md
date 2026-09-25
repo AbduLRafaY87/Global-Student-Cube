@@ -1,15 +1,7 @@
 # Module 3: University Search & Database Specs
 
-## Table: public.universities
-- `id`: UUID (Primary Key, DEFAULT gen_random_uuid())
-- `name`: TEXT (NOT NULL)
-- `country`: TEXT (NOT NULL)
-- `tuition_fee`: NUMERIC (NOT NULL)
-- `acceptance_rate`: NUMERIC (NOT NULL)
-- `minimum_gpa`: NUMERIC (NOT NULL)
-- `ranking`: INTEGER (NOT NULL)
-- `created_at`: TIMESTAMPTZ (DEFAULT now())
+Implementation note only. See `specs/README.md`.
 
-## RLS Policies
-- **SELECT**: Authenticated users can view all universities.
-- **INSERT/UPDATE/DELETE**: Restricted to `admin` role users.
+The leftover `universities` prototype stored a numeric rate column. That column was dropped in `0033_catalog_reference_and_universities.sql` (D5). Catalog reads use sourced publication fields, never a rate used as an admission claim.
+
+Current catalog tables and provenance live in later migrations (`0033` onward), not in this note.

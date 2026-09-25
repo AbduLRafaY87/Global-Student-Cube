@@ -1,4 +1,5 @@
 import { RecommendationForm } from "@/components/forms/RecommendationForm";
+import { enforceParkedRoute } from "@/server/legacy/parked";
 import { createClient } from "@/lib/supabase/server";
 import {
   RECOMMENDATION_STATUSES,
@@ -88,6 +89,7 @@ function labelStatus(status: RecommendationStatus): string {
 }
 
 export default async function RecommendationsPage() {
+  enforceParkedRoute();
   const supabase = await createClient();
   const {
     data: { user },

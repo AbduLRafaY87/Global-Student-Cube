@@ -1,4 +1,5 @@
 import { InterviewForm } from "@/components/forms/InterviewForm";
+import { enforceParkedRoute } from "@/server/legacy/parked";
 import { createClient } from "@/lib/supabase/server";
 import {
   INTERVIEW_STATUSES,
@@ -107,6 +108,7 @@ export default async function InterviewsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  enforceParkedRoute();
   const params = await searchParams;
   const editParam = params.edit;
   const editId = Array.isArray(editParam) ? editParam[0] : editParam;
