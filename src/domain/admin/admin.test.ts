@@ -79,6 +79,14 @@ describe("admin route scopes", () => {
       canAccessAdminRoute("admin", "aal2", ["safety"], "moderation"),
       false,
     );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["operations"], "analytics"),
+      true,
+    );
+    assert.equal(
+      canAccessAdminRoute("admin", "aal2", ["verification"], "analytics"),
+      false,
+    );
   });
 });
 

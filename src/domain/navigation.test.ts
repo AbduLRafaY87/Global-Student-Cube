@@ -34,6 +34,8 @@ describe("role navigation and guards", () => {
     assert.ok(hrefs.includes("/learning"));
     assert.ok(hrefs.includes("/news"));
     assert.ok(hrefs.includes("/journey"));
+    assert.ok(hrefs.includes("/settings"));
+    assert.ok(hrefs.includes("/help"));
     assert.equal(hrefs.includes("/admin"), false);
     assert.equal(hrefs.includes("/parent-portal"), false);
     assert.equal(hrefs.includes("/essays"), false);
@@ -61,6 +63,8 @@ describe("role navigation and guards", () => {
 
   it("allows each role its own home and shared onboarding", () => {
     assert.equal(isPathAllowedForRole("/home", "student"), true);
+    assert.equal(isPathAllowedForRole("/settings", "student"), true);
+    assert.equal(isPathAllowedForRole("/settings/security", "parent"), true);
     assert.equal(isPathAllowedForRole("/profile", "student"), true);
     assert.equal(isPathAllowedForRole("/cases/example/profile", "student"), true);
     assert.equal(isPathAllowedForRole("/parent/home", "parent"), true);

@@ -22,6 +22,7 @@ export const ADMIN_ROUTE_SCOPES = {
   rewards: "rewards_approval",
   content: "catalog_editorial",
   moderation: "catalog_editorial",
+  analytics: "operations",
 } as const;
 
 export type AdminRouteId = keyof typeof ADMIN_ROUTE_SCOPES;

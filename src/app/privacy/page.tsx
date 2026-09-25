@@ -1,4 +1,7 @@
+import { PrivacyActions } from "@/components/privacy/PrivacyActions";
 import { DATA_USE_POLICY_VERSION } from "@/domain/identity/consent";
+import { createClient } from "@/lib/supabase/server";
+import { loadPrivacyWorkspace } from "@/server/modules/privacy/load";
 import { Shield } from "lucide-react";
 import Link from "next/link";
 
@@ -11,6 +14,19 @@ export default async function PrivacyPage({ searchParams }: PrivacyPageProps) {
   const documentId = params.document === "data-use" || !params.document
     ? "data-use"
     : params.document;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const workspace = user ? await loadPrivacyWorkspace() : null;
+  const consents =
+    workspace?.ok && Array.isArray(workspace.data.consents.items)
+      ? workspace.data.consents.items
+      : [];
+  const requests =
+    workspace?.ok && Array.isArray(workspace.data.requests.items)
+      ? workspace.data.requests.items
+      : [];
 
   return (
     <main className="mx-auto w-full max-w-[720px] px-4 py-8">
@@ -49,11 +65,56 @@ export default async function PrivacyPage({ searchParams }: PrivacyPageProps) {
         </p>
         <h2 className="text-base font-semibold">Export and deletion</h2>
         <p>
-          Export and deletion requests are not available on this public page.
-          They require a signed-in account. A lawful hold can restrict
-          processing without promising immediate deletion.
+          Export is a 24-hour private package. Deletion suspends access
+          immediately and processes for 30 days. A documented lawful hold
+          restricts processing without promising immediate deletion. Recording
+          consent withdrawal is separate from account deletion.
         </p>
       </section>
+
+      {user ? (
+        <section className="mt-8 space-y-4">
+          <h2 className="text-base font-semibold text-text">Your privacy controls</h2>
+          <p className="text-sm text-text-muted">
+            Data export excludes another participant’s confidential notes.
+          </p>
+          {consents.length > 0 ? (
+            <ul className="space-y-2 text-sm text-text">
+              {consents.map((item, index) => {
+                const row = item as Record<string, unknown>;
+                return (
+                  <li key={`${String(row.purpose)}-${index}`}>
+                    {String(row.purpose)} · {row.decision === true ? "accepted" : "declined"} ·{" "}
+                    {String(row.policyVersion)}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-sm text-text-muted">No consent receipts yet.</p>
+          )}
+          {requests.length > 0 ? (
+            <ul className="space-y-2 text-sm text-text">
+              {requests.map((item) => {
+                const row = item as Record<string, unknown>;
+                return (
+                  <li key={String(row.id)}>
+                    {String(row.kind)} · {String(row.status)}
+                    {row.hold === true ? " · lawful hold" : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+          <PrivacyActions />
+          <Link
+            className="inline-flex text-sm text-primary underline-offset-2 hover:underline"
+            href="/family-links"
+          >
+            Manage family access
+          </Link>
+        </section>
+      ) : null}
 
       <p className="mt-8 text-sm">
         <Link

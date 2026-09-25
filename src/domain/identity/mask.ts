@@ -1,3 +1,11 @@
+export function maskPhone(e164: string): string {
+  const digits = e164.replace(/\D/g, "");
+  if (digits.length < 4) {
+    return "your phone";
+  }
+  return `+***${digits.slice(-4)}`;
+}
+
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
 

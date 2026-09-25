@@ -19,11 +19,11 @@ Screens and API routes stay **Written, unverified** unless a walkthrough ran. A 
 
 ## Remote verification (25 Sep 2026)
 
-Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0055` are on that project. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
+Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migrations `0000`–`0056` are on that project after this session’s push. `npx supabase test db --linked` failed because the CLI still tries to start Docker (`LegacyDockerRunError`). pgTAP files were executed with `npx supabase db query --linked -f supabase/tests/<file>.test.sql`. `BEGIN`/`ROLLBACK` is in each file; that is not the `pg_prove` harness.
 
 | Check | Result | Date |
 |-------|--------|------|
-| `supabase db push --linked` | Applied `0000`–`0054` earlier; `0055_journey_roadmap` this session | 25 Sep 2026 |
+| `supabase db push --linked` | Applied `0000`–`0055` earlier; `0056_privacy_settings` this session | 25 Sep 2026 |
 | `supabase test db --linked` / `--db-url` | Failed: CLI requires Docker. Not used as evidence | 25 Sep 2026 |
 | pgTAP via `db query --linked` | See table below. 8 files passed; 4 files still fail some assertions | 25 Sep 2026 |
 | `public.countries` | 234 rows | 25 Sep 2026 |
@@ -150,7 +150,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | AUTH-03 | Contact and password | `/register/contact` | Written, unverified | Spec 12–128 password policy. WhatsApp optional. Not proven remotely |
 | AUTH-04 | Privacy notice and consent | `/register/review` | Written, unverified | Consent only (no evidence upload). Policy link `/privacy?document=data-use`. Immutable `consent_events` in SQL. Not proven remotely |
 | AUTH-05 | Email verification | `/verify-email` | Written, unverified | Resend cooldown, change email, expired callback, activation via executor. Not proven remotely |
-| AUTH-06 | Phone verification | — | Deferred | Owner: late phase |
+| AUTH-06 | Phone verification | `/verify-phone` | Written, unverified | Optional. Twilio Verify via fetch; sandbox returns DEPENDENCY_UNAVAILABLE. Hash-only OTP, 5 attempts, 5 sends/hour. Not login MFA. Does not gate signup (D2). |
 | AUTH-07 | Approval, guardian and correction status | — | Removed | D2 |
 | AUTH-08 | Login | `/login` | Written, unverified | Generic errors; 5/15 min throttle analog; suspended sign-out. Not proven remotely |
 | AUTH-09 | Password reset | `/password-reset` | Written, unverified | Request + confirm on one route. Token reuse rejected. Not proven remotely |
@@ -231,19 +231,19 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | ADM-09 | Visa and destination guidance editor | `/admin/visa/:visaRuleId?` | Written, unverified | Per-country editorial draft, sources, review dates, counselor notes private. Publish updates JRN-02. Source-revision trace on the editor. |
 | ADM-10 | Rewards verification and fulfillment | `/admin/rewards/:itemId?` | Written, unverified | Approve activity / fulfill / publish. Staff cannot overwrite balances. GiftCard controls disabled. Analytics cards. |
 | ADM-11 | Moderation, quality and safety review | `/admin/moderation/:reviewId?` | Written, unverified | News, stories, message reports, held feedback. Protected safety hidden without `safety`. Story/spotlight publish needs subject consent. |
-| ADM-12 | Operational and outcome analytics | — | Not started | |
+| ADM-12 | Operational and outcome analytics | `/admin/analytics` | Written, unverified | Operations-scoped. Small cohorts suppressed. No causal/conversion claim. Distinguishes self-reported vs verified. Unreported alumni are not failures. |
 | ADM-13 | Jobs, delivery and integration operations | — | Not started | Ingestion creates a durable job row; ADM-13 runner is not built. |
 | ADM-14 | Scholarship URL and metadata editor | `/admin/scholarships/:scholarshipId` | Written, unverified | Official URL + minimal metadata. No in-app scholarship application schema. |
 | ADM-15 | Learning, news and recognition content editor | `/admin/content/:contentId?` | Written, unverified | Draft → submit → publish. Counselors cannot self-publish. Video needs captions or transcript. |
 | JRN-01 | Selected-target application roadmap | `/cases/:caseId/roadmap` | Written, unverified | Unlocks after completed counseling + saved target. Tasks derived from entry criteria and the application-system model (UCAS vs Common App differ). Official URL does not complete submission. Leftover `/applications` stays groups. |
 | JRN-02 | Destination visa and work guidance | `/cases/:caseId/visa` | Written, unverified | Editorial only. Unlocks after completed counseling + saved target. Leftover `/visa` redirects here. No visa-approval or fixed-processing claim. |
 | JRN-03 | Journey by stage | `/journey` | Written, unverified | Private milestones, chronology flags, self-reported label, private analytics, mentor transition after graduation. Story consents stay independent. Saving admission never publishes or notifies a mentor. |
-| SET-01 | Account | — | Not started | |
-| SET-02 | Security | — | Not started | |
-| SET-03 | Notifications | — | Not started | |
-| SET-04 | Privacy | — | Not started | |
-| SET-05 | Linked people | — | Not started | |
-| SET-06 | Appearance | `/settings` | Partial | Leftover |
+| SET-01 | More and account settings | `/settings` | Written, unverified | Identity, approved roles only, 56-high rows, logout to PUB-01. Replaces leftover Appearance at this route. |
+| SET-02 | Preferences | `/settings/preferences` | Not started | Not in the privacy/settings prompt |
+| SET-03 | Privacy, consent and data rights | `/privacy` | Written, unverified | Public policy plus signed-in consent receipts, export, 30-day deletion, hold copy. Family access → PAR-02. |
+| SET-04 | Password, MFA and active sessions | `/settings/security` | Written, unverified | Password change, MFA link, revoke other sessions. Phone OTP is not login MFA. |
+| SET-05 | Help, issue reporting and protected safety intake | `/help/:requestId?` | Written, unverified | Public form. Safety requires auth and stays hidden from counselors. No invented support phone. |
+| SET-06 | Notifications | `/notifications` | Partial | Leftover prototype |
 | INT-01–04 | Interviews | `/interviews` leftover page | Deferred | Parked; same rule as essays |
 | BIL-01–04 | Billing | `/billing` leftover page | Deferred | Parked; same rule |
 
@@ -253,23 +253,23 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 19 |
+| Not started | 14 |
 | Partial (leftover prototype) | 6 |
-| Written, unverified | 61 |
+| Written, unverified | 67 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
-| Deferred | 23 (AUTH-06 + parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
+| Deferred | 22 (parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
 | Removed | 1 (AUTH-07) |
 | **Total spec screens** | **110** |
 
 APP-01–05 were **not spec screen IDs** (absent from the spec and `docs/spec-index.md`). They were removed from this catalogue. The spec application-adjacent screen is **JRN-01** (selected-target application roadmap). Leftover `/applications` now reads `application_systems` → `application_groups` → `applications` (0032 backfill + 0042 workspace command). It is still not JRN-01. Previous totals (97 / 48 not started) included those five invented rows.
 
-AUTH Written, unverified (8): AUTH-01, 02, 03, 04, 05, 08, 09, 10.
-Admin Written, unverified (13): ADM-01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 14, 15. People (`/admin/users`), audit viewer (`/admin/audit`) and Prompt 30 support stubs (`/admin/support`) are local WP-15 routes, not extra spec screen IDs. PUB-06 and NEW-01–03 were missing from this catalogue (106 → 110).
+AUTH Written, unverified (9): AUTH-01, 02, 03, 04, 05, 06, 08, 09, 10.
+Admin Written, unverified (14): ADM-01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 14, 15. People (`/admin/users`), audit viewer (`/admin/audit`) and support export/deletion (`/admin/support`) are local WP-15 routes, not extra spec screen IDs. PUB-06 and NEW-01–03 were missing from this catalogue (106 → 110).
 
 Catalog authoring is **WP-07**. WP-05 is Intake and was not started. WP-06 is catalog read (PUB/CAT-01–03). CAT-04 cost comparison landed under WP-08. Real-country catalog data is an owner task, not an agent task.
 
-Partial leftovers (3): CAT-07, SES-01, SET-06. Leftover `/alumni` and `alumni_profiles` are folded into mentorship (`0050`). Leftover `/visa` + `visa_checklists` and `/housing` + `housing_options` are folded into country guidance and sourced accommodations (`0054`); leftover tables kept for `rls_p0`.
+Partial leftovers (3): CAT-07, SES-01, SET-06 leftover `/notifications`. Leftover `/alumni` and `alumni_profiles` are folded into mentorship (`0050`). Leftover `/visa` + `visa_checklists` and `/housing` + `housing_options` are folded into country guidance and sourced accommodations (`0054`); leftover tables kept for `rls_p0`. Leftover Appearance at `/settings` is now SET-01.
 
 Public discovery Written, unverified (9): PUB-01–06, CAT-01–03. Save is enabled on CAT-01–03 after Module 3; the 0–3 cap is enforced inside `commands.save_program_pair`. Personalized CAT-01 recommendations unlock after `module2_completed_at`.
 
@@ -300,7 +300,10 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 | `GET /admin/verifications`; `POST /admin/verifications/{id}/decision` | Written, unverified | plus assign/comment/escalate |
 | `POST /admin/guardian-verifications/{id}/decision` | Written, unverified | Same decide command |
 | `GET /admin/audit` | Written, unverified | |
-| leftover `GET /admin/overview`; `GET/POST /admin/users…`; `POST /admin/support/export|deletion` | Written, unverified | Support routes are Prompt 30 stubs |
+| leftover `GET /admin/overview`; `GET/POST /admin/users…`; `POST /admin/support/export|deletion|holds` | Written, unverified | Export builds a 24-hour subject-only package. Deletion suspends immediately and follows the 30-day hold-aware workflow. |
+| `POST /me/data-requests`; `GET /me/data-requests`; `GET/POST /me/data-requests/{id}` | Written, unverified | Member export/deletion. Delete requires confirm. |
+| leftover `POST /me/password`; `POST /me/sessions/revoke`; `POST /auth/phone/start`; `POST /auth/phone/verify`; `POST /support` | Written, unverified | Phone start needs Twilio Verify. Support accepts guests except protected safety. |
+| `GET /admin/analytics` | Written, unverified | Operations-scoped aggregates. No causal claim. |
 | leftover `POST /admin/catalog/ingestion`; `…/review`; `…/reject`; `…/import`; `…/publish`; university/program/scholarship/accommodation/source-facts upserts | Written, unverified | Command-layer catalog editorial. Not spec-named paths |
 | leftover `POST /cases/{caseId}/shortlist`; `DELETE …/shortlist/{savedId}`; `PATCH …/shortlist/{savedId}/flag`; `PUT …/assessment/{programId}` | Written, unverified | CAT-05/06 commands. Not spec-named paths |
 | leftover `POST /learning/progress`; `POST /learning/library/{id}/save`; `GET …/download`; `POST /admin/content`; `POST /admin/content/{id}/decision`; `POST /admin/content/lessons` | Written, unverified | LRN/ADM-15 commands. Not spec-named paths |
@@ -340,6 +343,7 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | `src/domain/learning/learning.test.ts` | Written, unverified | Unpublished hidden; progress persist/reset; video 90%/transcript vs reading mark-only; keyboard + captions; accredited copy rejected. Included in 219-pass unit run |
 | `src/domain/news/news.test.ts` | Written, unverified | Withdrawal hides from search; consent independence; counselor cannot publish; protected safety hidden; engagement uniqueness |
 | `src/domain/catalog/guidance.test.ts` | Written, unverified | Guidance locked before counseling/target; unlocks after both; source-traceability; quarterly reminder window; leftover housing/visa mapping |
+| `src/domain/privacy/privacy.test.ts` | Written, unverified | Export excludes others’ notes/safety; deletion order + holds + retained ledgers; OTP 5-attempt invalidate; protected safety hidden; small-cohort suppress / no conversion claim |
 
 CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
 
@@ -349,8 +353,8 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 |----|-------|--------|-------|
 | WP-00 | Repo, lint, tokens, CI skeleton + command architecture | Partial | Command layer applied remotely. `command_layer.test.sql` 22/22. App executor unproven: no `COMMANDS_DATABASE_URL`. CI job not run. |
 | WP-01 | Design system + application shell | Written, unverified | Tokens, role-grouped shell, `/design`, role-guard tests. 360px shell checked 24 Sep 2026 (dev `/design`, CDP 360×800, More drawer, no horizontal overflow). Production hide of `/design` is code-only (`notFound()`). Contrast not measured with a meter. |
-| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0055` on linked dev. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
-| WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–05, 08–10) | AUTH-10 `/mfa` written. AUTH-06 Deferred, AUTH-07 Removed |
+| WP-02 | Identity schema + RLS + seed | Partial | `0000`–`0056` on linked dev after this session’s push. `auth_identity` 14/14. `rls_p0` 72/74. Countries 234. First admin bootstrapped. AUTH walkthrough not run. |
+| WP-03 | AUTH-01 to AUTH-10 | Written, unverified (01–06, 08–10) | AUTH-06 `/verify-phone` written (Twilio Verify or honest unavailable). AUTH-07 Removed. Phone is optional and does not gate signup (D2). |
 | WP-04 | Student profile + academics + documents | Written, unverified | STU-02–05 and STU-07. Leftover test-prep/activities/documents folded and redirected. User prompt said WP-05; that package is Intake and was not started. |
 | WP-05 | Intake | Not started | |
 | WP-06 | Catalog read + search | Written, unverified | PUB-01–05 and CAT-01–03 public routes. Deterministic recommendation engine + unit tests. Sitemap/robots. Save now wired from WP-08 / CAT-06. No real catalog data. Not pushed. User STU-01/applications prompt said WP-06; this package was not reopened. |
@@ -362,7 +366,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-12 | Messaging + reports | Partial | Local tracker WP-12 is messaging. Spec team WP-12 Rewards is WP-23. `0045_messaging.sql` applied. MSG-01/02 written, unverified (no walkthrough). MSG-03 screen not built. MSG-04 actions only. |
 | WP-13 | Mentorship | Written, unverified | Local tracker WP-13 is mentorship. Spec team WP-13 Catalog enrichment is WP-26 (`0054`). `0050_mentorship` folds leftover alumni. MEN-01–07 + isolation/contribution/request tests. No walkthrough. Mentoring credits append only after ADM-10 + rewards worker (`0051`). |
 | WP-14 | Journey CMS | Not started | Local tracker WP-14 is Journey CMS. Spec team WP-14 Learning is WP-24. |
-| WP-15 | Admin + cases + audit + flags | Written, unverified | Local tracker WP-15 is admin ops. Spec team WP-15 News and stories is WP-25. ADM-01/02, people, audit, ADM-11 written. Prompt 30 stubs. ADM-13 not built. |
+| WP-15 | Admin + cases + audit + flags | Written, unverified | Local tracker WP-15 is admin ops. Spec team WP-15 News and stories is WP-25. ADM-01/02, people, audit, ADM-11/12 written. Support export/deletion now fulfill. ADM-13 not built. |
 | WP-16 | Parent access | Written, unverified | Local tracker WP-16 is parent access. Spec team WP-16 Journey and roadmap is WP-27. Schema applied. `parent_finance.test.sql` 6/12 fail. Screens not walked. |
 | WP-17 | Notifications + outbox worker | Not started | Outbox table may exist in migrations; worker is not built |
 | WP-18 | Billing | Deferred | Parked |
@@ -374,14 +378,15 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-24 | Learning | Written, unverified | Spec team WP-14. `0052_learning` applied. LRN-01–03 + ADM-15 written. SYNTHETIC catalog. Screens not walked. |
 | WP-25 | News and stories | Written, unverified | Spec team WP-15. `0053_news` applied. NEW-01–03, PUB-06, ADM-11 written. SYNTHETIC editorial only. Withdrawal hides from feed/search/wall. Consent independence tested. JRN-03 milestone timeline is WP-27. No walkthrough. |
 | WP-26 | Catalog enrichment | Written, unverified | Spec team WP-13. `0054_catalog_enrichment` applied. ADM-09 + JRN-02 editorial visa/work guidance gated on counseling + saved target. Housing folded into sourced accommodations. Quarterly reminders + source-revision trace. Imports never auto-publish. No walkthrough. |
-| WP-27 | Journey and roadmap | Written, unverified | Spec team WP-16. `0055_journey_roadmap` applied. JRN-01/JRN-03 written. STU-01 feeds roadmap task count and private journey. UCAS vs Common App derivation, inconsistent-date flags, and consent independence tested. Unit 229 pass / 2 skip. Screens not walked. |
+| WP-27 | Journey and roadmap | Written, unverified | Spec team WP-16. `0055_journey_roadmap` applied. JRN-01/JRN-03 written. STU-01 feeds roadmap task count and private journey. UCAS vs Common App derivation, inconsistent-date flags, and consent independence tested. Screens not walked. |
+| WP-28 | Privacy, settings and phone | Written, unverified | Spec SET-01/03/04/05, AUTH-06, ADM-12. `0056_privacy_settings` applied. Export excludes others’ notes. Deletion 30-day + holds. Protected safety hidden. Phone OTP not MFA. SET-02 not started. Unit 234 pass / 2 skip. Screens not walked. |
 
 ## Known gaps (do not mark these Done)
 
 - Linked **dev** exists. Dedicated **test** project and GitHub `supabase-pgtap` secrets do not.
 - `supabase test db` still wants Docker. Current pgTAP evidence is `db query --linked`, not `pg_prove`.
 - `.env.local` is missing `SUPABASE_DB_URL` and `COMMANDS_DATABASE_URL`. `gsc_api_executor` is still `NOLOGIN` until the owner sets a password.
-- `npm run build` passed 25 Sep 2026 (142 pages after JRN-01/JRN-03). Screens not walked.
+- `npm run build` passed 25 Sep 2026 (154 pages after SET-01/03/04/05, AUTH-06, ADM-12). Screens not walked.
 - Learning catalog is SYNTHETIC editorial text. Owner must supply reviewed launch content per Module 11 category and confirm video/music/font rights. No bundled media files.
 - News and success-story catalog is SYNTHETIC editorial text. JRN-03 private milestone timeline is written on `/journey`; `/stories/submit` still captures story text and independent consents.
 - Destination visa/work guidance has no real official-source catalog. Owner must supply reviewed country content. Do not invent visa fees or processing times.
@@ -393,6 +398,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 - GSC ID is allocated at signup (D2). Spec said allocate on approval.
 - Three auth API paths do not match spec §17.6 names.
 - Parked leftover pages still routable; hidden from nav only.
-- Prompt 30 export/deletion only write audit + outbox.
+- Twilio Verify service SID and credentials are not configured. AUTH-06 start returns DEPENDENCY_UNAVAILABLE until the owner adds them.
+- Privacy notices, retention periods (30/90/365 and related proposals), and cross-border transfers (UAE PDPL / GDPR) still need legal review. Controller contact and subprocessors stay “Not provided”.
 - SES-06/07/08: sandbox Daily is the default. Owner must set `DAILY_API_KEY`. Recording/AI stay off. SES-01–05 booking/matching are not built.
 - AUTH walkthrough, Resend mail, Site URL allow-list, and contact-encryption e2e are not proven.

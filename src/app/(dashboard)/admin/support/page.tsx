@@ -10,7 +10,7 @@ export default function AdminSupportPage() {
   return (
     <AdminChrome
       title="Support actions"
-      description="Prompt 30 stubs: export and deletion requests are recorded now and fulfilled later."
+      description="Export builds a 24-hour subject-only package. Deletion suspends access and follows the 30-day hold-aware workflow."
     >
       <SupportActions />
     </AdminChrome>

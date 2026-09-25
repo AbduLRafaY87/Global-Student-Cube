@@ -71,6 +71,19 @@ export async function resolveRequestContext(
   };
 }
 
+export async function resolveOptionalContext(
+  requestId = newRequestId(),
+): Promise<RequestContext | GuestContext> {
+  try {
+    return await resolveRequestContext(requestId);
+  } catch (error) {
+    if (error instanceof CommandError && error.code === "AUTH_REQUIRED") {
+      return guestContext(requestId);
+    }
+    throw error;
+  }
+}
+
 export function actorContext(
   accountId: string,
   requestId = newRequestId(),

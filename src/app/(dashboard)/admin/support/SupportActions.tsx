@@ -8,6 +8,7 @@ import { useState } from "react";
 export function SupportActions() {
   const [accountId, setAccountId] = useState("");
   const [reason, setReason] = useState("");
+  const [reviewAt, setReviewAt] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -17,7 +18,11 @@ export function SupportActions() {
     setBusy(false);
     setMessage(
       result.ok
-        ? "Queued as a Prompt 30 stub. The export or deletion workflow is not complete."
+        ? path.includes("hold")
+          ? "Legal hold recorded. Deletion stays restricted until release."
+          : path.includes("export")
+            ? "Export package is ready for 24 hours."
+            : "Deletion started. Access is suspended."
         : result.message,
     );
   }
@@ -28,8 +33,8 @@ export function SupportActions() {
       onSubmit={(event) => event.preventDefault()}
     >
       <p className="text-sm text-text-muted">
-        These commands write audit and outbox rows only. Prompt 30 completes the
-        export package and the 30-day deletion workflow.
+        Export excludes other participants’ private notes and protected safety
+        evidence. Deletion keeps minimized ledger, audit and consent records.
       </p>
       <TextField
         id="support-account"
@@ -57,9 +62,36 @@ export function SupportActions() {
           loading={busy}
           onClick={() => void run("/api/v1/admin/support/deletion")}
         >
-          Queue deletion request
+          Start deletion request
         </Button>
       </div>
+      <TextField
+        id="support-review"
+        label="Hold review date"
+        type="date"
+        value={reviewAt}
+        onChange={(event) => setReviewAt(event.target.value)}
+      />
+      <Button
+        type="button"
+        variant="secondary"
+        loading={busy}
+        onClick={() =>
+          void postAdmin("/api/v1/admin/support/holds", {
+            accountId,
+            reason,
+            reviewAt,
+          }).then((result) => {
+            setMessage(
+              result.ok
+                ? "Legal hold recorded. Deletion stays restricted until release."
+                : result.message,
+            );
+          })
+        }
+      >
+        Place legal hold
+      </Button>
       {message ? (
         <p className="text-sm text-text" role="status">
           {message}
