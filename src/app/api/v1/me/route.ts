@@ -8,6 +8,7 @@ import {
 import { newRequestId } from "@/server/http/envelope";
 import { parseIfMatchVersion } from "@/server/http/headers";
 import { commandFailure, commandSuccess } from "@/server/http/respond";
+import { myAccountSettingsCommand } from "@/server/modules/privacy/commands";
 import { updateUserProfile } from "@/server/modules/identity/update-user-profile";
 
 const ALLOWED_KEYS = [
@@ -22,6 +23,17 @@ interface PatchMeBody {
   lastName?: unknown;
   phone?: unknown;
   onboardingCompleted?: unknown;
+}
+
+export async function GET() {
+  const requestId = newRequestId();
+  try {
+    const context = await resolveRequestContext(requestId);
+    const profile = await myAccountSettingsCommand(context);
+    return commandSuccess(profile, requestId);
+  } catch (error) {
+    return commandFailure(error, requestId);
+  }
 }
 
 export async function PATCH(request: Request) {

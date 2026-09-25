@@ -1,6 +1,6 @@
 # Implementation progress
 
-Last recomputed: 25 Sep 2026, from a linked remote **dev** project plus this session's command output. Historical local-Docker `supabase db reset` / `supabase test db` results (19 Sep 2026: 84/84) are **not** current evidence.
+Last recomputed: 25 Sep 2026 **from the spec index and the tree** (`docs/release/traceability.md`). Previous PROGRESS counts (110 screens, CAT-07 leftover, SES-01 leftover `/counselors`) were wrong. Historical local-Docker `supabase db reset` results are **not** current evidence. `supabase db reset` is forbidden; use `db push --linked`.
 
 Status vocabulary (use only these):
 
@@ -73,7 +73,7 @@ Linked CLI talks to hosted project `bogqhfsdzvnqxdbsylho` (ap-southeast-2). Migr
 |-------|--------|------|
 | `npm run lint` | 0 errors, 2 pre-existing unused-var warnings | 25 Sep 2026 |
 | `npx tsc --noEmit` | Covered by `next build` (passed) | 25 Sep 2026 |
-| `npm run test:unit` | 229 pass / 2 skip (concurrent races without `COMMANDS_DATABASE_URL`) | 25 Sep 2026 |
+| `npm run test:unit` | 257 pass / 3 skip (includes completeness inventory) | 25 Sep 2026 |
 | `npm run build` | Passed — 142 generated pages including JRN-01/JRN-03 routes | 25 Sep 2026 |
 | 360px shell | `/design` at 360×800; More opens Discover/Apply/Prepare/Decide/Support; `scrollWidth === 360` | 24 Sep 2026 |
 | `supabase db push --linked` | Applied through `0055_journey_roadmap` | 25 Sep 2026 |
@@ -178,11 +178,11 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | CAT-04 | Cost comparison and financial readiness | `/cases/:caseId/costs` | Written, unverified | Annual comparison ≠ total COA. FX stale after 72h. Readiness 120% with bar cap 100. User prompt said WP-05/06; WP-05 is Intake, WP-06 is catalog read |
 | CAT-05 | Program self-assessment | `/cases/:caseId/assessment/:programId` | Written, unverified | Disclaimer “Self-reported, not an admission probability.” No Mark all met. Domain 85/60, hard unmet, unknown mandatory. User prompt said WP-06; this is WP-08 |
 | CAT-06 | Saved shortlist and counselor-review flags | `/cases/:caseId/shortlist` | Written, unverified | Cap 3 locked on the case row + UNIQUE (case_id, slot). Flags only on saved rows. Remove clears the flag. Recommendations are not saved slots. User prompt said WP-06; this is WP-08 |
-| CAT-07 | Scholarship search | `/scholarships` | Partial | Leftover prototype now reads `leftover_scholarships`. Spec scholarships are unpublished/empty |
-| CAT-08 | Scholarship profile | — | Not started | |
-| SES-01 | Counselor search | `/counselors` | Partial | Leftover. User session prompt did not reopen matching. |
-| SES-02 | Counselor public profile | — | Not started | |
-| SES-03 | Book or reschedule | — | Not started | Booking UI not in this slice |
+| CAT-07 | Scholarship search | `/explore/scholarships` | Written, unverified | Public directory. Leftover `/scholarships` redirects here. Opened in Playwright 25 Sep 2026. |
+| CAT-08 | Scholarship profile | `/scholarships/[scholarshipId]` | Written, unverified | Page exists. Not opened (no published id). |
+| SES-01 | Counselor search | `/cases/:caseId/counselors` | Not started | No page. `GET /api/v1/counselors` returns an empty honest list. |
+| SES-02 | Counselor public profile | `/counselors/:counselorId` | Not started | No page. |
+| SES-03 | Book or reschedule | `/cases/:caseId/book/:expertId` | Not started | Domain 30/15/48 rules exist; booking UI does not. |
 | SES-04 | Appointment detail | `/sessions/:sessionId` | Written, unverified | Thin status page so lobby/live have a back target. Booking confirm/checklist from SES-04 still incomplete |
 | SES-05 | Cancel appointment | — | Not started | |
 | SES-06 | Session lobby and equipment check | `/sessions/:sessionId/lobby` | Written, unverified | Join from T-10m. Device check is not consent. Token only after authorize |
@@ -192,10 +192,14 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | SES-10 | Counseling feedback | `/sessions/:sessionId/feedback` | Written, unverified | Student five fields; counselor variant private. One per attended completed session |
 | SES-11 | Counselor change and handoff | `/cases/:caseId/change-counselor` | Written, unverified | Categories + 2–2000. Safety isolated. Duplicate pending reopened. Mid-session blocked |
 | SES-12 | Follow-up tasks and evidence | `/cases/:caseId/tasks/:taskId?` | Written, unverified | Folds leftover `/tasks`. Awaiting date. Extension history. Complete cancels reminders |
-| COU-01 | Counselor dashboard | `/counselor/home` | Written, unverified | Assigned caseload only. Leftover `/counselor` redirects here. MFA via `/counselor` prefix |
+| COU-01 | Counselor dashboard | `/counselor/home` | Written, unverified | Assigned caseload only. Leftover `/counselor` redirects here. MFA via `/counselor` prefix. Dead `/counselor/profile` and `/availability` links removed 25 Sep 2026. |
+| COU-02 | Counselor professional profile | `/counselor/profile` | Not started | No page. |
+| COU-03 | Company and affiliation details | — | Not started | No page. |
+| COU-04 | Availability and calendar connections | `/availability` | Not started | No page. |
 | COU-05 | Caseload and student case workbench | `/counselor/students/:caseId?` | Written, unverified | Grant-gated. Timeline of sessions/reports/tasks. No grant → nothing |
 | COU-06 | Session report editor and approval | `/counselor/sessions/:sessionId/report` | Written, unverified | Manual authoring always works. Regenerate queues an AI draft only when the feature is on; AI cannot auto-deliver. |
 | COU-07 | Private AI coaching and improvement | `/counselor/coaching/:sessionId?` | Written, unverified | Staff-only. No student/parent access. Expired transcript drops quotes. Acknowledge / flag inaccurate. Never in the student PDF. |
+| COU-08 | Counselor catalog contributions | — | Not started | No page. |
 | ESS-01–07 | Essays | `/essays` leftover page | Deferred | Parked; page exists, omitted from nav, must not be extended |
 | OFF-01–04 | Offers | `/offers` leftover page | Deferred | Parked; same rule |
 | MEN-01 | Mentor community and leaderboard | `/mentors` | Written, unverified | Verified contributions only. Leftover `/alumni` redirects here. |
@@ -239,7 +243,7 @@ UI primitives under `src/components/ui/` and `/design` exist. `/design` calls `n
 | JRN-02 | Destination visa and work guidance | `/cases/:caseId/visa` | Written, unverified | Editorial only. Unlocks after completed counseling + saved target. Leftover `/visa` redirects here. No visa-approval or fixed-processing claim. |
 | JRN-03 | Journey by stage | `/journey` | Written, unverified | Private milestones, chronology flags, self-reported label, private analytics, mentor transition after graduation. Story consents stay independent. Saving admission never publishes or notifies a mentor. |
 | SET-01 | More and account settings | `/settings` | Written, unverified | Identity, approved roles only, 56-high rows, logout to PUB-01. Replaces leftover Appearance at this route. |
-| SET-02 | Preferences | `/settings/preferences` | Not started | Not in the privacy/settings prompt |
+| SET-02 | Preferences | `/settings/preferences` | Not started | No page. Calendar OAuth and channel prefs not built. |
 | SET-03 | Privacy, consent and data rights | `/privacy` | Written, unverified | Public policy plus signed-in consent receipts, export, 30-day deletion, hold copy. Family access → PAR-02. |
 | SET-04 | Password, MFA and active sessions | `/settings/security` | Written, unverified | Password change, MFA link, revoke other sessions. Phone OTP is not login MFA. |
 | SET-05 | Help, issue reporting and protected safety intake | `/help/:requestId?` | Written, unverified | Public form. Safety requires auth and stays hidden from counselors. No invented support phone. |
@@ -253,23 +257,23 @@ Parked leftover pages (`/essays`, `/offers`, `/interviews`, `/billing`) are **De
 
 | Status | Count |
 |--------|-------|
-| Not started | 14 |
-| Partial (leftover prototype) | 6 |
-| Written, unverified | 67 |
+| Not started | 10 (SES-01/02/03/05, COU-02/03/04/08, ADM-13, SET-02) |
+| Partial | 2 (SES-04 thin, SET-06 leftover) |
+| Written, unverified | 84 |
 | Checked (no DB) | 0 (screens) |
 | Done | 0 |
-| Deferred | 22 (parked ESS-01–07, OFF-01–04, REC-01–03, INT-01–04, BIL-01–04) |
+| Deferred | 22 (parked ESS/OFF/REC/INT/BIL — outside the 97 spec IDs) |
 | Removed | 1 (AUTH-07) |
-| **Total spec screens** | **110** |
+| **Spec screen IDs (AUTH/PUB/STU/PAR/CAT/SES/MEN/COU/MSG/ADM/REW/LRN/NEW/JRN/SET)** | **97** |
 
-APP-01–05 were **not spec screen IDs** (absent from the spec and `docs/spec-index.md`). They were removed from this catalogue. The spec application-adjacent screen is **JRN-01** (selected-target application roadmap). Leftover `/applications` now reads `application_systems` → `application_groups` → `applications` (0032 backfill + 0042 workspace command). It is still not JRN-01. Previous totals (97 / 48 not started) included those five invented rows.
+ONB-01–06 and STU-08 remain listed above for history but are **not spec screen IDs** (`docs/spec-index.md`). They are excluded from the 97-count. APP-01–05 were already dropped. See `docs/release/traceability.md`.
 
 AUTH Written, unverified (9): AUTH-01, 02, 03, 04, 05, 06, 08, 09, 10.
 Admin Written, unverified (14): ADM-01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 14, 15. People (`/admin/users`), audit viewer (`/admin/audit`) and support export/deletion (`/admin/support`) are local WP-15 routes, not extra spec screen IDs. PUB-06 and NEW-01–03 were missing from this catalogue (106 → 110).
 
 Catalog authoring is **WP-07**. WP-05 is Intake and was not started. WP-06 is catalog read (PUB/CAT-01–03). CAT-04 cost comparison landed under WP-08. Real-country catalog data is an owner task, not an agent task.
 
-Partial leftovers (3): CAT-07, SES-01, SET-06 leftover `/notifications`. Leftover `/alumni` and `alumni_profiles` are folded into mentorship (`0050`). Leftover `/visa` + `visa_checklists` and `/housing` + `housing_options` are folded into country guidance and sourced accommodations (`0054`); leftover tables kept for `rls_p0`. Leftover Appearance at `/settings` is now SET-01.
+Partial leftovers now: SET-06 `/notifications` and thin SES-04. CAT-07/08 pages exist. SES-01 is Not started (no `/counselors` page). Leftover `/alumni` folded into mentorship. Leftover `/visa` and `/housing` folded into JRN-02 / CAT-02.
 
 Public discovery Written, unverified (9): PUB-01–06, CAT-01–03. Save is enabled on CAT-01–03 after Module 3; the 0–3 cap is enforced inside `commands.save_program_pair`. Personalized CAT-01 recommendations unlock after `module2_completed_at`.
 
@@ -285,11 +289,11 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 |--------------------|--------|------------------------|
 | `POST /auth/register` | Written, unverified | `/api/v1/auth/register` |
 | `POST /auth/login` | Written, unverified | `/api/v1/auth/login` |
-| `POST /auth/logout` | Not started | |
+| `POST /auth/logout` | Written, unverified | `/api/v1/auth/logout` added 25 Sep 2026. No live test. |
 | `POST /auth/password-reset` | Written, unverified | `/api/v1/auth/password-reset` |
 | `POST /auth/password-update` | Written, unverified | `/api/v1/auth/password-reset/confirm` (path ≠ spec) |
 | `POST /auth/email-verification` | Written, unverified | `/api/v1/auth/verify-email` (path ≠ spec) |
-| `GET /me` | Not started | |
+| `GET /me` | Written, unverified | `/api/v1/me` GET added 25 Sep 2026. Envelope. No live test. |
 | `PATCH /me` | Written, unverified | `/api/v1/me` updates leftover `user_profiles` (not the full spec identity DTO) |
 | leftover `POST/PATCH/DELETE /applications` | Written, unverified | Prototype 1:1 university rows. After 0032 each row belongs to a group. Retire this API when Prompt 17 ships. |
 | `POST /me/email-change` | Written, unverified | `/api/v1/auth/change-email` (path ≠ spec) |

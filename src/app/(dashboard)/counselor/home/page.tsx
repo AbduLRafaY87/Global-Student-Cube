@@ -1,6 +1,5 @@
 import { EmptyState, ErrorState, ForbiddenState } from "@/components/ui/States";
 import { loadCounselorHome } from "@/server/modules/counseling/load";
-import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -38,8 +37,8 @@ export default async function CounselorHomePage() {
           title="No assigned students"
           message="Review your professional profile or availability. This screen does not look up arbitrary students."
           action={
-            <Link className="text-primary underline-offset-2 hover:underline" href="/counselor/profile">
-              Review profile
+            <Link className="text-primary underline-offset-2 hover:underline" href="/help">
+              Request help
             </Link>
           }
         />
@@ -108,13 +107,10 @@ export default async function CounselorHomePage() {
         >
           Private coaching
         </Link>
-        <Link
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-control-border px-4"
-          href="/availability?role=counselor"
-        >
-          <CalendarDays className="size-5" aria-hidden />
-          Availability
-        </Link>
+        <p className="text-sm text-text-muted">
+          Professional profile, company affiliation and calendar availability
+          screens are not built yet (COU-02–04).
+        </p>
       </nav>
     </div>
   );
