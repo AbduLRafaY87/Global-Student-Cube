@@ -311,7 +311,9 @@ Base path `/api/v1`. Auth handlers now include MFA and invitation routes. The pr
 
 ## Automated test catalogue (spec §24.7)
 
-Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tests are not those IDs:
+Spec `T001`–`T116` are registered in `src/domain/catalogue/cases.ts` with per-group tables in `docs/release/test-evidence.md`. This session: unit **255 pass / 3 skip**; Playwright **35 pass / 4 role skips**; axe on 11 public routes; responsive 360/390/768/1280. Not Done: role credentials, AT checklist, `rls_p0` Partial, outbox worker (T110), vendor proving.
+
+Existing domain/pgTAP files that the catalogue maps to:
 
 | What exists | Status | Notes |
 |-------------|--------|-------|
@@ -348,7 +350,7 @@ Spec `T001`–`T080` remain **Not started** as named catalogue IDs. Existing tes
 | `src/domain/legacy/parked.test.ts` | Written, unverified | Parked paths off every sidebar. Every sidebar href maps to a `page.tsx`. |
 | `supabase/tests/authenticated_grants.test.sql` | Checked | `1..1` via `db query --linked` after `0058` |
 
-CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
+CI (`lint`, `typecheck`, `unit`, `test:selects`, `test:audit`, build, `test:secrets`, Playwright, `test:db` via `db query --linked`) is Written, unverified: workflow file exists; no successful GitHub run on this branch is claimed here.
 
 ## Work-package tracker
 
@@ -375,7 +377,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-18 | Billing | Deferred | Parked |
 | WP-19 | AI provider + essays | Partial | Session `AIProvider` (OpenAI adapter, sandbox fallback), safety wrap, retention worker written. Essays remain parked. |
 | WP-20 | Offers + interviews + rec letters | Deferred | Parked |
-| WP-21 | Observability + load + a11y audit | Not started | |
+| WP-21 | Observability + load + a11y audit | Partial | Public-route axe + responsive Playwright written. AT checklist not walked. Load test not run. |
 | WP-22 | Production launch | Not started | Blocked on owner: remote projects, keys, legal |
 | WP-23 | Rewards | Written, unverified | Spec team WP-12. `0051_rewards` applied. REW-01–04 + ADM-10 written, unverified. Gift cards behind `GSC_FEATURE_GIFT_CARDS`. Unit tests 207 pass / 2 skip. Concurrent DB race skips without `COMMANDS_DATABASE_URL`. No walkthrough. |
 | WP-24 | Learning | Written, unverified | Spec team WP-14. `0052_learning` applied. LRN-01–03 + ADM-15 written. SYNTHETIC catalog. Screens not walked. |
@@ -384,6 +386,7 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 | WP-27 | Journey and roadmap | Written, unverified | Spec team WP-16. `0055_journey_roadmap` applied. JRN-01/JRN-03 written. STU-01 feeds roadmap task count and private journey. UCAS vs Common App derivation, inconsistent-date flags, and consent independence tested. Screens not walked. |
 | WP-28 | Privacy, settings and phone | Written, unverified | Spec SET-01/03/04/05, AUTH-06, ADM-12. `0056_privacy_settings` applied. Export excludes others’ notes. Deletion 30-day + holds. Protected safety hidden. Phone OTP not MFA. SET-02 not started. Screens not walked. |
 | WP-29 | Legacy reconciliation | Written, unverified | `docs/legacy-reconciliation.md`. Parked modules behind `GSC_FEATURE_PARKED_MODULES`. Leftover write grants revoked in `0057`/`0058`. Notification mark-read/clear on commands. `authenticated_grants` allowlist empty. |
+| WP-30 | Release evidence (spec QA / T001–T116) | Written, unverified | `docs/release/test-evidence.md`. Catalogue registry + Playwright guest/a11y/responsive. Role e2e skipped without credentials. Not a production go-live. |
 
 ## Known gaps (do not mark these Done)
 
@@ -406,3 +409,4 @@ CI (`lint`, `typecheck`, `unit`) is Written, unverified: workflow file exists; n
 - Privacy notices, retention periods (30/90/365 and related proposals), and cross-border transfers (UAE PDPL / GDPR) still need legal review. Controller contact and subprocessors stay “Not provided”.
 - SES-06/07/08: sandbox Daily is the default. Owner must set `DAILY_API_KEY`. Recording/AI stay off. SES-01–05 booking/matching are not built.
 - AUTH walkthrough, Resend mail, Site URL allow-list, and contact-encryption e2e are not proven.
+- Release evidence (`docs/release/test-evidence.md`) is written. Role Playwright skips without `PLAYWRIGHT_*` credentials. AT checklist not walked. GitHub CI has not been observed green on this branch. T110 outbox worker still missing. Historical pgTAP fails above still block a production go-live.

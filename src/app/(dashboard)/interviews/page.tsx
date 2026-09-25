@@ -123,7 +123,8 @@ export default async function InterviewsPage({
   const { data: universityRows } = await supabase
     .from("universities")
     .select("id, name, country")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .limit(500);
 
   if (universityRows) {
     for (const row of universityRows) {

@@ -26,9 +26,9 @@ export default async function PreferencesPage({
   }
 
   const [{ data: taxonomy }, { data: countries }, { data: published }] = await Promise.all([
-    supabase.from("taxonomy_terms").select("id, kind, code, label, parent_id").eq("active", true),
-    supabase.from("countries").select("code, name").eq("supported", true).order("name"),
-    supabase.from("universities").select("country").eq("publication_state", "published"),
+    supabase.from("taxonomy_terms").select("id, kind, code, label, parent_id").eq("active", true).limit(500),
+    supabase.from("countries").select("code, name").eq("supported", true).order("name").limit(300),
+    supabase.from("universities").select("country").eq("publication_state", "published").limit(500),
   ]);
 
   const publishedCountries = new Set(

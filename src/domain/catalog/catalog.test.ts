@@ -4,6 +4,7 @@ import {
   canTransitionCatalogState,
   catalogPage,
   catalogPageLimit,
+  isExcludedPublicField,
   isPrivateCatalogField,
   isPublicUniversityField,
   publicCatalogFields,
@@ -40,6 +41,18 @@ describe("public catalog DTO", () => {
         name: "Published",
         counselor_remarks: "internal",
         application_url: "https://apply.example.invalid",
+      }),
+      { name: "Published" },
+    );
+  });
+
+  it("strips acceptance_rate so public DTOs never expose D5-removed fields (T061)", () => {
+    assert.equal(isExcludedPublicField("acceptance_rate"), true);
+    assert.equal(isPublicUniversityField("acceptance_rate"), false);
+    assert.deepEqual(
+      publicCatalogFields({
+        name: "Published",
+        acceptance_rate: 12,
       }),
       { name: "Published" },
     );

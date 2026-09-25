@@ -1,3 +1,4 @@
+import { CATALOG_FETCH_CAP } from "@/domain/catalog/catalog";
 import { createClient } from "@/lib/supabase/server";
 import {
   comparableAnnualSum,
@@ -254,7 +255,8 @@ export async function fetchPublishedUniversities(): Promise<PublicUniversity[]> 
     .select(
       "id, name, slug, aliases, country, city, type, website_url, virtual_tour_url, tour_video_url",
     )
-    .order("name");
+    .order("name")
+    .limit(CATALOG_FETCH_CAP);
   return (data ?? [])
     .map((row) => mapUniversity(row as Record<string, unknown>))
     .filter((row): row is PublicUniversity => row !== null);
@@ -267,7 +269,8 @@ export async function fetchPublishedPrograms(): Promise<PublicProgram[]> {
     .select(
       "id, university_id, name, level, field_id, discipline_ids, specialization_ids, duration_value, duration_unit, study_modes, general_url, accreditation, international_ratio, annual_tuition_amount, annual_tuition_currency, full_program_tuition_amount, full_program_tuition_currency",
     )
-    .order("name");
+    .order("name")
+    .limit(CATALOG_FETCH_CAP);
   return (data ?? [])
     .map((row) => mapProgram(row as Record<string, unknown>))
     .filter((row): row is PublicProgram => row !== null);
@@ -280,7 +283,8 @@ export async function fetchPublishedScholarships(): Promise<PublicScholarship[]>
     .select(
       "id, name, provider_name, official_url, provider_type, type, availability, country_codes, levels, field_ids, university_id, award_amount, award_currency, award_percent, award_basis, deadline_date, deadline_month, deadline_precision, eligibility_excerpt, verified_at, age_citizenship, coverage, duration, renewal_conditions, application_mode, application_fee, required_documents, contact, result_date",
     )
-    .order("name");
+    .order("name")
+    .limit(CATALOG_FETCH_CAP);
   return (data ?? [])
     .map((row) => mapScholarship(row as Record<string, unknown>))
     .filter((row): row is PublicScholarship => row !== null);
@@ -293,7 +297,8 @@ export async function fetchPublishedAccommodations(): Promise<PublicAccommodatio
     .select(
       "id, university_id, name, type, amount, currency, basis, meal_included_in_rent, price_source_type, latitude, longitude, address, included_costs",
     )
-    .order("name");
+    .order("name")
+    .limit(CATALOG_FETCH_CAP);
   const rows: PublicAccommodation[] = [];
   for (const raw of data ?? []) {
     const row = raw as Record<string, unknown>;
@@ -342,7 +347,8 @@ export async function fetchPublishedRankings(): Promise<PublicRanking[]> {
     .from("catalog_rankings_public")
     .select(
       "id, university_id, program_id, publisher, edition_year, subject, rank_representation, rank_min, rank_max",
-    );
+    )
+    .limit(CATALOG_FETCH_CAP);
   const rows: PublicRanking[] = [];
   for (const raw of data ?? []) {
     const row = raw as Record<string, unknown>;
@@ -375,7 +381,8 @@ export async function fetchPublishedIntakes(programId?: string): Promise<PublicI
     .from("catalog_program_intakes_public")
     .select(
       "id, program_id, intake_year, intake_month, deadline_date, deadline_month, deadline_precision",
-    );
+    )
+    .limit(CATALOG_FETCH_CAP);
   if (programId) {
     query = query.eq("program_id", programId);
   }
@@ -409,7 +416,8 @@ export async function fetchPublishedCriteria(programId: string): Promise<PublicC
     .from("catalog_entry_criteria_public")
     .select("id, program_id, criterion_key, kind, requirement, mandatory, weight, revision")
     .eq("program_id", programId)
-    .order("revision", { ascending: false });
+    .order("revision", { ascending: false })
+    .limit(CATALOG_FETCH_CAP);
   const rows: PublicCriterion[] = [];
   for (const raw of data ?? []) {
     const row = raw as Record<string, unknown>;
@@ -444,7 +452,8 @@ export async function fetchPublishedSources(
       "entity_type, entity_id, field_path, canonical_url, retrieved_at, source_type, verified_at, next_review_at",
     )
     .eq("entity_type", entityType)
-    .eq("entity_id", entityId);
+    .eq("entity_id", entityId)
+    .limit(CATALOG_FETCH_CAP);
   const rows: PublicSourceFact[] = [];
   for (const raw of data ?? []) {
     const row = raw as Record<string, unknown>;
@@ -556,9 +565,22 @@ export async function fetchCoverage(): Promise<{
   universityCount: number;
   countryCount: number;
 }> {
-  const universities = await fetchPublishedUniversities();
+  const supabase = await createClient();
+  const [{ count }, { data }] = await Promise.all([
+    supabase
+      .from("catalog_universities_public")
+      .select("id", { count: "exact", head: true }),
+    supabase
+      .from("catalog_universities_public")
+      .select("country")
+      .limit(CATALOG_FETCH_CAP),
+  ]);
   return {
-    universityCount: universities.length,
-    countryCount: new Set(universities.map((row) => row.country)).size,
+    universityCount: count ?? 0,
+    countryCount: new Set(
+      (data ?? []).flatMap((row) =>
+        typeof row.country === "string" && row.country ? [row.country] : [],
+      ),
+    ).size,
   };
 }

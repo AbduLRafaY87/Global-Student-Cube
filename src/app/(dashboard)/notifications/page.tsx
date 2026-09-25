@@ -54,7 +54,8 @@ export default async function NotificationsPage() {
       .select("id, user_id, title, message, is_read, link, created_at")
       .eq("user_id", user.id)
       .order("is_read", { ascending: true })
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(50);
 
     if (data) {
       for (const row of data) {

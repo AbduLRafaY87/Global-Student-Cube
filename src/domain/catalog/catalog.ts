@@ -20,6 +20,9 @@ export type CatalogEntityType = (typeof CATALOG_ENTITY_TYPES)[number];
 
 export const CATALOG_PAGE_DEFAULT = 20;
 export const CATALOG_PAGE_MAX = 50;
+/** Safety cap for catalog fetches that are not yet SQL-paginated. */
+export const CATALOG_FETCH_CAP = 500;
+export const EXCLUDED_PUBLIC_FIELDS = ["acceptance_rate"] as const;
 
 export const PUBLIC_UNIVERSITY_FIELDS = [
   "id",
@@ -106,13 +109,17 @@ export function isPrivateCatalogField(field: string): boolean {
   return (PRIVATE_CATALOG_FIELDS as readonly string[]).includes(field);
 }
 
+export function isExcludedPublicField(field: string): boolean {
+  return (EXCLUDED_PUBLIC_FIELDS as readonly string[]).includes(field);
+}
+
 export function publicCatalogFields(
   row: Record<string, unknown>,
 ): Record<string, unknown> {
   const next: Record<string, unknown> = {};
 
   for (const key of Object.keys(row)) {
-    if (isPrivateCatalogField(key)) {
+    if (isPrivateCatalogField(key) || isExcludedPublicField(key)) {
       continue;
     }
 

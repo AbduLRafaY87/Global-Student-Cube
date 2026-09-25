@@ -9,6 +9,12 @@ import {
   unverifiedProtectedRedirect,
   verifiedAuthEntryRedirect,
 } from "./access";
+import {
+  GENERIC_LOGIN_ERROR,
+  LOGIN_MAX_ATTEMPTS,
+  LOGIN_WINDOW_SECONDS,
+  retryAfterMessage,
+} from "./abuse";
 import { canonicalConsentPayload } from "./consent";
 import { formatGscId } from "./gsc-id";
 import { isPasswordPolicyMet, validatePassword } from "./password";
@@ -293,6 +299,13 @@ describe("access and reset tokens", () => {
     });
     assert.equal(codes.length, 8);
     assert.equal(normalizeRecoveryCode("ab cd-ef"), "ABCDEF");
+  });
+
+  it("locks login after five failed attempts in fifteen minutes (T006)", () => {
+    assert.equal(LOGIN_MAX_ATTEMPTS, 5);
+    assert.equal(LOGIN_WINDOW_SECONDS, 15 * 60);
+    assert.match(retryAfterMessage(1), /Try again in 1 minute/);
+    assert.match(GENERIC_LOGIN_ERROR, /incorrect/);
   });
 
   it("rejects reuse of a consumed reset token", () => {

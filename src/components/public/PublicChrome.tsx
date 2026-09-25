@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/ui/SkipLink";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -8,6 +9,7 @@ interface PublicChromeProps {
 export function PublicChrome({ children }: PublicChromeProps) {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
+      <SkipLink />
       <header className="border-b border-border bg-surface">
         <nav
           aria-label="Public"
@@ -50,7 +52,12 @@ export function PublicChrome({ children }: PublicChromeProps) {
           </div>
         </nav>
       </header>
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8">{children}</main>
+      <main
+        id="main-content"
+        className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8"
+      >
+        {children}
+      </main>
     </div>
   );
 }

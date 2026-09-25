@@ -7,7 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "tsc -p tsconfig.test.json && node scripts/run-unit-tests.mjs"
+    "test:unit": "tsc -p tsconfig.test.json && node scripts/run-unit-tests.mjs",
+    "test:catalogue": "npm run test:unit",
+    "test:selects": "node scripts/check-unbounded-selects.mjs",
+    "test:secrets": "node scripts/scan-client-secrets.mjs",
+    "test:db": "node scripts/run-db-tests.mjs",
+    "test:e2e": "playwright test",
+    "test:audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -21,6 +27,8 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",

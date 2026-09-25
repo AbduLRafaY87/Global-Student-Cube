@@ -173,14 +173,14 @@ export async function loadProfile(caseId: string, userId: string): Promise<Loade
     auditRes,
   ] = await Promise.all([
     supabase.from("academic_profiles").select("*").eq("case_id", caseId).maybeSingle(),
-    supabase.from("education_records").select("*").eq("case_id", caseId).order("created_at"),
-    supabase.from("test_results").select("*").eq("case_id", caseId).order("taken_on"),
-    supabase.from("country_preferences").select("*").eq("case_id", caseId).order("priority"),
-    supabase.from("student_activities").select("*").eq("case_id", caseId).order("ordinal"),
-    supabase.from("student_awards").select("*").eq("case_id", caseId),
-    supabase.from("relative_connections").select("*").eq("case_id", caseId),
-    supabase.from("files").select("*").eq("case_id", caseId).neq("state", "deleted").order("created_at"),
-    supabase.from("case_grants").select("scope").eq("case_id", caseId).eq("account_id", userId).is("revoked_at", null),
+    supabase.from("education_records").select("*").eq("case_id", caseId).order("created_at").limit(50),
+    supabase.from("test_results").select("*").eq("case_id", caseId).order("taken_on").limit(50),
+    supabase.from("country_preferences").select("*").eq("case_id", caseId).order("priority").limit(5),
+    supabase.from("student_activities").select("*").eq("case_id", caseId).order("ordinal").limit(10),
+    supabase.from("student_awards").select("*").eq("case_id", caseId).limit(50),
+    supabase.from("relative_connections").select("*").eq("case_id", caseId).limit(20),
+    supabase.from("files").select("*").eq("case_id", caseId).neq("state", "deleted").order("created_at").limit(50),
+    supabase.from("case_grants").select("scope").eq("case_id", caseId).eq("account_id", userId).is("revoked_at", null).limit(20),
     supabase
       .from("audit_events")
       .select("actor_id, occurred_at")

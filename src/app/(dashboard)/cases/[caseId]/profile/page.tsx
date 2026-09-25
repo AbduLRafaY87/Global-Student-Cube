@@ -34,7 +34,8 @@ export default async function ProfileReviewPage({
   const { data: published } = await supabase
     .from("universities")
     .select("country")
-    .eq("publication_state", "published");
+    .eq("publication_state", "published")
+    .limit(500);
   const supportedCountryCount = new Set(
     (published ?? []).map((row) => (typeof row.country === "string" ? row.country : "")),
   ).size;

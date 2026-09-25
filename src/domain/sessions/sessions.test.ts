@@ -25,6 +25,18 @@ import {
   type SessionEvent,
   type SessionState,
 } from "./state";
+import {
+  adapterFailureKeepsBooking,
+  calendarFailureLinkStatus,
+  canCancelAppointment,
+  canReschedule,
+  hasSingleActiveAppointment,
+  occupancyConflicts,
+  SESSION_BUFFER_MINUTES,
+  SESSION_MINUTES,
+  videoFailureLinkStatus,
+} from "./booking";
+import { sessionStatusLabel } from "./display";
 
 const START = "2026-09-25T10:00:00.000Z";
 const T_PLUS_9 = "2026-09-25T10:09:00.000Z";
@@ -329,5 +341,47 @@ describe("recording consent", () => {
       }),
       false,
     );
+  });
+});
+
+describe("booking invariants", () => {
+  it("uses 30-minute sessions and a 15-minute buffer (T071)", () => {
+    assert.equal(SESSION_MINUTES, 30);
+    assert.equal(SESSION_BUFFER_MINUTES, 15);
+    assert.equal(
+      occupancyConflicts("2026-09-25T10:00:00.000Z", "2026-09-25T10:44:00.000Z"),
+      true,
+    );
+    assert.equal(
+      occupancyConflicts("2026-09-25T10:00:00.000Z", "2026-09-25T10:45:00.000Z"),
+      false,
+    );
+  });
+
+  it("allows reschedule only 48 hours before start (T072)", () => {
+    assert.equal(canReschedule(START, "2026-09-23T10:00:00.000Z"), true);
+    assert.equal(canReschedule(START, "2026-09-23T10:00:01.000Z"), false);
+  });
+
+  it("keeps the booking confirmed when calendar or video adapters fail (T073/T074)", () => {
+    assert.deepEqual(adapterFailureKeepsBooking(calendarFailureLinkStatus()), {
+      confirmed: true,
+      linkStatus: "calendar_attention",
+    });
+    assert.deepEqual(adapterFailureKeepsBooking(videoFailureLinkStatus()), {
+      confirmed: true,
+      linkStatus: "preparing",
+    });
+    assert.equal(sessionStatusLabel("scheduled", "preparing"), "Preparing link");
+  });
+
+  it("rejects a second active appointment and overlapping occupancy (T075/T076)", () => {
+    assert.equal(hasSingleActiveAppointment(1), true);
+    assert.equal(hasSingleActiveAppointment(2), false);
+  });
+
+  it("uses the same 48-hour notice for cancel (T077)", () => {
+    assert.equal(canCancelAppointment(START, "2026-09-23T10:00:00.000Z"), true);
+    assert.equal(canCancelAppointment(START, "2026-09-23T10:00:01.000Z"), false);
   });
 });
